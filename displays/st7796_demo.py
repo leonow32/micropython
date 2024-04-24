@@ -173,12 +173,11 @@ def color(red, green, blue):
     color  = red | green1 | green2 | blue
     return color
     
-def lines_demo():
+def lines_demo(loops):
     from random import randrange
     
     x1 = 0
     y1 = 0
-    loops = 1000
     colors = [RED, YELLOW, GREEN, CYAN, BLUE, VIOLET]
     
     start_time = ticks_ms()
@@ -197,9 +196,8 @@ def lines_demo():
     print(f"Frame time: {frame_time} ms")
     print(f"Frame rate: {1000/frame_time} fps")
 
-def pixels_demo():
+def pixels_demo(loops):
     from random import randrange
-    loops = 100000
     colors = [RED, YELLOW, GREEN, CYAN, BLUE, VIOLET]
     
     start_time = ticks_ms()
@@ -278,8 +276,8 @@ refresh()
 time_end = ticks_ms()
 print(f"Refresh time: {time_end-time_start} ms")
 
-#lines_demo()
-pixels_demo()
+#lines_demo(200)
+pixels_demo(1000)
 #touch_demo()
 
 del buffer

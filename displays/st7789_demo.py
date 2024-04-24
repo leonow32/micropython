@@ -13,11 +13,12 @@ VIOLET = 0b000_11111_11111_000
 WHITE  = 0b111_11111_11111_111
 BLACK  = 0b000_00000_00000_000
 
-cs  = Pin(17, Pin.OUT, value=1)
-dc  = Pin(15, Pin.OUT, value=1)
-rst = Pin(16, Pin.OUT, value=1)
-led = Pin(5,  Pin.OUT, value=1)
-spi = SPI(2, baudrate=40_000_000, polarity=0, phase=0, sck=Pin(6), mosi=Pin(7), miso=Pin(4))
+cs  = Pin(38, Pin.OUT, value=1)
+dc  = Pin(39, Pin.OUT, value=1)
+rst = Pin( 0, Pin.OUT, value=1)
+spi = SPI(2, baudrate=80_000_000, polarity=0, phase=0, sck=Pin(47), mosi=Pin(45), miso=Pin(21)) # miso not used
+
+print(spi)
 
 buffer = bytearray(320*240*2)
 frame  = framebuf.FrameBuffer(buffer, 320, 240, framebuf.RGB565)
@@ -74,9 +75,14 @@ def init():
     write_data(0x86);               # --
 
     write_cmd(0x36);                # Memory Access Control
+#   write_data(0b00000000);         # MY=0 MX=0 MV=0 ML=0 MH=0 BGR=0
+    write_data(0b10000000);         # MY=1 MX=0 MV=0 ML=0 MH=0 BGR=0
+#   write_data(0b00000100);         # MY=0 MX=0 MV=0 ML=0 MH=0 BGR=1
 #   write_data(0b00100100);         # MY=0 MX=0 MV=1 ML=0 MH=1 BGR=0
-    write_data(0b00101100);         # MY=0 MX=0 MV=1 ML=0 MH=1 BGR=1
+#   write_data(0b00101100);         # MY=0 MX=0 MV=1 ML=0 MH=1 BGR=1
 
+    write_cmd(0x21);                # Display Inversion On
+    
     write_cmd(0x3A);                # Pixel Format Set
     write_data(0x55);
 
@@ -149,20 +155,6 @@ def pixels_demo(loops):
     print(f"Frame time: {frame_time} ms")
     print(f"Frame rate: {1000/frame_time} fps")
 
-def touch_demo():
-    from xpt2046_demo import init, read_x, read_y, is_pressed
-    from random import randrange
-    colors = [RED, YELLOW, GREEN, CYAN, BLUE, VIOLET]
-    
-    init(-175, 334500, -129, 254560)
-    
-    while True:
-        if is_pressed():
-            x = read_x()
-            y = read_y()
-            frame.pixel(x, y, colors[randrange(6)])
-            refresh()
-
 init()
 
 frame.fill(BLACK) # black
@@ -190,14 +182,14 @@ frame.fill(BLACK) # black
 # frame.rect(  0, 140,  20,   5, 0b0000000000000010, True)
 # frame.rect(  0, 150,  20,   5, 0b0000000000000001, True)
 
-frame.rect(  0,   0, 320,  30, RED,    True)
-frame.rect(  0,  30, 320,  30, YELLOW, True)
-frame.rect(  0,  60, 320,  30, GREEN,  True)
-frame.rect(  0,  90, 320,  30, CYAN,   True)
-frame.rect(  0, 120, 320,  30, BLUE,   True)
-frame.rect(  0, 150, 320,  30, VIOLET, True)
-frame.rect(  0, 180, 320,  30, BLACK,  True)
-frame.rect(  0, 210, 320,  30, WHITE,  True)
+# frame.rect(  0,   0, 320,  30, RED,    True)
+# frame.rect(  0,  30, 320,  30, YELLOW, True)
+# frame.rect(  0,  60, 320,  30, GREEN,  True)
+# frame.rect(  0,  90, 320,  30, CYAN,   True)
+# frame.rect(  0, 120, 320,  30, BLUE,   True)
+# frame.rect(  0, 150, 320,  30, VIOLET, True)
+# frame.rect(  0, 180, 320,  30, BLACK,  True)
+# frame.rect(  0, 210, 320,  30, WHITE,  True)
 
 # frame.text("1234567890", 50, 100, WHITE)
 
@@ -206,9 +198,8 @@ refresh()
 time_end = ticks_ms()
 print(f"Refresh time: {time_end-time_start} ms")
 
-# lines_demo(100)
-# pixels_demo(10000)
-# touch_demo()
+# lines_demo(1000)
+pixels_demo(10000)
 
 del buffer
 
