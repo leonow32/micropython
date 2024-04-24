@@ -182,14 +182,14 @@ frame.fill(BLACK) # black
 # frame.rect(  0, 140,  20,   5, 0b0000000000000010, True)
 # frame.rect(  0, 150,  20,   5, 0b0000000000000001, True)
 
-# frame.rect(  0,   0, 320,  30, RED,    True)
-# frame.rect(  0,  30, 320,  30, YELLOW, True)
-# frame.rect(  0,  60, 320,  30, GREEN,  True)
-# frame.rect(  0,  90, 320,  30, CYAN,   True)
-# frame.rect(  0, 120, 320,  30, BLUE,   True)
-# frame.rect(  0, 150, 320,  30, VIOLET, True)
-# frame.rect(  0, 180, 320,  30, BLACK,  True)
-# frame.rect(  0, 210, 320,  30, WHITE,  True)
+frame.rect(  0,   0, 320,  30, RED,    True)
+frame.rect(  0,  30, 320,  30, YELLOW, True)
+frame.rect(  0,  60, 320,  30, GREEN,  True)
+frame.rect(  0,  90, 320,  30, CYAN,   True)
+frame.rect(  0, 120, 320,  30, BLUE,   True)
+frame.rect(  0, 150, 320,  30, VIOLET, True)
+frame.rect(  0, 180, 320,  30, BLACK,  True)
+frame.rect(  0, 210, 320,  30, WHITE,  True)
 
 # frame.text("1234567890", 50, 100, WHITE)
 
@@ -199,7 +199,7 @@ time_end = ticks_ms()
 print(f"Refresh time: {time_end-time_start} ms")
 
 # lines_demo(1000)
-pixels_demo(10000)
+# pixels_demo(10000)
 
 del buffer
 
