@@ -172,6 +172,37 @@ def color(red, green, blue):
     blue   = (blue & 0xF8) << 5
     color  = red | green1 | green2 | blue
     return color
+
+def rgb_demo():
+    #           x1,  y1,    w,   h, color
+    frame.rect(  0,   0,  100,   8, 0b1000000000000000, True)
+    frame.rect(  0,  10,  100,   8, 0b0100000000000000, True)
+    frame.rect(  0,  20,  100,   8, 0b0010000000000000, True)
+    frame.rect(  0,  30,  100,   8, 0b0001000000000000, True)
+    frame.rect(  0,  40,  100,   8, 0b0000100000000000, True)
+    frame.rect(  0,  50,  100,   8, 0b0000010000000000, True)
+    frame.rect(  0,  60,  100,   8, 0b0000001000000000, True)
+    frame.rect(  0,  70,  100,   8, 0b0000000100000000, True)
+    frame.rect(  0,  80,  100,   8, 0b0000000010000000, True)
+    frame.rect(  0,  90,  100,   8, 0b0000000001000000, True)
+    frame.rect(  0, 100,  100,   8, 0b0000000000100000, True)
+    frame.rect(  0, 110,  100,   8, 0b0000000000010000, True)
+    frame.rect(  0, 120,  100,   8, 0b0000000000001000, True)
+    frame.rect(  0, 130,  100,   8, 0b0000000000000100, True)
+    frame.rect(  0, 140,  100,   8, 0b0000000000000010, True)
+    frame.rect(  0, 150,  100,   8, 0b0000000000000001, True)
+    refresh()
+
+def rainbow_demo():
+    frame.rect(  0,   0, 480,  40, RED,    True)
+    frame.rect(  0,  40, 480,  40, YELLOW, True)
+    frame.rect(  0,  80, 480,  40, GREEN,  True)
+    frame.rect(  0, 120, 480,  40, CYAN,   True)
+    frame.rect(  0, 160, 480,  40, BLUE,   True)
+    frame.rect(  0, 200, 480,  40, VIOLET, True)
+    frame.rect(  0, 240, 480,  40, BLACK,  True)
+    frame.rect(  0, 280, 480,  40, WHITE,  True)
+    refresh()
     
 def lines_demo(loops):
     from random import randrange
@@ -229,40 +260,7 @@ def touch_demo():
             refresh()
 
 init()
-
-# frame.fill(BLACK) # black
-# frame.fill(color(000, 000, 000)) # black
-# frame.fill(color(255, 000, 000)) # red
-# frame.fill(color(255, 255, 000)) # yellow
-# frame.fill(color(000, 255, 000)) # green
-# frame.fill(color(000, 000, 255)) # blue
-
-#           x1,  y1,    w,   h, color
-# frame.rect(  0,   0,  100,   8, 0b1000000000000000, True)
-# frame.rect(  0,  10,  100,   8, 0b0100000000000000, True)
-# frame.rect(  0,  20,  100,   8, 0b0010000000000000, True)
-# frame.rect(  0,  30,  100,   8, 0b0001000000000000, True)
-# frame.rect(  0,  40,  100,   8, 0b0000100000000000, True)
-# frame.rect(  0,  50,  100,   8, 0b0000010000000000, True)
-# frame.rect(  0,  60,  100,   8, 0b0000001000000000, True)
-# frame.rect(  0,  70,  100,   8, 0b0000000100000000, True)
-# frame.rect(  0,  80,  100,   8, 0b0000000010000000, True)
-# frame.rect(  0,  90,  100,   8, 0b0000000001000000, True)
-# frame.rect(  0, 100,  100,   8, 0b0000000000100000, True)
-# frame.rect(  0, 110,  100,   8, 0b0000000000010000, True)
-# frame.rect(  0, 120,  100,   8, 0b0000000000001000, True)
-# frame.rect(  0, 130,  100,   8, 0b0000000000000100, True)
-# frame.rect(  0, 140,  100,   8, 0b0000000000000010, True)
-# frame.rect(  0, 150,  100,   8, 0b0000000000000001, True)
-
-# frame.rect(  0,   0, 480,  40, RED,    True)
-# frame.rect(  0,  40, 480,  40, YELLOW, True)
-# frame.rect(  0,  80, 480,  40, GREEN,  True)
-# frame.rect(  0, 120, 480,  40, CYAN,   True)
-# frame.rect(  0, 160, 480,  40, BLUE,   True)
-# frame.rect(  0, 200, 480,  40, VIOLET, True)
-# frame.rect(  0, 240, 480,  40, BLACK,  True)
-# frame.rect(  0, 280, 480,  40, WHITE,  True)
+frame.fill(BLACK)
 
 frame.pixel(20, 20, WHITE)
 frame.pixel(460, 20, YELLOW)
@@ -276,8 +274,10 @@ refresh()
 time_end = ticks_ms()
 print(f"Refresh time: {time_end-time_start} ms")
 
-#lines_demo(200)
-pixels_demo(1000)
+#rgb_demo()
+rainbow_demo()
+#lines_demo(10000)
+#pixels_demo(10000)
 #touch_demo()
 
 del buffer
