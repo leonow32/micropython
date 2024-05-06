@@ -1,8 +1,11 @@
 from machine import Pin, SPI
 from time import sleep_ms
 from gc import mem_free, mem_alloc, collect
-from time import ticks_ms
+from time import ticks_ms, ticks_us
 import framebuf
+
+WIDTH  = 480
+HEIGHT = 320
 
 RED    = 0b000_00000_11111_000
 YELLOW = 0b111_00000_11111_111
@@ -166,6 +169,17 @@ def ram():
     print(f"Used: {gc.mem_alloc()}")
 
 def color(red, green, blue):
+    red = int(red)
+    green = int(green)
+    blue = int(blue)
+    
+    if red > 255:
+        red = 255
+    if green > 255:
+        green = 255
+    if blue > 255:
+        blue = 255
+    
     red    = red & 0xF8
     green1 = (green & 0xE0) >> 5
     green2 = (green & 0x1C) << 11
@@ -203,7 +217,53 @@ def rainbow_demo():
     frame.rect(  0, 240, 480,  40, BLACK,  True)
     frame.rect(  0, 280, 480,  40, WHITE,  True)
     refresh()
+
+def rainbow2_demo():
+    start_time = ticks_us()
     
+    column = 0
+    step = 256 / (WIDTH / 5)
+    
+    # Red -> Yellow
+    temp = 0
+    for i in range(WIDTH / 5):
+        frame.vline(column, 0, HEIGHT, color(255, temp, 0))
+        temp += step
+        column += 1
+    
+    # Yellow -> Green
+    temp = 256
+    for i in range(WIDTH / 5):
+        frame.vline(column, 0, HEIGHT, color(temp, 255, 0))
+        temp -= step
+        column += 1
+    
+    # Green -> Cyan
+    temp = 0
+    for i in range(WIDTH / 5):
+        frame.vline(column, 0, HEIGHT, color(0, 255, temp))
+        temp += step
+        column += 1
+    
+    # Cyan -> Blue
+    temp = 256
+    for i in range(WIDTH / 5):
+        frame.vline(column, 0, HEIGHT, color(0, temp, 255))
+        temp -= step
+        column += 1
+    
+    # Blue -> Magenta
+    temp = 0
+    for i in range(WIDTH / 5):
+        frame.vline(column, 0, HEIGHT, color(temp, 0, 255))
+        temp += step
+        column += 1
+    
+    work_time = (ticks_us() - start_time) / 1000
+    print(f"Time: {work_time} ms")
+    
+    refresh()
+
 def lines_demo(loops):
     from random import randrange
     
@@ -275,7 +335,8 @@ time_end = ticks_ms()
 print(f"Refresh time: {time_end-time_start} ms")
 
 #rgb_demo()
-rainbow_demo()
+#rainbow_demo()
+rainbow2_demo()
 #lines_demo(100000)
 #pixels_demo(10000)
 #touch_demo()

@@ -1,8 +1,11 @@
 from machine import Pin, SPI
 from time import sleep_ms
 from gc import mem_free, mem_alloc, collect
-from time import ticks_ms
+from time import ticks_ms, ticks_us
 import framebuf
+
+WIDTH  = 320
+HEIGHT = 240
 
 RED    = 0b000_00000_11111_000
 YELLOW = 0b111_00000_11111_111
@@ -19,8 +22,8 @@ rst = Pin(16, Pin.OUT, value=1)
 led = Pin(5,  Pin.OUT, value=1)
 spi = SPI(2, baudrate=40_000_000, polarity=0, phase=0, sck=Pin(6), mosi=Pin(7), miso=Pin(4))
 
-buffer = bytearray(320*240*2)
-frame  = framebuf.FrameBuffer(buffer, 320, 240, framebuf.RGB565)
+buffer = bytearray(WIDTH * HEIGHT * 2)
+frame  = framebuf.FrameBuffer(buffer, WIDTH, HEIGHT, framebuf.RGB565)
 
 def refresh():
     cs(0)
@@ -101,6 +104,17 @@ def ram():
     print(f"Used: {gc.mem_alloc()}")
 
 def color(red, green, blue):
+    red = int(red)
+    green = int(green)
+    blue = int(blue)
+    
+    if red > 255:
+        red = 255
+    if green > 255:
+        green = 255
+    if blue > 255:
+        blue = 255
+    
     red    = red & 0xF8
     green1 = (green & 0xE0) >> 5
     green2 = (green & 0x1C) << 11
@@ -137,6 +151,52 @@ def rainbow_demo():
     frame.rect(  0, 150, 320,  30, VIOLET, True)
     frame.rect(  0, 180, 320,  30, BLACK,  True)
     frame.rect(  0, 210, 320,  30, WHITE,  True)
+    refresh()
+
+def rainbow2_demo():
+    start_time = ticks_us()
+    
+    column = 0
+    step = 256 / (WIDTH / 5)
+    
+    # Red -> Yellow
+    temp = 0
+    for i in range(WIDTH / 5):
+        frame.vline(column, 0, HEIGHT, color(255, temp, 0))
+        temp += step
+        column += 1
+    
+    # Yellow -> Green
+    temp = 256
+    for i in range(WIDTH / 5):
+        frame.vline(column, 0, HEIGHT, color(temp, 255, 0))
+        temp -= step
+        column += 1
+    
+    # Green -> Cyan
+    temp = 0
+    for i in range(WIDTH / 5):
+        frame.vline(column, 0, HEIGHT, color(0, 255, temp))
+        temp += step
+        column += 1
+    
+    # Cyan -> Blue
+    temp = 256
+    for i in range(WIDTH / 5):
+        frame.vline(column, 0, HEIGHT, color(0, temp, 255))
+        temp -= step
+        column += 1
+    
+    # Blue -> Magenta
+    temp = 0
+    for i in range(WIDTH / 5):
+        frame.vline(column, 0, HEIGHT, color(temp, 0, 255))
+        temp += step
+        column += 1
+    
+    work_time = (ticks_us() - start_time) / 1000
+    print(f"Time: {work_time} ms")
+    
     refresh()
 
 def lines_demo(loops):
@@ -205,7 +265,8 @@ time_end = ticks_ms()
 print(f"Refresh time: {time_end-time_start} ms")
 
 #rgb_demo()
-rainbow_demo()
+#rainbow_demo()
+rainbow2_demo()
 # lines_demo(100)
 # pixels_demo(10000)
 # touch_demo()
