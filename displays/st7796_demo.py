@@ -275,8 +275,8 @@ time_end = ticks_ms()
 print(f"Refresh time: {time_end-time_start} ms")
 
 #rgb_demo()
-#rainbow_demo()
-lines_demo(100000)
+rainbow_demo()
+#lines_demo(100000)
 #pixels_demo(10000)
 #touch_demo()
 

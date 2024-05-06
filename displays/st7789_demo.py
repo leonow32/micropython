@@ -196,10 +196,10 @@ refresh()
 time_end = ticks_ms()
 print(f"Refresh time: {time_end-time_start} ms")
 
-# rgb_demo()
-# rainbow_demo()
+#rgb_demo()
+rainbow_demo()
 #lines_demo(100000)
-pixels_demo(100000)
+#pixels_demo(100000)
 
 del buffer
 
