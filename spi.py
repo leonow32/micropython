@@ -1,10 +1,11 @@
 from machine import Pin, SPI
-spi = SPI(1, baudrate=10000, polarity=1, phase=1, sck=Pin(14), mosi=Pin(13), miso=Pin(12))
+spi = SPI(1, baudrate=10000, polarity=0, phase=0, sck=Pin(6), mosi=Pin(7), miso=Pin(4))
 print(spi)
-cs = Pin(5, Pin.OUT)
+cs = Pin(17, Pin.OUT)
 
 # Signature
-buf = bytearray(b'\xAB\x01\xFF\x00')
+# buf = bytearray(b'\xAB\x01\xFF\x00')
+buf = bytearray(b'\x00\x00\x00\x00')
 out = bytearray(4)
 
 # Status register
