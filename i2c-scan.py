@@ -10,7 +10,7 @@ library = {
     0x20: "XL9535   GPIO Port",
     0x21: "SDP31    Air Pressure Sensor",
     0x32: "ZMOD4410 TVOC Sensor",
-    0x38: "AHT20    Temperature & Humidity Sensor",
+    0x38: "AHT20    Temperature & Humidity Sensor / FT6336 Touch Panel",
     0x39: "APDS9960 Gesture Sensor / VCNL4020 Light Sensor",
     0x3C: "SSD1309 / SH1106 OLED Display",
     0x43: "ENS210   Temperature & Humidity Sensor",
