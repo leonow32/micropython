@@ -4,6 +4,7 @@ from time import sleep_ms
 #i2c = I2C(0, scl=Pin(19), sda=Pin(18), freq=100000)
 #i2c = I2C(0, scl=Pin(22), sda=Pin(21), freq=100000)
 i2c = I2C(0, scl=Pin(25), sda=Pin(26), freq=100000)          # FPFA User Interface Board
+#i2c = I2C(0, scl=Pin(41), sda=Pin(40), freq=100000)     # Titan2 proto ESP32-S3
 devices = i2c.scan()
 
 library = {
@@ -11,7 +12,7 @@ library = {
     0x20: "XL9535   GPIO Port",
     0x21: "SDP31    Air Pressure Sensor",
     0x32: "ZMOD4410 TVOC Sensor",
-    0x38: "AHT20    Temperature & Humidity Sensor",
+    0x38: "AHT20    Temperature & Humidity Sensor / FT6336 Touch Panel",
     0x39: "APDS9960 Gesture Sensor / VCNL4020 Light Sensor",
     0x3C: "SSD1309 / SH1106 OLED Display",
     0x43: "ENS210   Temperature & Humidity Sensor",
