@@ -2,17 +2,19 @@ from framebuf import *
 from time import sleep_ms, ticks_ms
 from machine import Pin, SPI
 
+cs = Pin(5, Pin.OUT)
+dc = Pin(21, Pin.OUT, value=1)
 spi = SPI(2, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(18), mosi=Pin(23), miso=Pin(19))
 print(spi)
 
-cs = Pin(5, Pin.OUT)
-dc = Pin(21, Pin.OUT, value=1)
+WIDTH  = 128
+HEIGHT = 96
 
-# WIDTH  = 128
-# HEIGHT = 96
+# WIDTH  = 160
+# HEIGHT = 120
 
-WIDTH  = 160
-HEIGHT = 120
+# WIDTH  = 214
+# HEIGHT = 160
 
 array  = bytearray(WIDTH * HEIGHT // 8)
 buffer = FrameBuffer(array, WIDTH, HEIGHT, MONO_VLSB)
@@ -64,7 +66,14 @@ def pixels_demo(loops):
     print(f"Frame time: {frame_time} ms")
     print(f"Frame rate: {1000/frame_time} fps")
     
-#lines_demo(100)
+def chess_demo():
+    for x in range(0, WIDTH * HEIGHT / 8, 2):
+        array[x]   = 0b01010101 
+        array[x+1] = 0b10101010
+        
+
+#lines_demo(20)
 pixels_demo(100000)
+#chess_demo()
 transmit()
 

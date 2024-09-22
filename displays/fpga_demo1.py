@@ -1,17 +1,19 @@
 from framebuf import *
 from machine import Pin, SPI
 
-spi = SPI(2, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(18), mosi=Pin(23), miso=Pin(19))
-print(spi)
-
 cs = Pin(5, Pin.OUT)
 dc = Pin(21, Pin.OUT, value=1)
+spi = SPI(2, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(18), mosi=Pin(23), miso=Pin(19))
+print(spi)
 
 WIDTH  = 128
 HEIGHT = 96
 
 # WIDTH  = 160
 # HEIGHT = 120
+
+# WIDTH  = 214
+# HEIGHT = 160
 
 array  = bytearray(WIDTH * HEIGHT // 8)
 buffer = FrameBuffer(array, WIDTH, HEIGHT, MONO_VLSB)
@@ -32,8 +34,8 @@ def transmit():
     cs(1)
 
 def demo():
-    buffer.text('Elektronika', 0, 0, 1)
-    buffer.text('Praktyczna', 49, 8, 1)
+    buffer.text('Elektronika', 0, 1, 1)
+    buffer.text('Praktyczna', 48, 9, 1)
 
     buffer.rect(28, 22, 76, 11, 1)
     buffer.text('Kurs FPGA', 30, 24, 1)

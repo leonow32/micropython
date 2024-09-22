@@ -1,0 +1,113 @@
+<html>
+	<head>
+		<script>   
+			var AjaxRequest = new XMLHttpRequest();
+			
+			function AjaxLoad(ajaxURL) {
+				AjaxRequest.open('GET',ajaxURL,true);
+				AjaxRequest.onreadystatechange = function() {
+					if(AjaxRequest.readyState == 4 && AjaxRequest.status == 200) {
+						var ajaxResult = AjaxRequest.responseText;
+						var tmpArray = ajaxResult.split("|");
+						document.getElementById('status').innerHTML = tmpArray[0];
+						document.getElementById('ip').innerHTML     = tmpArray[1];
+						document.getElementById('rssi').innerHTML   = tmpArray[2];
+					}  
+				}  
+				AjaxRequest.send();  
+			}  
+			
+			function update_data() {   
+				AjaxLoad('get_status');   
+			}  
+			
+			setInterval(update_data, 1000);
+		</script>
+		<title>Socket GEN4 configuration</title>
+		<link rel="stylesheet" href="style.css">
+	</head>
+	<body>
+		<h1>Socket GEN4 HV2</h1>
+		
+		<form method="get">
+			<div class="container">
+				<h2>WIFI Mode:</h2>
+				<div class="selection">
+					<label>
+						<input type="radio" name="mode" value="sta" CCC />
+						Station + Access Point
+					</label>
+					
+					<label>
+						<input type="radio" name="mode" value="ap" DDD />
+						Access Point only
+					</label>
+				</div>
+			</div>
+			
+			<div class="container">
+				<h2>Network SSID:</h2>
+				<div>
+					<input type="text" name="ssid" value="AAA" />
+				</div>
+			</div>
+			
+			<div class="container">
+				<h2>Network password:</h2>
+				<div>
+					<input type="text" name="password" value="BBB" />
+				</div>
+			</div>
+			
+			<div class="container">
+				<a href="index.html" class="button">
+					Return
+				</a>
+			
+				<button type="submit">
+					Save
+				</button>
+			</div>
+			
+			<div class="container">
+				<div class="box">
+					<h2>
+						Status
+					</h2>
+					
+					<h3 id="status">
+						EEE
+					</h3>
+				</div>
+			</div>
+			
+			<div class="container">
+				<div class="box">
+					<h2>
+						IP Address
+					</h2>
+				
+					<h3 id="ip">
+						FFF
+					</h3>
+				</div>
+				
+				<div class="box">
+					<h2>
+						RSSI
+					</h2>
+				
+					<h3 id="rssi">
+						GGG
+					</h3>
+				</div>
+			</div>
+			
+			<div class="container">
+				<h2>
+					Connect to your WIFI network and type IP address in your browser to control this device!
+				</h2>
+			</div>
+		</form>
+	</body>
+</html>

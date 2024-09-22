@@ -1,0 +1,104 @@
+<html>
+	<head>
+		<script>   
+			var AjaxRequest = new XMLHttpRequest();
+			
+			function AjaxLoad(ajaxURL) {
+				AjaxRequest.open('GET',ajaxURL,true);
+				AjaxRequest.onreadystatechange = function() {
+					if(AjaxRequest.readyState == 4 && AjaxRequest.status == 200) {
+						var ajaxResult = AjaxRequest.responseText;
+						var tmpArray = ajaxResult.split("|");
+						document.getElementById('voltage').innerHTML           = tmpArray[0];
+						document.getElementById('current').innerHTML           = tmpArray[1];
+						document.getElementById('power').innerHTML             = tmpArray[2];
+						document.getElementById('temperature').innerHTML       = tmpArray[3];
+						document.getElementById('humidity').innerHTML          = tmpArray[4];
+						document.getElementById('relay_state').innerHTML       = tmpArray[5];
+						document.getElementById('relay_box').className         = tmpArray[6];
+						document.getElementById('temperature_aht20').innerHTML = tmpArray[7];
+						document.getElementById('humidity_aht20').innerHTML    = tmpArray[8];
+					}  
+				}  
+				AjaxRequest.send();  
+			}  
+			
+			function update_data() {   
+				AjaxLoad('get_data');   
+			}  
+			
+			setInterval(update_data, 1000);
+		</script>
+		<title>Socket GEN4 test page</title>
+		<link rel="stylesheet" href="style.css">
+	</head>
+	<body onload="update_data()">
+		<h1>Socket GEN4 HV3</h1>
+		
+		<div class="container">
+			<div class="box">
+				<h2>Voltage</h2>
+				<h3 id="voltage">AAA.A</h3>
+			</div>
+			<div class="box">
+				<h2>Current</h2>
+				<h3 id="current">B.BBB</h3>
+			</div>
+			<div class="box">
+				<h2>Power</h2>
+				<h3 id="power">CCCC</h3>
+			</div>
+		</div>
+
+		<div class="container">
+			<div class="box">
+				<h2>Temperature ENS210</h2>
+				<h3 id="temperature">DD.D</h3>
+			</div>
+			<div class="box">
+				<h2>Humidity ENS210</h2>
+				<h3 id="humidity">EE.E</h3>
+			</div>
+		</div>
+		
+		<div class="container">
+			<div class="box">
+				<h2>Temperature AHT20</h2>
+				<h3 id="temperature_aht20">HH.H</h3>
+			</div>
+			<div class="box">
+				<h2>Humidity AHT20</h2>
+				<h3 id="humidity_aht20">II.I</h3>
+			</div>
+		</div>
+		
+		<div class="container">
+			<div id="relay_box" class="GGGGGGG">
+				<h2>Relay state is</h2>
+				<h3 id="relay_state">FFF</h3>
+			</div>
+		</div>
+		
+		<form class="container">
+			<button type="submit" name="relay" value="on">
+				Relay ON
+			</button>
+			
+			<button type="submit" name="relay" value="off">
+				Relay OFF
+			</button>
+		</form>
+		
+		<div class="container">
+			<a href="config.html" class="button">
+				Configure
+			</a>	
+		</div>
+		
+		<p>
+			<a href="raw.txt">Raw data</a>
+			<br/><br/>
+			Version 231002
+		</p>
+	</body>
+</html>
