@@ -1,8 +1,8 @@
-from os import statvfs
-from gc import mem_free, mem_alloc
+import os
+import gc
 
 def disk_space():    
-    s = statvfs('/')
+    s = os.statvfs('/')
     block_size   = s[0]
     total_blocks = s[2]
     free_blocks  = s[3]
@@ -11,8 +11,8 @@ def disk_space():
     print(f'ROM: {used_rom} / {total_rom}')
 
 def ram_free():
-    total_ram = mem_alloc() + mem_free()
-    used_ram  = mem_alloc()
+    total_ram = gc.mem_alloc() + gc.mem_free()
+    used_ram  = gc.mem_alloc()
     print(f'RAM: {used_ram} / {total_ram}')
   
 disk_space()
