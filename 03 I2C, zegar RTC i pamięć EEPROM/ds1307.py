@@ -4,6 +4,19 @@ from machine import Pin, I2C
 i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=100000)
 ds1307_address = 0x68
 
+def dump():
+    buffer = bytearray(b'\x00')
+    
+    try:
+        i2c.writeto(ds1307_address, buffer)
+        buffer = i2c.readfrom(ds1307_address, 64)
+    except:
+        print("DS1307 communication error")
+        return None
+    
+    for i in range(64):
+        print(f"{buffer[i]:02X}", end="\n" if i%8==7 else " ")
+
 def read():
     buffer = bytearray(b'\x00')
     
@@ -85,6 +98,9 @@ def copy_time_from_rtc_to_system():
         print(f"time.localtime() = {time.localtime()}")
     else:
         print("Can't set system time from DS1307")
+
+if __name__ == "__main__":
+    dump()
 
 #read()
 
