@@ -263,7 +263,7 @@ class RtcDriveBlock:
 
         
 gc.collect()
-BlockSize = 128
+BlockSize = 128 # działa też 64
 
 # kasowanie
 machine.RTC().memory(bytes([0x00]*2048))
@@ -289,7 +289,7 @@ for i in range(BYTES_IN_FILE):
     #content_to_write += bytearray([i])   
     
     # instart multiple 'x' characters 
-    content_to_write += bytearray('x')  
+    content_to_write += bytearray(b'x')
 
 
 # Save as many files as possible
