@@ -21,7 +21,7 @@ def wifi_connect():
 def download_time():
     ntptime.settime()
 
-def print_local_time():
+def print_system_time():
     time_tuple = time.localtime()
     year    = time_tuple[0]
     month   = time_tuple[1]
@@ -29,12 +29,14 @@ def print_local_time():
     hours   = time_tuple[3]
     minutes = time_tuple[4]
     seconds = time_tuple[5]
-    print(f"{year}.{month:02}.{day:02} {hours:02}:{minutes:02}:{seconds:02}")
-    
+    weekday = time_tuple[6]
+    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    print(f"{year}.{month:02}.{day:02} {hours:02}:{minutes:02}:{seconds:02} {days[weekday]}")
+        
 if __name__ == "__main__":    
     print("Time before sync: ", end="")
-    print_local_time()
+    print_system_time()
     wifi_connect()
     download_time()
     print("Time after sync:  ", end="")
-    print_local_time()
+    print_system_time()
