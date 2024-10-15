@@ -1,3 +1,4 @@
+from gc import mem_free, mem_alloc
 print("WIFI Scanner")
 
 import network
@@ -23,3 +24,4 @@ for network in networks:
     print("")
     count = count + 1
 
+print(f'RAM used: {mem_alloc()}')

@@ -3,8 +3,9 @@ from time import sleep_ms
 
 #i2c = I2C(0, scl=Pin(19), sda=Pin(18), freq=100000)
 #i2c = I2C(0, scl=Pin(22), sda=Pin(21), freq=100000)
-i2c = I2C(0, scl=Pin(25), sda=Pin(26), freq=100000)          # FPFA User Interface Board
+#i2c = I2C(0, scl=Pin(25), sda=Pin(26), freq=100000)          # FPFA User Interface Board
 #i2c = I2C(0, scl=Pin(41), sda=Pin(40), freq=100000)     # Titan2 proto ESP32-S3
+i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=100000)          # ESP32-S3
 devices = i2c.scan()
 
 library = {
