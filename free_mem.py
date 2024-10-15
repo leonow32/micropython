@@ -15,5 +15,6 @@ def ram_free():
     used_ram  = mem_alloc()
     print(f'RAM: {used_ram} / {total_ram}')
   
-disk_space()
-ram_free()
+if __name__ == "__main__":
+    disk_space()
+    ram_free()
