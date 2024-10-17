@@ -79,7 +79,7 @@ def RamTest(BytesInFile):
     # Create dummy content to store in files
     content_to_write = bytearray()
     for i in range(BytesInFile):
-        content_to_write += bytearray('x')   # lub bytearray([i])
+        content_to_write += bytearray(b'x')   # lub bytearray([i])
 
     # Save as many files as possible
     #print("===== MULTIPLE SAVES =====")
