@@ -1,27 +1,23 @@
 import machine
 import gc
-import uos
-import ubinascii
-import utime
-from micropython import const
-from micropython import mem_info
-
-# Garbage Collector
-gc.enable()
-gc.threshold(gc.mem_free() // 4 + gc.mem_alloc())
+import os
+import time
 
 # RAM Drive
 RamDrive = 0
 class RamDriveBlock:
     def __init__(self, MemSize, BlockSize=128):
+        print(f".init(BlockSize={BlockSize})")
         self.BlockSize = BlockSize
         self.Data = bytearray(b'\x00' * MemSize)
 
     def readblocks(self, block_num, buf, offset=0):
+        print(f".readblocks(block_num={block_num}, len(buf)={len(buf)}, offset={offset})")
         Address = block_num * self.BlockSize + offset
         buf[:] = self.Data[Address : Address + len(buf)]
 
     def writeblocks(self, block_num, buf, offset=0):
+        print(f".writeblocks(block_num={block_num}, len(buf)={len(buf)} offset={offset}")
         if offset is None:
             offset = 0
 
@@ -29,25 +25,40 @@ class RamDriveBlock:
         self.Data[Address : Address + len(buf)] = buf
 
     def ioctl(self, op, arg):
+        print(f".ioctl(op={op}, arg={arg})\t", end="")
+        
+        # Init
+        if op == 1:
+            print("Init")
+            pass
+            
+        # Shutdown
+        if op == 2:
+            print("Shutdown")
+            pass
+            
+        # Sync
+        if op == 3:
+            print("Sync")
+            pass
         
         # Number of blocks
         if op == 4:
-            return len(self.Data) // self.BlockSize
+            res = len(self.Data) // self.BlockSize
+            print(f"BlockCount={res}")
+            return res
         
         # Block size
         if op == 5:
+            print(f"BlockSize={self.BlockSize}")
             return self.BlockSize
         
         # Block erase
         if op == 6: 
+            print(f"BlockErase={arg}")
             Address = arg * self.BlockSize 
             self.Data[Address : Address + self.BlockSize] = bytearray(b'\x00' * self.BlockSize)
             return 0
-
-
-
-
-
 
 # Tworzenie RAM Drive
 def RamCreate(Size):
@@ -58,18 +69,18 @@ def RamCreate(Size):
     try:
         try:
             print("===mount===")
-            uos.mount(RamDrive, "/ram")
+            os.mount(RamDrive, "/ram")
         except:
             print("===Vfs===")
-            uos.VfsLfs2.mkfs(RamDrive)
+            os.VfsLfs2.mkfs(RamDrive)
             print("===mount===")
-            uos.mount(RamDrive, "/ram")
+            os.mount(RamDrive, "/ram")
     except OSError as Error:
         print("Error: {}".format(Error))
       
 # Likwidacja (ale bez czyszczenia, mozna potem zamontowac dysk ponownie)
 def RamRemove():
-    uos.umount("/ram")
+    os.umount("/ram")
     global RamDrive
     del RamDrive
 
@@ -82,35 +93,34 @@ def RamTest(BytesInFile):
         content_to_write += bytearray(b'x')   # lub bytearray([i])
 
     # Save as many files as possible
-    #print("===== MULTIPLE SAVES =====")
-    TimeStart = utime.ticks_us()
+    print("===== MULTIPLE SAVES =====")
+    TimeStart = time.ticks_us()
     i = 0
     while True:
         name = "/ram/{}.txt".format(i)
-        #print("Saving {}".format(name))
+        print(f"Saving {name}")
         try:
             with open(name, "wb") as f:
                 f.write(content_to_write)
             i += 1
         except:
-            print("Error at {}".format(i))
+            print(f"Error at {i}")
             break
-    print("Time: {}ms".format(utime.ticks_us()-TimeStart))
+    print(f"Time: {time.ticks_us()-TimeStart} ms")
             
     # Try to read all saved files   
-    #print("===== MULTIPLE READS =====")
-    TimeStart = utime.ticks_us()
+    print("===== MULTIPLE READS =====")
+    TimeStart = time.ticks_us()
     files = i
     for i in range(0, files):
-        name = "/ram/{}.txt".format(i)
+        name = f"/ram/{i}.txt"
         try:
             with open(name, "rb") as f:
                 content = f.read()
                 #print("File {} = {}".format(name, content))
         except:
-            print("File {} = error".format(name))
-    print("Time: {}ms".format(utime.ticks_us()-TimeStart))
-
+            print(f"File {name} = error")
+    print(f"Time: {time.ticks_us()-TimeStart}ms")
 
 RamCreate(2048)
-RamTest(16)
+#RamTest(0)
