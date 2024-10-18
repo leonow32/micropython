@@ -124,7 +124,7 @@ while True:
             f.write(content_to_write)
         i += 1
     except:
-        print("Error at {}".format(i))
+        print(f"Error at {i}")
         break
         
 # Try to read all saved files   

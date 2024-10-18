@@ -6,7 +6,7 @@ import time
 # RAM Drive
 RamDrive = 0
 class RamDriveBlock:
-    def __init__(self, MemSize, BlockSize=128):
+    def __init__(self, MemSize, BlockSize=64):
         print(f".init(BlockSize={BlockSize})")
         self.BlockSize = BlockSize
         self.Data = bytearray(b'\x00' * MemSize)
@@ -76,7 +76,7 @@ def RamCreate(Size):
             print("===mount===")
             os.mount(RamDrive, "/ram")
     except OSError as Error:
-        print("Error: {}".format(Error))
+        print(f"Error: {Error}")
       
 # Likwidacja (ale bez czyszczenia, mozna potem zamontowac dysk ponownie)
 def RamRemove():
@@ -97,7 +97,7 @@ def RamTest(BytesInFile):
     TimeStart = time.ticks_us()
     i = 0
     while True:
-        name = "/ram/{}.txt".format(i)
+        name = f"/ram/{i}.txt"
         print(f"Saving {name}")
         try:
             with open(name, "wb") as f:
@@ -117,7 +117,7 @@ def RamTest(BytesInFile):
         try:
             with open(name, "rb") as f:
                 content = f.read()
-                #print("File {} = {}".format(name, content))
+                #print(f"File {name} = {content}")
         except:
             print(f"File {name} = error")
     print(f"Time: {time.ticks_us()-TimeStart}ms")
