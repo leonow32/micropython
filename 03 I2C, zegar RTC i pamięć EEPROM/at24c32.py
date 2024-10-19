@@ -6,10 +6,21 @@ MEMORY_SIZE = 4096
 PAGE_SIZE = 32
 i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=100000)
 
+def wait_for_ready():
+    while True:
+        try:
+            print(".", end="")
+            i2c.readfrom(DEVICE_ADDRESS, 1)
+            break;
+        except:
+            pass
+
 def read(memory_address, length):
+    wait_for_ready()
     return i2c.readfrom_mem(DEVICE_ADDRESS, memory_address, length, addrsize=16)
 
 def write(memory_address, data):
+    wait_for_ready()
     i2c.writeto_mem(DEVICE_ADDRESS, memory_address, data, addrsize=16)
 
 def dump():
@@ -26,6 +37,8 @@ def dump():
         memory_address += 16
         
 if __name__ == "__main__":
+    #write(0x0010, b"0123")
+    #write(0x0020, b"ABCD")
     dump()
     
     import gc

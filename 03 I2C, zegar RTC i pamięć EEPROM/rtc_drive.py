@@ -118,7 +118,7 @@ print("===== MULTIPLE SAVES =====")
 i = 0
 while True:
     name = f"/rtc/{i}.txt"
-    print(f"Saving {name}")
+    print(f"Writing {name}")
     try:
         with open(name, "wb") as f:
             f.write(content_to_write)
@@ -132,6 +132,7 @@ print("===== MULTIPLE READS =====")
 files = i
 for i in range(0, files):
     name = f"/rtc/{i}.txt"
+    print(f"Reading {name}")
     try:
         with open(name, "rb") as f:
             content = f.read()

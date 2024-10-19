@@ -12,7 +12,7 @@ class RamDriveBlock:
         self.Data = bytearray(b'\x00' * MemSize)
 
     def readblocks(self, block_num, buf, offset=0):
-        print(f".readblocks(block_num={block_num}, len(buf)={len(buf)}, offset={offset})")
+        #print(f".readblocks(block_num={block_num}, len(buf)={len(buf)}, offset={offset})")
         Address = block_num * self.BlockSize + offset
         buf[:] = self.Data[Address : Address + len(buf)]
 
@@ -25,37 +25,37 @@ class RamDriveBlock:
         self.Data[Address : Address + len(buf)] = buf
 
     def ioctl(self, op, arg):
-        print(f".ioctl(op={op}, arg={arg})\t", end="")
+        #print(f".ioctl(op={op}, arg={arg})\t", end="")
         
         # Init
         if op == 1:
-            print("Init")
+            #print("Init")
             pass
             
         # Shutdown
         if op == 2:
-            print("Shutdown")
+            #print("Shutdown")
             pass
             
         # Sync
         if op == 3:
-            print("Sync")
+            #print("Sync")
             pass
         
         # Number of blocks
         if op == 4:
             res = len(self.Data) // self.BlockSize
-            print(f"BlockCount={res}")
+            #print(f"BlockCount={res}")
             return res
         
         # Block size
         if op == 5:
-            print(f"BlockSize={self.BlockSize}")
+            #print(f"BlockSize={self.BlockSize}")
             return self.BlockSize
         
         # Block erase
         if op == 6: 
-            print(f"BlockErase={arg}")
+            #print(f"BlockErase={arg}")
             Address = arg * self.BlockSize 
             self.Data[Address : Address + self.BlockSize] = bytearray(b'\x00' * self.BlockSize)
             return 0
@@ -98,7 +98,7 @@ def RamTest(BytesInFile):
     i = 0
     while True:
         name = f"/ram/{i}.txt"
-        print(f"Saving {name}")
+        print(f"Writing {name}")
         try:
             with open(name, "wb") as f:
                 f.write(content_to_write)
@@ -106,7 +106,7 @@ def RamTest(BytesInFile):
         except:
             print(f"Error at {i}")
             break
-    print(f"Time: {time.ticks_us()-TimeStart} ms")
+    print(f"Time: {time.ticks_us()-TimeStart} us")
             
     # Try to read all saved files   
     print("===== MULTIPLE READS =====")
@@ -114,13 +114,14 @@ def RamTest(BytesInFile):
     files = i
     for i in range(0, files):
         name = f"/ram/{i}.txt"
+        print(f"Reading {name}")
         try:
             with open(name, "rb") as f:
                 content = f.read()
                 #print(f"File {name} = {content}")
         except:
             print(f"File {name} = error")
-    print(f"Time: {time.ticks_us()-TimeStart}ms")
+    print(f"Time: {time.ticks_us()-TimeStart} us")
 
 RamCreate(2048)
-#RamTest(0)
+RamTest(16)
