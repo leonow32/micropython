@@ -7,10 +7,10 @@ DEVICE_ADDRESS = 0x50
 MEMORY_SIZE = 4096
 BLOCK_SIZE = 64
 PAGE_SIZE = 32
-WRITE_DELAY_US = 5000
+WRITE_DELAY_MS = 2
 i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=400000)
 
-drive = 0
+#drive = 0
 
 class DriveBlock:
     def __init__(self):
@@ -35,7 +35,7 @@ class DriveBlock:
         
         while length >= PAGE_SIZE:
             i2c.writeto_mem(DEVICE_ADDRESS, address, buf[fragment : fragment+PAGE_SIZE], addrsize=16)
-            time.sleep_us(WRITE_DELAY_US)
+            time.sleep_ms(WRITE_DELAY_MS)
             length   -= PAGE_SIZE
             address  += PAGE_SIZE
             fragment += PAGE_SIZE
@@ -76,9 +76,9 @@ class DriveBlock:
             address = arg * BLOCK_SIZE
             data_to_write = bytearray(b'\x00' * PAGE_SIZE)
             i2c.writeto_mem(DEVICE_ADDRESS, address, data_to_write, addrsize=16)
-            time.sleep_us(WRITE_DELAY_US)
+            time.sleep_ms(WRITE_DELAY_MS)
             i2c.writeto_mem(DEVICE_ADDRESS, address + PAGE_SIZE, data_to_write, addrsize=16)
-            time.sleep_us(WRITE_DELAY_US)
+            time.sleep_ms(WRITE_DELAY_MS)
             return 0
     
     def format_disk(self):
@@ -90,9 +90,9 @@ class DriveBlock:
         print("mount")
         global drive
         os.mount(drive, "/at24c32")
-        
 
 # Tworzenie RAM Drive
+"""
 def drive_create():
 
     global drive
@@ -112,7 +112,8 @@ def drive_create():
             drive.mount_disk()
     except OSError as Error:
         print(f"Error: {Error}")
-      
+      """
+
 # Likwidacja (ale bez czyszczenia, mozna potem zamontowac dysk ponownie)
 def drive_remove():
     os.umount("/at24c32")
@@ -158,6 +159,9 @@ def drive_test(BytesInFile):
             print(f"File {name} = error")
     print(f"Time: {time.ticks_ms()-TimeStart} ms")
 
-drive_create()
-#drive_test(10)
+if __name__ == "__main__":
+    drive = DriveBlock()
+    drive.format_disk()
+    drive.mount_disk()
+    drive_test(10)
 
