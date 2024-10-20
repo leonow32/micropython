@@ -1,8 +1,8 @@
 import os
 import gc
 
-def disk_space():    
-    s = os.statvfs('/')
+def disk_space(path = ""):    
+    s = os.statvfs(path)
     block_size   = s[0]
     total_blocks = s[2]
     free_blocks  = s[3]
