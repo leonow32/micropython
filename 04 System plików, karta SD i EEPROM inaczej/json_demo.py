@@ -8,17 +8,17 @@ def read_json():
             global data
             data = json.load(file)
     except:
-        print("File test.json doesn't exist")
+        print("Plik test.json nie istnieje")
 
 def save_json():
     with open("test.json", "w") as file:
-        json.dump(data, file, separators=(",\x0A", ":"))
+        json.dump(data, file, separators=(",\n", ":"))
         
 if __name__ == "__main__":
     read_json()
-    
-    key = input("Type key: ")
-    value = input("Type value: ")
+   
+    key   = input("Podaj nazwę nowego klucza: ")
+    value = input("Podaj wartość nowego klucza: ")
     data[key] = value
     
     for key, value in data.items():
