@@ -4,7 +4,8 @@ import free_mem
 
 def init():
     global sd
-    sd = machine.SDCard(slot=3, width=1, cs=13, miso=2, mosi=15, sck=14, freq=20000000)
+    #sd = machine.SDCard(slot=3, width=1, cs=13, miso=2, mosi=15, sck=14, freq=20000000)   # Płytka TTGO-T8 v1.8
+    sd = machine.SDCard(slot=3, width=1, cs=7, miso=4, mosi=6, sck=5, freq=20000000)
     vfs = os.VfsFat(sd)
     os.mount(vfs, "/sd")    # znak / nie ma żadnego znaczenia i może być dowolny inny
 
