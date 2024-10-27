@@ -6,17 +6,17 @@ ssid = "Extronic2.4"
 password = "LeonInstruments"
 
 def wifi_connect():
-    wlan = network.WLAN(network.STA_IF)
-    wlan.active(True)
-    if not wlan.isconnected():
-        print("Connecting to network", end="")
-        wlan.connect(ssid, password)
-        while not wlan.isconnected():
+    station = network.WLAN(network.STA_IF)
+    station.active(True)
+    if not station.isconnected():
+        print("Łączenie z siecią", end="")
+        station.connect(ssid, password)
+        while not station.isconnected():
             print(".", end="")
             time.sleep_ms(250)
         print()    
     
-    print(wlan.ifconfig()[0])
+    print(f"Adres IP: {station.ifconfig()[0]}")
     
 def download_time():
     ntptime.settime()
@@ -34,9 +34,9 @@ def print_system_time():
     print(f"{year}.{month:02}.{day:02} {hours:02}:{minutes:02}:{seconds:02} {days[weekday]}")
         
 if __name__ == "__main__":    
-    print("Time before sync: ", end="")
+    print("Czas przed synchronizacją: ", end="")
     print_system_time()
     wifi_connect()
     download_time()
-    print("Time after sync:  ", end="")
+    print("Czas po synchronizacji:    ", end="")
     print_system_time()

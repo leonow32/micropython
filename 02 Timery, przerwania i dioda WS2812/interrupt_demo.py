@@ -1,33 +1,33 @@
+import mem_used
+import neopixel
+import random
 from machine import Pin, Timer
-from neopixel import NeoPixel
-from random import randint
 
-led = NeoPixel(Pin(38, Pin.OUT), 1)
-
-def timer_interrupt(timer):
-    print('-- timer_interrupt --')
-    print(timer)
+def timer_interrupt(souce):
+    print(f"-- Przerwanie od {souce} --")
     
     global led
     led[0] = (0, 0, 0)
     led.write()
 
-def button_interrupt(pin):
-    print('-- button_interrupt --')
-    print(pin)
+def button_interrupt(souce):
+    print(f"-- Przerwanie od {souce} --")
     
-    r = randint(0, 255)
-    g = randint(0, 255)
-    b = randint(0, 255)
+    r = random.randint(0, 255)
+    g = random.randint(0, 255)
+    b = random.randint(0, 255)
     
     global led
     led[0] = (r, g, b)
     led.write()
     
-    print(f'Color: {led[0]}')
+    print(f"Wylosowany kolor to: {led[0]}")
     
     Timer(0, mode=Timer.ONE_SHOT, period=2000, callback=timer_interrupt)
 
 if __name__ == "__main__":
+    global led
+    led = neopixel.NeoPixel(Pin(38, Pin.OUT), 1)
     button = Pin(0, Pin.IN, Pin.PULL_UP)
     button.irq(trigger=Pin.IRQ_FALLING, handler=button_interrupt)
+    mem_used.print_ram_used()

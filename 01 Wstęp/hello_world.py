@@ -17,3 +17,5 @@ for i in range(5):
     print("Dioda nie świeci")
     led(0)
     time.sleep_ms(250)
+
+print("Koniec programu!")
