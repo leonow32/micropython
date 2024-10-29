@@ -19,7 +19,7 @@ BLACK  = 0b000_00000_00000_000
 cs  = Pin(17, Pin.OUT, value=1)
 dc  = Pin(15, Pin.OUT, value=1)
 rst = Pin(16, Pin.OUT, value=1)
-led = PWM(Pin(5), freq=5000, duty=1023)
+led = PWM(Pin(5), freq=10_000, duty=1023)
 spi = SPI(2, baudrate=80_000_000, polarity=0, phase=0, sck=Pin(6), mosi=Pin(7), miso=Pin(4))
 
 buffer = bytearray(480*320*2)

@@ -1,6 +1,6 @@
 import os
 import machine
-import free_mem
+import mem_used
 
 def init():
     global sd
@@ -32,11 +32,11 @@ def print_tree(path):
             print_tree(path + item + "/")
         
 if __name__ == "__main__":
-    free_mem.ram_free()
+    mem_used.print_ram_used()
     init()
     print(os.listdir(""))
     print(os.listdir("sd"))
     #print(os.listdir("sd/katalog1"))
     #print(os.listdir("sd/katalog2"))
     #print_tree("/")
-    free_mem.ram_free()
+    mem_used.print_ram_used()

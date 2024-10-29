@@ -1,7 +1,7 @@
 import machine
 import gc
 import os
-import free_mem
+import mem_used
 
 RTC_SIZE = 2048
 BYTES_IN_FILE = 16            # Ile bajtow zapisac w plikach podczas testu
@@ -141,4 +141,4 @@ for i in range(0, files):
         print(f"File {name} = error")
 
 """
-free_mem.ram_free()
+mem_used.print_ram_used()
