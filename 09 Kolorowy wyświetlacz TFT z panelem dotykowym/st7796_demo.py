@@ -19,7 +19,7 @@ BLACK  = 0b000_00000_00000_000
 cs  = Pin(17, Pin.OUT, value=1)
 dc  = Pin(15, Pin.OUT, value=1)
 rst = Pin(16, Pin.OUT, value=1)
-led = PWM(Pin(5), freq=5000, duty=1023)
+led = PWM(Pin(5), freq=2000, duty=1023)
 spi = SPI(2, baudrate=80_000_000, polarity=0, phase=0, sck=Pin(6), mosi=Pin(7), miso=Pin(4))
 
 buffer = bytearray(480*320*2)
@@ -137,22 +137,21 @@ def rainbow_demo():
     refresh()
 
 def touch_demo():
-    from random import randrange
-    colors = [RED, YELLOW, GREEN, CYAN, BLUE, VIOLET]
+    #from random import randrange
+    #colors = [RED, YELLOW, GREEN, CYAN, BLUE, VIOLET]
     
-    xpt2046.init(273, -442, 172, -159)
+    #xpt2046.init(273, -442, 172, -159)
     
     while True:
-        if xpt2046.is_pressed():
-            x = xpt2046.read_x()
-            y = xpt2046.read_y()
-            frame.pixel(x, y, colors[randrange(6)])
+        res = xpt2046.read()
+        if res != False:
+            frame.pixel(res[0], res[1], YELLOW)
             refresh()
 
 if __name__ == "__main__":
     init()
-    rainbow_demo()
-    #touch_demo()
+    #rainbow_demo()
+    touch_demo()
 
     del buffer
     mem_used.print_ram_used()
