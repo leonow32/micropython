@@ -30,7 +30,7 @@ def print_system_time():
     minutes = time_tuple[4]
     seconds = time_tuple[5]
     weekday = time_tuple[6]
-    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    days = ["Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobota", "Niedziela"]
     print(f"{year}.{month:02}.{day:02} {hours:02}:{minutes:02}:{seconds:02} {days[weekday]}")
         
 if __name__ == "__main__":    
