@@ -141,8 +141,11 @@ def touch_demo():
     #colors = [RED, YELLOW, GREEN, CYAN, BLUE, VIOLET]
     
     #xpt2046.init(273, -442, 172, -159)
+    frame.fill(BLACK)
+    refresh()
     
     while True:
+        time.sleep_ms(10)
         res = xpt2046.read()
         if res != False:
             frame.pixel(res[0], res[1], YELLOW)
