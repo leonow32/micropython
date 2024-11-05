@@ -36,6 +36,7 @@ class SSD1306(framebuf.FrameBuffer):
         self.init_display()
 
     def init_display(self):
+        print("init")
         for cmd in (
             SET_DISP | 0x00,  # off
             # address setting
@@ -117,6 +118,10 @@ class SSD1306_I2C(SSD1306):
     def write_data(self, buf):
         self.write_list[1] = buf
         self.i2c.writevto(self.addr, self.write_list)
+        
+#         self.temp[0] = 0x40  # Co=1, D/C#=0
+#         self.temp[1] = buf
+#         self.i2c.writeto(self.addr, self.temp)
 
 
 class SSD1306_SPI(SSD1306):
