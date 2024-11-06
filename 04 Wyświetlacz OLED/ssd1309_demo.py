@@ -1,6 +1,8 @@
 from machine import Pin, SPI, I2C
 import ssd1309_i2c
+#import ssd1309_i2c_old as ssd1309_i2c
 import framebuf
+import mem_used
 
 WIDTH  = 128
 HEIGHT = 64
@@ -22,3 +24,4 @@ fbuf.text('0123456789+-*/', 1, 34, 1)
 fbuf.text('!@#$%^&*(),.<>?', 1, 42, 1)
 
 ssd1309_i2c.refresh(array)
+mem_used.print_ram_used()
