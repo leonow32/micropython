@@ -1,20 +1,21 @@
+from micropython import const
 import mem_used
 import time
 import framebuf
 import xpt2046
 from machine import Pin, SPI, PWM
 
-WIDTH  = 480
-HEIGHT = 320
+WIDTH  = const(480)
+HEIGHT = const(320)
 
-RED    = 0b000_00000_11111_000
-YELLOW = 0b111_00000_11111_111
-GREEN  = 0b111_00000_00000_111
-CYAN   = 0b111_11111_00000_111
-BLUE   = 0b000_11111_00000_000
-VIOLET = 0b000_11111_11111_000
-WHITE  = 0b111_11111_11111_111
-BLACK  = 0b000_00000_00000_000
+RED    = const(0b000_00000_11111_000)
+YELLOW = const(0b111_00000_11111_111)
+GREEN  = const(0b111_00000_00000_111)
+CYAN   = const(0b111_11111_00000_111)
+BLUE   = const(0b000_11111_00000_000)
+VIOLET = const(0b000_11111_11111_000)
+WHITE  = const(0b111_11111_11111_111)
+BLACK  = const(0b000_00000_00000_000)
 
 cs  = Pin(17, Pin.OUT, value=1)
 dc  = Pin(15, Pin.OUT, value=1)
@@ -28,7 +29,7 @@ frame  = framebuf.FrameBuffer(buffer, 480, 320, framebuf.RGB565)
 def refresh():
     cs(0)
     dc(0)
-    spi.write(bytearray([0x2C]))
+    spi.write(bytes([0x2C]))
     dc(1)
     spi.write(buffer)
     cs(1)
@@ -36,13 +37,13 @@ def refresh():
 def write_data(data):
     dc(1)
     cs(0)
-    spi.write(bytearray([data]))
+    spi.write(bytes([data]))
     cs(1)
     
 def write_cmd(data):
     dc(0)
     cs(0)
-    spi.write(bytearray([data]))
+    spi.write(bytes([data]))
     cs(1)
         
 def init():
@@ -153,8 +154,8 @@ def touch_demo():
 
 if __name__ == "__main__":
     init()
-    #rainbow_demo()
-    touch_demo()
+    rainbow_demo()
+    #touch_demo()
 
     del buffer
     mem_used.print_ram_used()
