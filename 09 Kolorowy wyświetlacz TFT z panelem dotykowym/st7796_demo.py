@@ -137,25 +137,28 @@ def rainbow_demo():
     frame.text(f"Czas: {work_time}ms", 10, 10, BLACK) 
     refresh()
 
+def draw_point(x, y, pressed):
+    print(f"{x:3d} {y:3d} {pressed}")
+    if(pressed):
+        frame.pixel(x, y, YELLOW)
+    else:
+        frame.pixel(x, y, RED)
+    refresh()
+        
 def touch_demo():
-    #from random import randrange
-    #colors = [RED, YELLOW, GREEN, CYAN, BLUE, VIOLET]
-    
-    #xpt2046.init(273, -442, 172, -159)
+    print("touch_demo")
     frame.fill(BLACK)
     refresh()
     
-    while True:
-        time.sleep_ms(10)
-        res = xpt2046.read()
-        if res != False:
-            frame.pixel(res[0], res[1], YELLOW)
-            refresh()
+    cs  = Pin(41, Pin.OUT, value=1)
+    spi = SPI(1, baudrate=5_000_000, polarity=0, phase=0, sck=Pin(40), mosi=Pin(42), miso=Pin(2))
+
+    xpt2046.init(spi, cs, 10, draw_point)
 
 if __name__ == "__main__":
     init()
-    rainbow_demo()
-    #touch_demo()
+    #rainbow_demo()
+    touch_demo()
 
-    del buffer
+    #del buffer
     mem_used.print_ram_used()
