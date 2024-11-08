@@ -2,8 +2,11 @@ from micropython import const
 import mem_used
 import time
 import framebuf
-import xpt2046
-from machine import Pin, SPI, PWM
+
+import ft6336
+#import xpt2046
+
+from machine import Pin, SPI, PWM, I2C
 
 WIDTH  = const(480)
 HEIGHT = const(320)
@@ -137,7 +140,8 @@ def rainbow_demo():
     frame.text(f"Czas: {work_time}ms", 10, 10, BLACK) 
     refresh()
 
-def draw_point(x, y, pressed):
+def draw_point(result_tuple):
+    x, y, pressed = result_tuple
     print(f"{x:3d} {y:3d} {pressed}")
     if(pressed):
         frame.pixel(x, y, YELLOW)
@@ -150,10 +154,14 @@ def touch_demo():
     frame.fill(BLACK)
     refresh()
     
-    cs  = Pin(41, Pin.OUT, value=1)
-    spi = SPI(1, baudrate=5_000_000, polarity=0, phase=0, sck=Pin(40), mosi=Pin(42), miso=Pin(2))
+#     cs  = Pin(41, Pin.OUT, value=1)
+#     spi = SPI(1, baudrate=5_000_000, polarity=0, phase=0, sck=Pin(40), mosi=Pin(42), miso=Pin(2))
+#     xpt2046.init(spi, cs, 10, draw_point)
+    
+    i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=400000)
+    touch = ft6336.FT6336(i2c, 20, draw_point)
 
-    xpt2046.init(spi, cs, 10, draw_point)
+    
 
 if __name__ == "__main__":
     init()
