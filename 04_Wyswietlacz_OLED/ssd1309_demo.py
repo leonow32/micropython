@@ -3,9 +3,9 @@ import ssd1309_i2c
 import framebuf
 import mem_used
 
-WIDTH  = 128
-HEIGHT = 64
-ADDRESS = 0x3C
+WIDTH  = const(128)
+HEIGHT = const(64)
+ADDRESS = const(0x3C)
 
 i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=100000)
 
