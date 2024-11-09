@@ -11,6 +11,9 @@ class Zwierze():
     def ile_masz_lat(self):
         print(f"Zwierze.ile_masz_lat({self})")
         print(f"- Mam {self.wiek} lat")
+        
+    def metoda_polimorficzna(self):
+        print(f"Zwierze.metoda_polimorficzna()")
  
 class Pies(Zwierze):
     def __init__(self, rasa, kolor):
@@ -29,16 +32,21 @@ class Pies(Zwierze):
         print(f"- kolor: {self.kolor}")
         print(f"- rasa: {self.rasa}")
         print(f"- wiek: {self.wiek}")
+    
+    def metoda_polimorficzna(self):
+        print(f"Pies.metoda_polimorficzna()")
 
 if __name__ == "__main__":
     print("=== 1 ===")
     zwierzak = Zwierze("Test", 10)
     zwierzak.przedstaw_sie()
     zwierzak.ile_masz_lat()
+    zwierzak.metoda_polimorficzna()
     
     print("=== 2 ===")
     reksio = Pies("jamnik", "brazowy")
     reksio.ile_masz_lat()
     reksio.opisz_sie()
+    reksio.metoda_polimorficzna()
     
     
