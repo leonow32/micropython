@@ -55,6 +55,25 @@ class ST7796(framebuf.FrameBuffer):
         self.dc(1)
         self.spi.write(self.array)
         self.cs(1)
+        
+    def color(self, red, green, blue):
+        red   = int(red)
+        green = int(green)
+        blue  = int(blue)
+        
+        if red > 255:
+            red = 255
+        if green > 255:
+            green = 255
+        if blue > 255:
+            blue = 255
+        
+        red    = red & 0xF8
+        green1 = (green & 0xE0) >> 5
+        green2 = (green & 0x1C) << 11
+        blue   = (blue & 0xF8) << 5
+        color  = red | green1 | green2 | blue
+        return color
 
 if __name__ == "__main__":
     cs  = Pin(17, Pin.OUT, value=1)

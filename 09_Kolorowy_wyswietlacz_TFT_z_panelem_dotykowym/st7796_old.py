@@ -166,9 +166,9 @@ def touch_demo():
 
 if __name__ == "__main__":
     init()
-    #rainbow_demo()
-    touch_demo()
+    rainbow_demo()
+    #touch_demo()
 
-    #del buffer
+    del buffer
     mem_used.print_ram_used()
 
