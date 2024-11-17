@@ -24,10 +24,8 @@ def download_file(url):
     result = requests.get(url)
 
     if result.status_code == 200:
-        a = result.text
-        c = a.splitlines()
-        
-        for line in c:
+        lines = result.text.splitlines()
+        for line in lines:
             print(line)
     else:
         print(f"Error {result.status_code}")
