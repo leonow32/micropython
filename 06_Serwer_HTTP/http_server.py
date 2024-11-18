@@ -2,6 +2,7 @@ import _thread
 import gc
 import network
 import socket
+import sys
 import time
 from machine import Pin
 
@@ -29,15 +30,45 @@ def wifi_connect():
     print(f"Adres IP: {station.ifconfig()[0]}")
 
 def index_html():
-    print("index.html")
+    print("-- index.html")
     gc.collect()
     content = "To jest plik index.html"
     return content
 
 def test_txt():
-    print("index.html")
+    print("-- test.txt")
     gc.collect()
-    content = "To jest plik index.html"
+    content = "To jest plik test.txt"
+    return content
+
+def time_txt():
+    print("-- time.txt")
+    content = f"""
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Connection: close
+
+Teraz jest czas
+{str(time.ticks_ms())}
+ms
+        
+    """
+    #content = str(time.ticks_ms())
+    return content
+
+def time_html():
+    print("-- time.html")
+    content = f"""
+HTTP/1.1 200 OK
+Content-Type: text/html
+Connection: close
+
+Teraz jest czas
+{str(time.ticks_ms())}
+ms
+
+    """
+    #content = str(time.ticks_ms())
     return content
 
 # czy to potrzebne?
@@ -65,123 +96,76 @@ def parse_params(data):
     
     return parameters
 
-def simple():
-    print("simple()")
-    
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        sock.bind(("", 80))
-    except:
-        pass
-    
-    
-    print("sock.listen(5)")
-    sock.listen(5)
-    #sock.setblocking(False)
-    
-
-    gc.collect()
-    
-    conn, addr = sock.accept()
-    print(f"conn = {conn}")
-    print(f"addr = {addr}")
-    
-    conn.settimeout(3.0)
-    
-    request = conn.recv(1024)
-    print(request)
-    
-    #conn.settimeout(None)
-    
-    # Save only the first line of the request
-    request = request.split(b'\r\n')
-    print(f"HTTP Request from {addr[0]}: {request[0]}")
-    print(request)
-    
-    # Prepare response
-    print("HTTP Response: ", end="")
-    
-    if (b'GET / HTTP' in request[0]) or (b'GET /index.html HTTP' in request[0]):
-        conn.send('HTTP/1.1 200 OK\n')
-        conn.send('Content-Type: text/html\n')
-        conn.send('Connection: close\n\n')
-        response = index_html()
-        
-    elif b'config.html' in request[0]:
-        response = config_html()
-        
-    elif b'test.txt' in request[0]:
-        response = test_txt()
-    
-    elif b'favicon.ico' in request[0]:
-        print("favicon.ico - ignoring")
-        response = "favicon"
-        
-    else:
-        print("Unknown request")
-        #response = "HTTP/1.1 404 Not Found\r\n"
-        global local_ip
-        response = f"HTTP/1.1 307 Temporary Redirect\r\nLocation: http://{local_ip}/index.html\r\n\r\n"
-    
-    conn.sendall(response)
-    conn.close()
-                       
-
-
-
 def task():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        sock.bind(("", 80))
-    except:
-        pass
-    sock.listen(5)
+    
+    sock.bind(("", 80))
+#     try:
+#         sock.bind(("", 80))
+#     except:
+#         pass
+    sock.listen()
+    #sock.listen(5)
     #sock.setblocking(False)
+    #sock.setblocking(True)
     
     while True:
         try:
             gc.collect()
             
+            # Pause here and wait for any request
             conn, addr = sock.accept()
-            conn.settimeout(3.0)
+            
+            #conn.settimeout(3.0)
+            #conn.settimeout(0)
+            #conn.settimeout(None)
             request = conn.recv(1024)
-            conn.settimeout(None)
+            #conn.settimeout(None)
             
             # Save only the first line of the request
-            request = request.split(b'\r\n')
-            print(f"-- HTTP Request from {addr[0]}: {request[0]}")
-            print(request)
+            print(f"-- HTTP Request from {addr[0]}: {request[0:60]}")
+            #print(request)
             
             # Prepare response
-            print("HTTP Response: ", end="")
+            print("-- HTTP Response: ", end="")
             
-            if (b'GET / HTTP' in request[0]) or (b'GET /index.html HTTP' in request[0]):
-                conn.send('HTTP/1.1 200 OK\n')
-                conn.send('Content-Type: text/html\n')
-                conn.send('Connection: close\n\n')
+            if (b"GET / HTTP" in request):
                 response = index_html()
                 
-            elif b'config.html' in request[0]:
+            elif b"index.html" in request:
+                response = index_html()
+            
+            elif b"config.html" in request:
                 response = config_html()
                 
-            elif b'test.txt' in request[0]:
+            elif b"test.txt" in request:
                 response = test_txt()
+                
+            elif b"time.txt" in request:
+                response = time_txt()
+                
+            elif b"time.html" in request:
+                response = time_html()
             
-            elif b'favicon.ico' in request[0]:
-                print("favicon.ico - ignoring")
-                response = "favicon"
+            #elif b"favicon.ico" in request:
+            #    response = "favicon"
                 
             else:
                 print("Unknown request")
-                #response = "HTTP/1.1 404 Not Found\r\n"
-                global local_ip
-                response = f"HTTP/1.1 307 Temporary Redirect\r\nLocation: http://{local_ip}/index.html\r\n\r\n"
+                response = "HTTP/1.1 404 Not Found\r\n"
+                #global local_ip
+                #response = f"HTTP/1.1 307 Temporary Redirect\r\nLocation: http://{local_ip}/index.html\r\n\r\n"
             
-            conn.sendall(response)
+            #conn.send("HTTP/1.1 200 OK\n")
+            #conn.send("Content-Type: text/plain\n")
+            #conn.send("Connection: close\n\n")
+            conn.send(response)
             conn.close()
                        
-        except:
-            print(".", end="")
+        except Exception as e:
+            print(f"Exception {e}")
+            sys.print_exception(e)
+            print("time.sleep_ms(100)", end="")
             time.sleep_ms(100)
 
 def init():
