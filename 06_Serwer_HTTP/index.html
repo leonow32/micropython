@@ -1,0 +1,125 @@
+<html>
+	<head>
+		<title>MicroPython ESP32</title>
+		<!-- <link rel="stylesheet" href="style.css"> -->
+		<meta charset="UTF-8">
+		<style>
+			html {
+				font-family: Arial;
+				display: inline-block;
+				margin: 0px auto;
+				text-align: center;
+				color: white;
+			}
+
+			body {
+				background: -webkit-radial-gradient(#7b0191, #26002f);
+			}
+
+			h1 {
+				font-size: 250%;
+				padding: 20px;
+			}
+
+			h2 {
+				font-size: 200%;
+				margin-top: 0.5em;
+				margin-bottom: 0.5em;
+			}
+
+			h3 {
+				font-size: 175%;
+				margin-top: 0.5em;
+				margin-bottom: 0.5em;
+			}
+
+			button {
+				border: 1px solid;
+				background-color: #3b0043;
+				
+				color: white;
+				font-size: 200%;
+				
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				
+				text-align: center;
+				text-decoration: none;
+				display: inline-block;
+				padding: 20px 20px 20px 20px;
+				margin: 0px 10px 0px 10px;
+				
+				cursor: pointer;
+				width: 100%;
+				-webkit-box-shadow: 0 0 5px 5px #fcf584;
+			}
+
+			button:hover, .button:hover {
+				background-color: #5b0467;
+				-webkit-box-shadow: 0 0 5px 5px #ffffff;
+			}
+
+			.row {
+				display: flex;
+				flex-direction: row;
+				justify-content: space-between;
+				align-items: center;
+				max-width:800px;
+				margin:20px auto;
+			}
+
+			.cell {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				border: 1px solid;
+				padding: 0px 20px 0px 20px;
+				margin: 0px 10px 0px 10px;
+				width: 100%;
+				-webkit-box-shadow: 0 0 5px 5px #fcf584;
+			}
+		</style>
+	</head>
+	
+	<body>
+		<h1>MicroPython ESP32</h1>
+		
+		<div class="row">
+			<div class="cell">
+				<h2>Temperatura CPU</h2>
+				<h3>AA &deg;C</h3>
+			</div>
+			<div class="cell">
+				<h2>Moc sygnału WIFI</h2>
+				<h3>BBB RSSI</h3>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="cell">
+				<h2>Aktualny kolor diody WS2812</h2>
+				<h3>CCCCCCCCC</h3>
+			</div>
+		</div>
+		
+		<form class="row">
+			<button type="submit" name="color" value="red">Czerwony</button>
+			<button type="submit" name="color" value="yellow">Żółty</button>
+			<button type="submit" name="color" value="green">Zielony</button>
+		</form>
+		
+		<form class="row">
+			<button type="submit" name="color" value="cyan">Błękitny</button>
+			<button type="submit" name="color" value="blue">Niebieski</button>
+			<button type="submit" name="color" value="magenta">Fioletowy</button>
+		</form>
+		
+		<form class="row">
+			<button type="submit" name="color" value="white">Biały</button>
+			<button type="submit" name="color" value="grey">Szary</button>
+			<button type="submit" name="color" value="black">Czarny</button>
+		</form>
+		
+	</body>
+</html>
