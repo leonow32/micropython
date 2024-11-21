@@ -29,10 +29,27 @@ def wifi_connect():
     
     print(f"Adres IP: {station.ifconfig()[0]}")
 
+def style_css():
+    print("-- style.css")
+    gc.collect()
+    
+    content = ""
+    with open("style.css") as file:
+        content = file.read()
+    
+    return content
+
 def index_html():
     print("-- index.html")
     gc.collect()
-    content = "To jest plik index.html"
+    content = ""
+    
+    with open("index.html") as file:
+        content = file.read()
+        
+    
+        
+    
     return content
 
 def test_txt():
@@ -132,12 +149,12 @@ def task():
             if (b"GET / HTTP" in request):
                 response = index_html()
                 
+            elif b"style.css" in request:
+                response = style_css()
+            
             elif b"index.html" in request:
                 response = index_html()
             
-            elif b"config.html" in request:
-                response = config_html()
-                
             elif b"test.txt" in request:
                 response = test_txt()
                 
