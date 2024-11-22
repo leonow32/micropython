@@ -7,9 +7,7 @@ import socket
 import sys
 import time
 from machine import Pin
-
-ssid = "Extronic2.4"
-password = "LeonInstruments"
+from config import ssid, password
 
 led = neopixel.NeoPixel(Pin(38, Pin.OUT), 1)
 led[0] = (0, 0, 0)
@@ -36,15 +34,6 @@ def wifi_connect():
     
     print(f"Adres IP: {station.ifconfig()[0]}")
 
-def style_css():
-    print("-- style.css")
-    gc.collect()
-    content = ""
-    with open("style.css") as file:
-        content = file.read()
-    
-    return content
-
 def index_html():
     print("-- index.html")
     gc.collect()
@@ -70,24 +59,10 @@ def index_html():
         color = "Fioletowy"
     elif led[0] == (0x40, 0x40, 0x40):
         color = "Biały"
-    elif led[0] == (0x10, 0x10, 0x10):
-        color = "Szary"
     else:
         color = "Czarny"
     
     content = content.replace("CCCCCCCCC", color)
-    
-    return content
-
-def time_html():
-    print("-- time.html")
-    content  = "HTTP/1.1 200 OK\r\n"
-    #content  = "HTTP/1.1 404 Not Found"
-    content += "Content-Type: text/html\r\n"
-    content += "Connection: close\r\n\r\n"
-
-    content += "Teraz jest czas\r\n"
-    content += f"{str(time.ticks_ms())} ms"
     
     return content
 
@@ -122,7 +97,6 @@ def task():
                 continue
             
             # Save only the first line of the request
-            #if b"\n" in request:
             request = request.splitlines()[0]
             print(f"-- HTTP Request from {addr[0]}: {request}")
             #print(request)
@@ -135,72 +109,43 @@ def task():
                 conn.send("HTTP/1.1 200 OK\n")
                 conn.send("Content-Type: text/html\n")
                 conn.send("Connection: close\n\n")
-                conn.sendall(response)
-                
-            elif b"style.css " in request:
-                response = style_css()
-                conn.send("HTTP/1.1 200 OK\n")
-                conn.send("Content-Type: text/css\n")
-                conn.send("Connection: close\n\n")
-                conn.sendall(response)
             
             elif b"index.html " in request:
                 response = index_html()
                 conn.send("HTTP/1.1 200 OK\n")
                 conn.send("Content-Type: text/html\n")
                 conn.send("Connection: close\n\n")
-                conn.sendall(response)
-                
-            elif b"time.html" in request:
-                response = time_html()
                 
             elif b"color" in request:
                 if b"red" in request:
-                    print(f"red {request}")
                     led[0] = (0x40, 0, 0)
                 elif b"yellow" in request:
-                    print(f"yellow {request}")
                     led[0] = (0x40, 0x40, 0)
                 elif b"green" in request:
-                    print(f"green {request}")
                     led[0] = (0, 0x40, 0)
                 elif b"cyan" in request:
-                    print(f"cyan {request}")
                     led[0] = (0, 0x40, 0x40)
                 elif b"blue" in request:
-                    print(f"blue {request}")
                     led[0] = (0, 0x0, 0x40)
                 elif b"magenta" in request:
-                    print(f"magenta {request}")
                     led[0] = (0x40, 0x00, 0x40)
                 elif b"white" in request:
-                    print(f"white {request}")
                     led[0] = (0x40, 0x40, 0x40)
-                elif b"grey" in request:
-                    print(f"gray {request}")
-                    led[0] = (0x10, 0x10, 0x10)
                 else:
-                    print(f"black {request}")
                     led[0] = (0x00, 0x00, 0x00)
                     
                 led.write()
-                
-                
-                response = index_html()
-                
+                response = index_html()   
                 conn.send("HTTP/1.1 200 OK\n")
                 conn.send("Content-Type: text/html\n")
                 conn.send("Connection: close\n\n")
-                conn.sendall(response)
                 
             else:
                 print("Unknown request")
-                response = "HTTP/1.1 404 Not Found\r\n"
-                #global local_ip
-                #response = f"HTTP/1.1 307 Temporary Redirect\r\nLocation: http://{local_ip}/index.html\r\n\r\n"
+                response = "HTTP/1.1 404 Not Found\n"
+                conn.send("Connection: close\n\n")
             
-            
-            #conn.sendall(response)
+            conn.send(response)
             conn.close()
             
         except Exception as e:

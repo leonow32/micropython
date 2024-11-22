@@ -1,9 +1,7 @@
 import network
 import ntptime
 import time
-
-ssid = "Extronic2.4"
-password = "LeonInstruments"
+from config import ssid, password
 
 def wifi_connect():
     station = network.WLAN(network.STA_IF)
