@@ -45,19 +45,19 @@ def index_html():
     content = content.replace("AA", str(esp32.mcu_temperature()))
     content = content.replace("BBB", str(station.status("rssi")))
     
-    if led[0] == (0x40, 0x00, 0x00):
+    if led[0] == (0x10, 0x00, 0x00):
         color = "Czerwony"
-    elif led[0] == (0x40, 0x40, 0x00):
+    elif led[0] == (0x10, 0x10, 0x00):
         color = "Żółty"
-    elif led[0] == (0x00, 0x40, 0x00):
+    elif led[0] == (0x00, 0x10, 0x00):
         color = "Zielony"
-    elif led[0] == (0x00, 0x40, 0x40):
+    elif led[0] == (0x00, 0x10, 0x10):
         color = "Błękitny"
-    elif led[0] == (0x00, 0x00, 0x40):
+    elif led[0] == (0x00, 0x00, 0x10):
         color = "Niebieski"
-    elif led[0] == (0x40, 0x00, 0x40):
+    elif led[0] == (0x10, 0x00, 0x10):
         color = "Fioletowy"
-    elif led[0] == (0x40, 0x40, 0x40):
+    elif led[0] == (0x10, 0x10, 0x10):
         color = "Biały"
     else:
         color = "Czarny"
@@ -68,7 +68,8 @@ def index_html():
 
 def task():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    
+    #sock = socket.socket()
+    #sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.bind(("", 80))
 #     try:
 #         sock.bind(("", 80))
@@ -93,7 +94,11 @@ def task():
             #conn.settimeout(None)
             
             if request == b"":
+                print(f"-- HTTP Request from {addr[0]}: {request}")
                 print("Empty request")
+                conn.send("HTTP/1.1 404 Not Found\n")
+                conn.send("Connection: close\n\n")
+                conn.close()
                 continue
             
             # Save only the first line of the request
@@ -106,8 +111,7 @@ def task():
             
             if (b"GET / HTTP" in request):
                 response = index_html()
-                conn.send("HTTP/1.1 200 OK\n")
-                conn.send("Content-Type: text/html\n")
+                conn.send("HTTP/1.1 404 Not Found\n")
                 conn.send("Connection: close\n\n")
             
             elif b"index.html " in request:
@@ -118,19 +122,19 @@ def task():
                 
             elif b"color" in request:
                 if b"red" in request:
-                    led[0] = (0x40, 0, 0)
+                    led[0] = (0x10, 0x00, 0x00)
                 elif b"yellow" in request:
-                    led[0] = (0x40, 0x40, 0)
+                    led[0] = (0x10, 0x10, 0x00)
                 elif b"green" in request:
-                    led[0] = (0, 0x40, 0)
+                    led[0] = (0x00, 0x10, 0x00)
                 elif b"cyan" in request:
-                    led[0] = (0, 0x40, 0x40)
+                    led[0] = (0x00, 0x10, 0x10)
                 elif b"blue" in request:
-                    led[0] = (0, 0x0, 0x40)
+                    led[0] = (0x00, 0x00, 0x10)
                 elif b"magenta" in request:
-                    led[0] = (0x40, 0x00, 0x40)
+                    led[0] = (0x10, 0x00, 0x10)
                 elif b"white" in request:
-                    led[0] = (0x40, 0x40, 0x40)
+                    led[0] = (0x10, 0x10, 0x10)
                 else:
                     led[0] = (0x00, 0x00, 0x00)
                     
@@ -142,8 +146,9 @@ def task():
                 
             else:
                 print("Unknown request")
-                response = "HTTP/1.1 404 Not Found\n"
+                conn.send("HTTP/1.1 404 Not Found\n")
                 conn.send("Connection: close\n\n")
+                response = ""
             
             conn.send(response)
             conn.close()
