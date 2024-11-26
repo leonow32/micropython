@@ -32,10 +32,12 @@ def wifi_connect():
             time.sleep_ms(250)
         print()    
     
-    print(f"Adres IP: {station.ifconfig()[0]}")
+    global ip
+    ip = station.ifconfig()[0]
+    print(f"Adres IP: {ip}")
 
 def index_html():
-    print("-- index.html")
+    #print("-- index.html")
     gc.collect()
     content = ""
     #content = "HTTP/1.1 200 OK\r\nContent-Type: text/HTML\r\nConnection: close\r\n\r\n"
@@ -67,8 +69,8 @@ def index_html():
     return content
 
 def task():
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    #sock = socket.socket()
+    #sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock = socket.socket()
     #sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.bind(("", 80))
 #     try:
@@ -94,31 +96,33 @@ def task():
             #conn.settimeout(None)
             
             if request == b"":
-                print(f"-- HTTP Request from {addr[0]}: {request}")
+                print(f"HTTP Request from {addr[0]}: {request}")
                 print("Empty request")
-                conn.send("HTTP/1.1 404 Not Found\n")
-                conn.send("Connection: close\n\n")
+                conn.send("HTTP/1.1 404 Not Found\r\n")
+                conn.send("Connection: close\r\n\r\n")
                 conn.close()
                 continue
             
             # Save only the first line of the request
             request = request.splitlines()[0]
-            print(f"-- HTTP Request from {addr[0]}: {request}")
+            print(f"HTTP Request from {addr[0]}: {request}")
             #print(request)
             
             # Prepare response
-            print("-- HTTP Response: ", end="")
+            #print("-- HTTP Response: ", end="")
             
             if (b"GET / HTTP" in request):
-                response = index_html()
-                conn.send("HTTP/1.1 404 Not Found\n")
-                conn.send("Connection: close\n\n")
+                conn.send(f"HTTP/1.1 307 Temporary Redirect\r\nLocation: http://{ip}/index.html\r\n\r\n")
+                #response = index_html()
+                #conn.send("HTTP/1.1 404 Not Found\n")
+                #conn.send("Connection: close\n\n")
             
             elif b"index.html " in request:
-                response = index_html()
-                conn.send("HTTP/1.1 200 OK\n")
-                conn.send("Content-Type: text/html\n")
-                conn.send("Connection: close\n\n")
+                #response = index_html()
+                conn.send("HTTP/1.1 200 OK\r\n")
+                conn.send("Content-Type: text/html\r\n\r\n")
+                #conn.send("Connection: close\r\n\r\n")
+                conn.send(index_html())
                 
             elif b"color" in request:
                 if b"red" in request:
@@ -139,25 +143,24 @@ def task():
                     led[0] = (0x00, 0x00, 0x00)
                     
                 led.write()
-                response = index_html()   
-                conn.send("HTTP/1.1 200 OK\n")
-                conn.send("Content-Type: text/html\n")
-                conn.send("Connection: close\n\n")
+                #response = index_html()   
+                conn.send("HTTP/1.1 200 OK\r\n")
+                conn.send("Content-Type: text/html\r\n\r\n")
+                #conn.send("Connection: close\r\n\r\n")
+                conn.send(index_html())
                 
             else:
                 print("Unknown request")
-                conn.send("HTTP/1.1 404 Not Found\n")
-                conn.send("Connection: close\n\n")
-                response = ""
+                conn.send("HTTP/1.1 404 Not Found\r\n\r\n")
+                #response = f"HTTP/1.1 307 Temporary Redirect\r\nLocation: http://{ip}/index.html\r\n\r\n"
+                #conn.send("Connection: close\n\n")
+                #response = ""
             
-            conn.send(response)
+            #conn.send(response)
             conn.close()
             
         except Exception as e:
-            print(f"Exception {e}")
             sys.print_exception(e)
-            print("time.sleep_ms(100)", end="")
-            time.sleep_ms(100)
 
 def init():
     _thread.start_new_thread(task, ())
