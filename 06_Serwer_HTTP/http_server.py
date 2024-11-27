@@ -95,34 +95,39 @@ def task():
             request = conn.recv(1024)
             #conn.settimeout(None)
             
+            
+            
             if request == b"":
-                print(f"HTTP Request from {addr[0]}: {request}")
-                print("Empty request")
-                conn.send("HTTP/1.1 404 Not Found\r\n")
-                conn.send("Connection: close\r\n\r\n")
+                conn.send("HTTP/1.1 400 Bad Request\r\n")
+                conn.send("Connection: close\r\n")
+                conn.sendall("\r\n")
                 conn.close()
                 continue
             
             # Save only the first line of the request
             request = request.splitlines()[0]
-            print(f"HTTP Request from {addr[0]}: {request}")
             #print(request)
+            print(f"HTTP Request from {addr[0]}: {request}")
             
             # Prepare response
             #print("-- HTTP Response: ", end="")
             
             if (b"GET / HTTP" in request):
-                conn.send(f"HTTP/1.1 307 Temporary Redirect\r\nLocation: http://{ip}/index.html\r\n\r\n")
+                conn.send(f"HTTP/1.1 307 Temporary Redirect\r\n")
+                conn.send(f"Location: http://{ip}/index.html\r\n")
+                conn.send("Connection: close\r\n")
+                conn.sendall("\r\n")
                 #response = index_html()
                 #conn.send("HTTP/1.1 404 Not Found\n")
-                #conn.send("Connection: close\n\n")
+                
             
             elif b"index.html " in request:
                 #response = index_html()
                 conn.send("HTTP/1.1 200 OK\r\n")
-                conn.send("Content-Type: text/html\r\n\r\n")
-                #conn.send("Connection: close\r\n\r\n")
-                conn.send(index_html())
+                conn.send("Content-Type: text/html\r\n")
+                conn.send("Connection: close\r\n")
+                conn.send("\r\n")
+                conn.sendall(index_html())
                 
             elif b"color" in request:
                 if b"red" in request:
@@ -142,16 +147,21 @@ def task():
                 else:
                     led[0] = (0x00, 0x00, 0x00)
                     
-                led.write()
+                
                 #response = index_html()   
                 conn.send("HTTP/1.1 200 OK\r\n")
-                conn.send("Content-Type: text/html\r\n\r\n")
-                #conn.send("Connection: close\r\n\r\n")
-                conn.send(index_html())
+                conn.send("Content-Type: text/html\r\n")
+                conn.send("Connection: close\r\n")
+                conn.send("\r\n")
+                response = index_html()
+                conn.sendall(response)
+                
+                led.write()
                 
             else:
                 print("Unknown request")
-                conn.send("HTTP/1.1 404 Not Found\r\n\r\n")
+                conn.send("HTTP/1.1 404 Not Found\r\n")
+                conn.sendall("\r\n")
                 #response = f"HTTP/1.1 307 Temporary Redirect\r\nLocation: http://{ip}/index.html\r\n\r\n"
                 #conn.send("Connection: close\n\n")
                 #response = ""
