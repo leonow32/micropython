@@ -5,8 +5,7 @@ import network
 import time
 from machine import Pin
 
-ap = 123
-ip = "192.168.4.1"
+ip = "192.168.0.1"
 
 def led_task(gpio_num, delay_ms):
     led = Pin(gpio_num, Pin.OUT)
@@ -16,21 +15,21 @@ def led_task(gpio_num, delay_ms):
         time.sleep_ms(delay_ms)
 
 def ap_start(ssid):
-    global ap
+    #global ap
     ap = network.WLAN(network.AP_IF)
     ap.active(True)
         
-    print(f"AP SSID: {ssid}")
+    
     
     # IP address, netmask, gateway, DNS
     ap.ifconfig((ip, "255.255.255.0", ip, ip))
     ap.config(essid=ssid, authmode=network.AUTH_OPEN)
     
-    while not ap.active():
-        print(".", end="")
-        sleep_ms(100)
+#     while not ap.active():
+#         print(".", end="")
+#         sleep_ms(100)
     
-    print('AP Config:', ap.ifconfig()[0])
+    print(f"Access Point: {ssid} {ap.ifconfig()[0]}")
 
 if __name__ == "__main__":
     _thread.start_new_thread(led_task, [21, 1000])
