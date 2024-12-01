@@ -8,6 +8,7 @@ import sys
 import time
 from machine import Pin
 from config import ssid, password
+from main import ip
 
 led = neopixel.NeoPixel(Pin(38, Pin.OUT), 1)
 led[0] = (0, 0, 0)
@@ -45,7 +46,7 @@ def index_html():
         content += file.read()  
     
     content = content.replace("AA", str(esp32.mcu_temperature()))
-    content = content.replace("BBB", str(station.status("rssi")))
+    #content = content.replace("BBB", str(ap.status("rssi")))
     
     if led[0] == (0x10, 0x00, 0x00):
         color = "Czerwony"
