@@ -1,3 +1,4 @@
+"""
 import _thread
 import dns_server
 import http_server
@@ -33,10 +34,13 @@ def ap_start(ssid):
 
 if __name__ == "__main__":
     _thread.start_new_thread(led_task, [21, 1000])
-    _thread.start_new_thread(led_task, [47, 500])
-    _thread.start_new_thread(led_task, [48, 250])
-    _thread.start_new_thread(led_task, [45, 100])
+    #_thread.start_new_thread(led_task, [47, 500])
+    #_thread.start_new_thread(led_task, [48, 250])
+    #_thread.start_new_thread(led_task, [45, 100])
+    
     ap_start("ESP32_HotSpot")
+    dns_server.init()
     http_server.init()
     
     #init()
+"""
