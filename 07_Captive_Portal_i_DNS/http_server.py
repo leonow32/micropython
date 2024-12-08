@@ -159,6 +159,11 @@ def task():
                 
                 led.write()
                 
+            elif b'connectivitycheck' in request:
+                print("Connectivity check")
+                conn.send("HTTP/1.1 204 No Content\r\n")
+                conn.send("\r\n")
+                
             else:
                 print("Unknown request")
                 conn.send("HTTP/1.1 404 Not Found\r\n")
