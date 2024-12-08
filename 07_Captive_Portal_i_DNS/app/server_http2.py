@@ -21,10 +21,9 @@ def led_task(gpio_num, delay_ms):
 
 def index_html():
     gc.collect()
-    content = ""
     
     with open("index.html", encoding="utf-8") as file:
-        content += file.read()  
+        content = file.read()  
     
     #content = content.replace("AA", str(esp32.mcu_temperature()))
     #content = content.replace("BBB", str(ap.status("rssi")))
@@ -63,17 +62,17 @@ def task():
     #sock.listen(5)
     sock.listen()
     
-    sock.setblocking(False)
+    #sock.setblocking(False)
     
     while True:
         try:
             gc.collect()
             
             conn, addr = sock.accept()
-            conn.settimeout(3.0)
+            #conn.settimeout(3.0)
             
             request = conn.recv(1024)
-            conn.settimeout(None)
+            #conn.settimeout(None)
             
             if request == b"":
                 conn.send("HTTP/1.1 400 Bad Request\r\n")
@@ -82,9 +81,7 @@ def task():
                 conn.close()
                 continue
             
-            # Save only the first line of the request
-            #request = request.split(b'\r\n')
-            #print(f"HTTP Request from {addr[0]}: {request[0]}")
+            # Zapisz tylko pierwszą linię zapytania, a resztę odrzuć
             request = request.splitlines()[0]
             print(f"HTTP Request from {addr[0]}: {request}")
             
@@ -92,7 +89,7 @@ def task():
             print("HTTP Response: ", end="")
             
             if (b"GET / HTTP" in request):
-                conn.send(f"HTTP/1.1 307 Temporary Redirect\r\n")
+                conn.send("HTTP/1.1 307 Temporary Redirect\r\n")
                 conn.send(f"Location: http://{local_ip}/index.html\r\n")
                 conn.send("Connection: close\r\n")
                 conn.send("\r\n")
@@ -133,28 +130,21 @@ def task():
                 conn.send("Content-Type: text/html\r\n")
                 conn.send("Connection: close\r\n")
                 conn.send("\r\n")
-                response = index_html()
-                conn.sendall(response)
+                conn.send(index_html())
                 
                 led.write()
                 
             elif b'connectivitycheck' in request:
                 print("Connectivity check")
-                #response = b"HTTP/1.1 204 No Content\r\n\r\n"
                 conn.send("HTTP/1.1 204 No Content\r\n")
                 conn.send("\r\n")
                 
             else:
-                #print("Unknown request")
-                #response = "HTTP/1.1 404 Not Found\r\n"
-                #global local_ip
-                #response = f"HTTP/1.1 307 Temporary Redirect\r\nLocation: http://{local_ip}/index.html\r\n\r\n"
                 print("Unknown request")
                 conn.send("HTTP/1.1 307 Temporary Redirect\r\n")
                 conn.send(f"Location: http://{local_ip}/index.html\r\n")
                 conn.send("\r\n")
             
-            #conn.sendall(response)
             conn.close()
                        
         except:
