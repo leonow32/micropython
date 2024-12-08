@@ -5,9 +5,9 @@ import neopixel
 import socket
 import sys
 import time
-
+import wifi_ap
 from machine import Pin
-from wifi_ap import local_ip
+#from wifi_ap import local_ip
 
 led = neopixel.NeoPixel(Pin(38, Pin.OUT), 1)
 led[0] = (0, 0, 0)
@@ -92,7 +92,7 @@ def task():
             
             if (b"GET / HTTP" in request):
                 conn.send("HTTP/1.1 307 Temporary Redirect\r\n")
-                conn.send(f"Location: http://{local_ip}/index.html\r\n")
+                conn.send(f"Location: http://{wifi_ap.get_ip()}/index.html\r\n")
                 conn.send("Connection: close\r\n")
                 conn.send("\r\n")
                 
@@ -144,7 +144,7 @@ def task():
             else:
                 print("Unknown request")
                 conn.send("HTTP/1.1 307 Temporary Redirect\r\n")
-                conn.send(f"Location: http://{local_ip}/index.html\r\n")
+                conn.send(f"Location: http://{wifi_ap.get_ip()}/index.html\r\n")
                 conn.send("\r\n")
             
             conn.close()

@@ -5,7 +5,7 @@ import socket
 import gc
 import sys
 import time
-from wifi_ap import local_ip
+import wifi_ap
 
 def decode_request(request):
     domain = ""
@@ -40,7 +40,7 @@ def decode_request(request):
     # set response length to 4 bytes (to hold one IPv4 address)
     packet += b"\x00\x04"
     # now actually send the IP address as 4 bytes (without the "."s)
-    global local_ip
+    local_ip = wifi_ap.get_ip()
     packet += bytes(map(int, local_ip.split(".")))
     
     return packet, domain
@@ -57,7 +57,7 @@ def task():
             data, addr = sock.recvfrom(1024)
             response, domain = decode_request(data)
             sock.sendto(response, addr)
-            print(f"DNS  - from {addr[0]} request {domain}, response is {local_ip}")
+            print(f"DNS  - from {addr[0]} request {domain}, response is {wifi_ap.get_ip()}")
         except Exception as e:
             #sys.print_exception(e)
             time.sleep_ms(100)
