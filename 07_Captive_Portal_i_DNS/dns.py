@@ -1,31 +1,15 @@
+# Dekoder zapytań pochodzi z https://github.com/anson-vandoren/esp8266-captive-portal/blob/master/captive_dns.py
+
 import _thread
-
-import gc
-import network
 import socket
-import time
+import gc
 import sys
-
-ip = "192.168.0.1"
-
-def ap_start(ssid, ip):
-    global ap
-    ap = network.WLAN(network.AP_IF)
-    ap.active(True)
-        
-    # IP address, netmask, gateway, DNS
-    ap.ifconfig((ip, "255.255.255.0", ip, ip))
-    ap.config(essid=ssid, authmode=network.AUTH_OPEN)
-    
-    while not ap.active():
-        print(".", end="")
-        sleep_ms(100)
-    
-    print(f"Access Point: {ssid} {ap.ifconfig()[0]}")
+import time
+from wifi_ap import local_ip
 
 def decode_request(request):
     domain = ""
-    head = 12
+    head   = 12
     length = request[head]
     
     while length != 0:
@@ -35,9 +19,6 @@ def decode_request(request):
         # check if there is another label after this one
         head += length + 1
         length = request[head]
-        #print("_", end="")
-    
-    #print(f"domain: {domain} ", end="")
     
     packet = request[:2]
     # set response flags (assume RD=1 from request)
@@ -59,51 +40,31 @@ def decode_request(request):
     # set response length to 4 bytes (to hold one IPv4 address)
     packet += b"\x00\x04"
     # now actually send the IP address as 4 bytes (without the "."s)
-    global ip
-    packet += bytes(map(int, ip.split(".")))
+    global local_ip
+    packet += bytes(map(int, local_ip.split(".")))
     
     return packet, domain
 
 def task():
-    print("DNS start")
-    #sock = socket.socket()
-    #sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #global local_ip
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind(("", 53))
-    #sock.listen(5)
     #sock.setblocking(False)
     
     while True:
         try:
-            print("1", end="")
             gc.collect()
-            
-            # Pause here and wait for any request
-            print("2", end="")
-            #conn, addr = sock.accept()
-            
-            print("3", end="")
             data, addr = sock.recvfrom(1024)
-            #data, addr = conn.recv(1024)
-            
-            print("4", end="")
             response, domain = decode_request(data)
-            
-            print("5", end="")
             sock.sendto(response, addr)
-            
-            print("5", end="")
-            print(f"DNS request from {addr[0]}, {domain} -> {ip}")
+            print(f"DNS  - from {addr[0]} request {domain}, response is {local_ip}")
         except Exception as e:
-            sys.print_exception(e)
+            #sys.print_exception(e)
             time.sleep_ms(100)
 
 def init():
-    print("DNS init")
     _thread.start_new_thread(task, ())
 
 if __name__ == "__main__":
-    ap_start("TESTOWY", "192.168.4.1")
     init()
-    
 

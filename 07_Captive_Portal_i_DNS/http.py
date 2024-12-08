@@ -3,10 +3,11 @@ import esp32
 import gc
 import neopixel
 import socket
+import sys
 import time
 
 from machine import Pin
-from app.wifi_ap import local_ip
+from wifi_ap import local_ip
 
 led = neopixel.NeoPixel(Pin(38, Pin.OUT), 1)
 led[0] = (0, 0, 0)
@@ -75,6 +76,7 @@ def task():
             #conn.settimeout(None)
             
             if request == b"":
+                print(f"HTTP - from {addr[0]} EMPTY request")
                 conn.send("HTTP/1.1 400 Bad Request\r\n")
                 conn.send("Connection: close\r\n")
                 conn.send("\r\n")
@@ -83,10 +85,10 @@ def task():
             
             # Zapisz tylko pierwszą linię zapytania, a resztę odrzuć
             request = request.splitlines()[0]
-            print(f"HTTP Request from {addr[0]}: {request}")
+            print(f"HTTP - from {addr[0]} request {request}")
             
             # Prepare response
-            print("HTTP Response: ", end="")
+            print("HTTP - response: ", end="")
             
             if (b"GET / HTTP" in request):
                 conn.send("HTTP/1.1 307 Temporary Redirect\r\n")
@@ -147,7 +149,8 @@ def task():
             
             conn.close()
                        
-        except:
+        except Exception as e:
+            #sys.print_exception(e)
             time.sleep_ms(100)
 
 def init():
