@@ -20,3 +20,4 @@ def init(ssid):
     
 if __name__ == "__main__":
     init("ESP32-S3_HotSpot")
+    
