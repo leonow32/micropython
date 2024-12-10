@@ -21,12 +21,12 @@ def led_task(gpio_num, delay_ms):
         time.sleep_ms(delay_ms)
 
 def index_html():
-    gc.collect()
+    #gc.collect()
     
     with open("index.html", encoding="utf-8") as file:
         content = file.read()  
     
-    #content = content.replace("AA", str(esp32.mcu_temperature()))
+    content = content.replace("AA", str(esp32.mcu_temperature()))
     #content = content.replace("BBB", str(ap.status("rssi")))
     
     if led[0] == (0x10, 0x00, 0x00):
@@ -67,7 +67,7 @@ def task():
     
     while True:
         try:
-            gc.collect()
+            #gc.collect()
             
             conn, addr = sock.accept()
             #conn.settimeout(3.0)
