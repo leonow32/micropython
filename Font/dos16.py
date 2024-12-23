@@ -33,9 +33,9 @@ with open("dos16.font", "w", encoding="utf-8") as result:
                 # for a in bitmaps:
                     # print(a)
                 
-                result.write(f"char_num: {char_num}\n")
-                result.write(f"height:   {height}\n")
-                result.write(f"width:    {width}\n")
+                result.write(f"char_num:{char_num}\n")
+                result.write(f"height:{height}\n")
+                result.write(f"width:{width}\n")
                 for a in bitmaps:
                     result.write(f"{a}\n")
                     
