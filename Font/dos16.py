@@ -1,6 +1,6 @@
 # dict
 # key: char_num
-# value: tuple(width, height, spacing, bitmap)
+# value: tuple(width, height, space, bitmap)
 
 font = dict()
 
@@ -36,6 +36,7 @@ with open("dos16.font", "w", encoding="utf-8") as result:
                 result.write(f"char_num:{char_num}\n")
                 result.write(f"height:{height}\n")
                 result.write(f"width:{width}\n")
+                result.write(f"space:0\n")
                 for a in bitmaps:
                     result.write(f"{a}\n")
                     

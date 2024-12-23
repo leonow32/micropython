@@ -37,6 +37,7 @@ with open("dos8.font", "w", encoding="utf-8") as result:
                 result.write(f"char_num:{char_num}\n")
                 result.write(f"height:8\n")
                 result.write(f"width:8\n")
+                result.write(f"space:0\n")
                 for a in bitmaps:
                     result.write(f"{a}\n")
                     
