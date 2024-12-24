@@ -16,7 +16,6 @@ with open("mini8.font", "w", encoding="utf-8") as result:
             line = line.strip()
             
             if line[0:2] == "//":
-                print(f"Continue at {number}")
                 continue
             
             elif len(line) == 0:
@@ -40,21 +39,17 @@ with open("mini8.font", "w", encoding="utf-8") as result:
                 height     = 0
                 
             else:
+                # Find , in line and cut everything after ,
+                line = line[0:line.find(",")]
+                
                 if(first_line):
                     height = len(line)
                     bitmaps = height * [""]
                     first_line = False
                 
-                # Find , in line and cut everything after ,
-                line = line[0:line.find(",")]
-                
                 for char in line:
-                    #print(f"row = {row}")
-                    
-                    
                     try:
-                        bitmaps[row] += char
-                        #bitmaps[height-row-1] += char
+                        bitmaps[height-row-1] += char
                     except:
                         print(f"Error at {number} line={line}, row={row}, height={height}, width={width}")
                     row += 1
