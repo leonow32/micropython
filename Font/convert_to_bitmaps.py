@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
 import sys
-sys.stdout.reconfigure(encoding='utf-8')
-
 file     = sys.argv[1]    # file name for input *.dat and output *.font
 space    = sys.argv[2]    # space between characters
 
@@ -48,12 +45,12 @@ with open(f"{file}.font", "w", encoding="utf-8") as result:
                 height     = 0
                 
             else:
-                # Find , in line and cut everything after ,
+                # Find "," in line and cut everything after ","
                 line = line[0:line.find(",")]
                 
                 if(first_line):
-                    height = len(line)
-                    bitmaps = height * [""]
+                    height     = len(line)
+                    bitmaps    = height * [""]
                     first_line = False
                 
                 for char in line:
@@ -65,4 +62,4 @@ with open(f"{file}.font", "w", encoding="utf-8") as result:
                 
                 row = 0
                 width += 1
-            
+
