@@ -1,6 +1,6 @@
 import sys
-file     = sys.argv[1]    # file name for input *.dat and output *.font
-space    = sys.argv[2]    # space between characters
+file  = sys.argv[1]    # file name for input *.dat and output *.font
+space = sys.argv[2]    # space between characters
 
 with open(f"{file}.font", "w", encoding="utf-8") as result:
     with open(f"{file}.dat", "r", encoding="utf-8") as source:
