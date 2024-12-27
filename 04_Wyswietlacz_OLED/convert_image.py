@@ -1,8 +1,8 @@
 # 241218
 import os
 import sys
-import numpy
-from PIL import Image
+import numpy            # instalacja poleceniem "pip install numpy"
+from PIL import Image   # instalacja poleceniem "pip install pillow"
 
 def convert(name):
     print(f"Processing: {name}")
