@@ -20,8 +20,8 @@ class SSD1309(framebuf.FrameBuffer):
                   0xF1, 0xDB, 0x30, 0x81, 0xFF,
                   0xA4, 0xA6, 0x8D, 0x14, 0xAF)
         
-        #for cmd in config:
-        #    self.i2c.writeto(ADDRESS, bytes((0x80, cmd)))
+        for cmd in config:
+            self.i2c.writeto(ADDRESS, bytes((0x80, cmd)))
             
     def refresh(self):
         set_cursor = (0x21, 0x00, 0x7F, 0x22, 0x00, 0x07)
@@ -64,6 +64,7 @@ if __name__ == "__main__":
     #    images.test[i] = ~images.test[i]
         
     display.blit(images.test, 70, 30, 0, )
+    display.refresh()
     
     
     #display.rect(0, 0, 128, 64, 1)
