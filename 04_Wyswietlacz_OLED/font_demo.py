@@ -1,23 +1,16 @@
 from machine import Pin, I2C
+from dos16 import *
+from sans16B_unicode import *
 import framebuf
 import ssd1309
 import mem_used
 import time
 
-#dos16_F = bytearray(b'\x10\x08\x00\x04\xfc\xfcD\xe4\x0c\x1c\x00\x08\x0f\x0f\x08\x00\x00\x00\x00')
-#dos16_j = bytearray(b'\x10\x08\x00\x00\x00\x00\x00 \xec\xec\x00\x000p@@\x7f?\x00')
-
-dos16 = {
-    "\x00": bytearray(b'\x10\x08\x00\xff\x01\x01\x01\x01\x01\x01\xff\xff\x80\x80\x80\x80\x80\x80\xff'),
-    "F": bytearray(b'\x10\x08\x00\x04\xfc\xfcD\xe4\x0c\x1c\x00\x08\x0f\x0f\x08\x00\x00\x00\x00'),
-    "j": bytearray(b'\x10\x08\x00\x00\x00\x00\x00 \xec\xec\x00\x000p@@\x7f?\x00'),
-}
-
 def print_char(screen, font, char, x, y):
     try:
-        bitmap = font[char]
+        bitmap = font[ord(char)]
     except:
-        bitmap = font["\x00"]
+        bitmap = font[0]
         print(f"Char {char} doesn't exist in font")
     
     buffer = framebuf.FrameBuffer(bitmap[3:], bitmap[1], bitmap[0], 0)
@@ -36,7 +29,10 @@ start_time = time.ticks_us()
 
 #print_char(display, dos16["F"], 0, 0)
 #print_char(display, dos16["j"], 8, 0)
-print_text(display, dos16, "FFF\x00jjFjąFFF", 5, 20)
+print_text(display, dos16, "Test DOS 16x8", 0, 0)
+print_text(display, sans16B_unicode, "Test San16B", 0, 16)
+print_text(display, sans16B_unicode, "ĄĘĆŚŃŁÓŹŻ", 0, 32)
+print_text(display, sans16B_unicode, "ąęćśńłóźż", 0, 48)
 
 display.refresh()
 
