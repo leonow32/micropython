@@ -13,18 +13,21 @@ dos16 = {
     "j": bytearray(b'\x10\x08\x00\x00\x00\x00\x00 \xec\xec\x00\x000p@@\x7f?\x00'),
 }
 
-def print_char(screen, char, x, y):
-    buf = framebuf.FrameBuffer(char[3:], char[1], char[0], framebuf.MONO_VLSB)
-    screen.blit(buf, x, y)
-    return char[1] + char[2]
+def print_char(screen, font, char, x, y):
+    try:
+        bitmap = font[char]
+    except:
+        bitmap = font["\x00"]
+        print(f"Char {char} doesn't exist in font")
+    
+    buffer = framebuf.FrameBuffer(bitmap[3:], bitmap[1], bitmap[0], 0)
+    screen.blit(buffer, x, y)
+    return bitmap[1] + bitmap[2]
+    
 
-def print_text(screen, text, x, y):
+def print_text(screen, font, text, x, y):
     for char in text:
-        try:
-            x += print_char(screen, dos16[char], x, y)
-        except:
-            x += print_char(screen, dos16["\x00"], x, y)
-            print(f"Char {char} doesn't exist in font")
+        x += print_char(screen, font, char, x, y)
         
 
 i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=400000)
@@ -33,7 +36,7 @@ start_time = time.ticks_us()
 
 #print_char(display, dos16["F"], 0, 0)
 #print_char(display, dos16["j"], 8, 0)
-print_text(display, "FFF\x00jjFjąFFF", 5, 20)
+print_text(display, dos16, "FFF\x00jjFjąFFF", 5, 20)
 
 display.refresh()
 
