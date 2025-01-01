@@ -1,4 +1,4 @@
-char_num = 32   # first character in font
+num = 32   # first character in font
 space    = 1    # common spacing for each character
 
 with open("mini8.font", "w", encoding="utf-8") as result:
@@ -23,7 +23,8 @@ with open("mini8.font", "w", encoding="utf-8") as result:
                     bitmaps[i] =  bitmaps[i].replace("0", ".")
                     bitmaps[i] =  bitmaps[i].replace("1", "#")
                     
-                result.write(f"char_num:{char_num}\n")
+                result.write(f"char:{chr(num) if num >= 32 else ""}\n")
+                result.write(f"num:{num}\n")
                 result.write(f"height:{height}\n")
                 result.write(f"width:{width}\n")
                 result.write(f"space:{space}\n")
@@ -32,7 +33,7 @@ with open("mini8.font", "w", encoding="utf-8") as result:
                 result.write(f"\n")
             
                 # Prepare for next character
-                char_num   = char_num + 1
+                num   = num + 1
                 first_line = True
                 row        = 0
                 width      = 0

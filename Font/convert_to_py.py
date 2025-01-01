@@ -26,31 +26,33 @@ with open(f"{file}.py", "w", encoding="utf-8") as result:
         for line in lines:
             line = line.strip()
             
-            if "char_num" in line:
-                char_num = int(line[line.find(":")+1:])
+            if "char" in line:
+                continue
             
-            if "width" in line:
+            elif "num" in line:
+                num = int(line[line.find(":")+1:])
+            
+            elif "width" in line:
                 width = int(line[line.find(":")+1:])
                 
-            if "height" in line:
+            elif "height" in line:
                 height = int(line[line.find(":")+1:])
                 
-            if "space" in line:
+            elif "space" in line:
                 space = int(line[line.find(":")+1:])
                 
-            if len(line) == 0:
-                print(f"Saving {char_num}, {width}, {height}, {space}")
+            elif len(line) == 0:
+                #print(f"Saving {num}, {width}, {height}, {space}")
                 #simulate(bitmap, width, height)
                 
                 output = bytearray([height]) + bytearray([width]) + bytearray([space]) + bitmap
-                result.write(f"    {char_num}: {output},\n")
+                result.write(f"    {num}: {output},\n")
                 
                 bitmap = bytearray()
                 
-                
-            if "." in line or "#" in line:
+            elif "." in line or "#" in line:
                 if len(bitmap) == 0:
-                    #print(f"Create new bitmap {char_num}, {width}, {height}, {space}")
+                    #print(f"Create new bitmap {num}, {width}, {height}, {space}")
                     bitmap = bytearray(width * height // 8)
                     x = 0
                     y = 0

@@ -19,17 +19,18 @@ with open(f"{file}.font", "w", encoding="utf-8") as result:
             if line[0:2] == "//":
                 pos = line.find("'")+1
                 if pos == 0:
-                    char_num = 0
+                    num = 0
                 else:
                     char = line[pos]
-                    char_num = ord(char)
+                    num = ord(char)
             
             elif len(line) == 0:
                 for i in range(len(bitmaps)):
                     bitmaps[i] =  bitmaps[i].replace("0", ".")
                     bitmaps[i] =  bitmaps[i].replace("1", "#")
                     
-                result.write(f"char_num:{char_num}\n")
+                result.write(f"char:{chr(num) if num >= 32 else ""}\n")
+                result.write(f"num:{num}\n")
                 result.write(f"height:{height}\n")
                 result.write(f"width:{width}\n")
                 result.write(f"space:{space}\n")
@@ -38,7 +39,7 @@ with open(f"{file}.font", "w", encoding="utf-8") as result:
                 result.write(f"\n")
             
                 # Prepare for next character
-                char_num   = char_num + 1
+                num   = num + 1
                 first_line = True
                 row        = 0
                 width      = 0

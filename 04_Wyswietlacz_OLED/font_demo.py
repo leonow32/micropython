@@ -1,5 +1,6 @@
 from machine import Pin, I2C
 from dos16 import *
+from sans16_unicode import *
 from sans16B_unicode import *
 import framebuf
 import ssd1309
@@ -29,10 +30,16 @@ start_time = time.ticks_us()
 
 #print_char(display, dos16["F"], 0, 0)
 #print_char(display, dos16["j"], 8, 0)
-print_text(display, dos16, "Test DOS 16x8", 0, 0)
-print_text(display, sans16B_unicode, "Test San16B", 0, 16)
-print_text(display, sans16B_unicode, "ĄĘĆŚŃŁÓŹŻ", 0, 32)
-print_text(display, sans16B_unicode, "ąęćśńłóźż", 0, 48)
+#print_text(display, dos16, "Test DOS 16x8", 0, 0)
+
+used_font = sans16_unicode
+# used_font = sans16B_unicode
+
+
+print_text(display, used_font, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 0, 0)
+print_text(display, used_font, "abcdefghijklmnopqrstuvwxyz", 0, 16)
+print_text(display, used_font, "ĄĘĆŚŃŁÓŹŻ ąęćśńłóźż", 0, 32)
+print_text(display, used_font, "0123456789", 0, 48)
 
 display.refresh()
 

@@ -1,4 +1,5 @@
-char_num:32
+char: 
+num:32
 height:8
 width:2
 space:1
@@ -11,7 +12,8 @@ space:1
 ..
 ..
 
-char_num:33
+char:!
+num:33
 height:8
 width:1
 space:1
@@ -24,7 +26,8 @@ space:1
 .
 .
 
-char_num:34
+char:"
+num:34
 height:8
 width:3
 space:1
@@ -37,7 +40,8 @@ space:1
 ...
 ...
 
-char_num:35
+char:#
+num:35
 height:8
 width:5
 space:1
@@ -50,7 +54,8 @@ space:1
 .....
 .....
 
-char_num:36
+char:$
+num:36
 height:8
 width:5
 space:1
@@ -63,7 +68,8 @@ space:1
 ####.
 ..#..
 
-char_num:37
+char:%
+num:37
 height:8
 width:7
 space:1
@@ -76,7 +82,8 @@ space:1
 ..#.#.#
 .....#.
 
-char_num:38
+char:&
+num:38
 height:8
 width:5
 space:1
@@ -89,7 +96,8 @@ space:1
 .....
 .....
 
-char_num:39
+char:'
+num:39
 height:8
 width:1
 space:1
@@ -102,7 +110,8 @@ space:1
 .
 .
 
-char_num:40
+char:(
+num:40
 height:8
 width:2
 space:1
@@ -115,7 +124,8 @@ space:1
 #.
 .#
 
-char_num:41
+char:)
+num:41
 height:8
 width:2
 space:1
@@ -128,7 +138,8 @@ space:1
 .#
 #.
 
-char_num:42
+char:*
+num:42
 height:8
 width:3
 space:1
@@ -141,7 +152,8 @@ space:1
 ...
 ...
 
-char_num:43
+char:+
+num:43
 height:8
 width:3
 space:1
@@ -154,7 +166,8 @@ space:1
 ...
 ...
 
-char_num:44
+char:,
+num:44
 height:8
 width:1
 space:1
@@ -167,7 +180,8 @@ space:1
 #
 .
 
-char_num:45
+char:-
+num:45
 height:8
 width:3
 space:1
@@ -180,7 +194,8 @@ space:1
 ...
 ...
 
-char_num:46
+char:.
+num:46
 height:8
 width:1
 space:1
@@ -193,7 +208,8 @@ space:1
 .
 .
 
-char_num:47
+char:/
+num:47
 height:8
 width:3
 space:1
@@ -206,7 +222,8 @@ space:1
 ...
 ...
 
-char_num:48
+char:0
+num:48
 height:8
 width:4
 space:1
@@ -219,7 +236,8 @@ space:1
 ....
 ....
 
-char_num:49
+char:1
+num:49
 height:8
 width:2
 space:1
@@ -232,7 +250,8 @@ space:1
 ..
 ..
 
-char_num:50
+char:2
+num:50
 height:8
 width:4
 space:1
@@ -245,7 +264,8 @@ space:1
 ....
 ....
 
-char_num:51
+char:3
+num:51
 height:8
 width:4
 space:1
@@ -258,7 +278,8 @@ space:1
 ....
 ....
 
-char_num:52
+char:4
+num:52
 height:8
 width:4
 space:1
@@ -271,7 +292,8 @@ space:1
 ....
 ....
 
-char_num:53
+char:5
+num:53
 height:8
 width:4
 space:1
@@ -284,7 +306,8 @@ space:1
 ....
 ....
 
-char_num:54
+char:6
+num:54
 height:8
 width:4
 space:1
@@ -297,7 +320,8 @@ space:1
 ....
 ....
 
-char_num:55
+char:7
+num:55
 height:8
 width:4
 space:1
@@ -310,7 +334,8 @@ space:1
 ....
 ....
 
-char_num:56
+char:8
+num:56
 height:8
 width:4
 space:1
@@ -323,7 +348,8 @@ space:1
 ....
 ....
 
-char_num:57
+char:9
+num:57
 height:8
 width:4
 space:1
@@ -336,7 +362,8 @@ space:1
 ....
 ....
 
-char_num:58
+char::
+num:58
 height:8
 width:1
 space:1
@@ -349,7 +376,8 @@ space:1
 .
 .
 
-char_num:59
+char:;
+num:59
 height:8
 width:1
 space:1
@@ -362,7 +390,8 @@ space:1
 #
 .
 
-char_num:60
+char:<
+num:60
 height:8
 width:3
 space:1
@@ -375,7 +404,8 @@ space:1
 ...
 ...
 
-char_num:61
+char:=
+num:61
 height:8
 width:3
 space:1
@@ -388,7 +418,8 @@ space:1
 ...
 ...
 
-char_num:62
+char:>
+num:62
 height:8
 width:3
 space:1
@@ -401,7 +432,8 @@ space:1
 ...
 ...
 
-char_num:63
+char:?
+num:63
 height:8
 width:4
 space:1
@@ -414,7 +446,8 @@ space:1
 ..#.
 ....
 
-char_num:64
+char:@
+num:64
 height:8
 width:7
 space:1
@@ -427,7 +460,8 @@ space:1
 #......
 .####..
 
-char_num:65
+char:A
+num:65
 height:8
 width:5
 space:1
@@ -440,7 +474,8 @@ space:1
 .....
 .....
 
-char_num:66
+char:B
+num:66
 height:8
 width:4
 space:1
@@ -453,7 +488,8 @@ space:1
 ....
 ....
 
-char_num:67
+char:C
+num:67
 height:8
 width:4
 space:1
@@ -466,7 +502,8 @@ space:1
 ....
 ....
 
-char_num:68
+char:D
+num:68
 height:8
 width:4
 space:1
@@ -479,7 +516,8 @@ space:1
 ....
 ....
 
-char_num:69
+char:E
+num:69
 height:8
 width:4
 space:1
@@ -492,7 +530,8 @@ space:1
 ....
 ....
 
-char_num:70
+char:F
+num:70
 height:8
 width:4
 space:1
@@ -505,7 +544,8 @@ space:1
 ....
 ....
 
-char_num:71
+char:G
+num:71
 height:8
 width:4
 space:1
@@ -518,7 +558,8 @@ space:1
 ....
 ....
 
-char_num:72
+char:H
+num:72
 height:8
 width:4
 space:1
@@ -531,7 +572,8 @@ space:1
 ....
 ....
 
-char_num:73
+char:I
+num:73
 height:8
 width:1
 space:1
@@ -544,7 +586,8 @@ space:1
 .
 .
 
-char_num:74
+char:J
+num:74
 height:8
 width:3
 space:1
@@ -557,7 +600,8 @@ space:1
 ...
 ...
 
-char_num:75
+char:K
+num:75
 height:8
 width:4
 space:1
@@ -570,7 +614,8 @@ space:1
 ....
 ....
 
-char_num:76
+char:L
+num:76
 height:8
 width:3
 space:1
@@ -583,7 +628,8 @@ space:1
 ...
 ...
 
-char_num:77
+char:M
+num:77
 height:8
 width:5
 space:1
@@ -596,7 +642,8 @@ space:1
 .....
 .....
 
-char_num:78
+char:N
+num:78
 height:8
 width:4
 space:1
@@ -609,7 +656,8 @@ space:1
 ....
 ....
 
-char_num:79
+char:O
+num:79
 height:8
 width:4
 space:1
@@ -622,7 +670,8 @@ space:1
 ....
 ....
 
-char_num:80
+char:P
+num:80
 height:8
 width:4
 space:1
@@ -635,7 +684,8 @@ space:1
 ....
 ....
 
-char_num:81
+char:Q
+num:81
 height:8
 width:4
 space:1
@@ -648,7 +698,8 @@ space:1
 ..#.
 ....
 
-char_num:82
+char:R
+num:82
 height:8
 width:4
 space:1
@@ -661,7 +712,8 @@ space:1
 ....
 ....
 
-char_num:83
+char:S
+num:83
 height:8
 width:4
 space:1
@@ -674,7 +726,8 @@ space:1
 ....
 ....
 
-char_num:84
+char:T
+num:84
 height:8
 width:3
 space:1
@@ -687,7 +740,8 @@ space:1
 ...
 ...
 
-char_num:85
+char:U
+num:85
 height:8
 width:4
 space:1
@@ -700,7 +754,8 @@ space:1
 ....
 ....
 
-char_num:86
+char:V
+num:86
 height:8
 width:5
 space:1
@@ -713,7 +768,8 @@ space:1
 .....
 .....
 
-char_num:87
+char:W
+num:87
 height:8
 width:5
 space:1
@@ -726,7 +782,8 @@ space:1
 .....
 .....
 
-char_num:88
+char:X
+num:88
 height:8
 width:5
 space:1
@@ -739,7 +796,8 @@ space:1
 .....
 .....
 
-char_num:89
+char:Y
+num:89
 height:8
 width:5
 space:1
@@ -752,7 +810,8 @@ space:1
 .....
 .....
 
-char_num:90
+char:Z
+num:90
 height:8
 width:5
 space:1
@@ -765,7 +824,8 @@ space:1
 .....
 .....
 
-char_num:91
+char:[
+num:91
 height:8
 width:2
 space:1
@@ -778,7 +838,8 @@ space:1
 #.
 ##
 
-char_num:92
+char:\
+num:92
 height:8
 width:3
 space:1
@@ -791,7 +852,8 @@ space:1
 ...
 ...
 
-char_num:93
+char:]
+num:93
 height:8
 width:2
 space:1
@@ -804,7 +866,8 @@ space:1
 .#
 ##
 
-char_num:94
+char:^
+num:94
 height:8
 width:3
 space:1
@@ -817,7 +880,8 @@ space:1
 ...
 ...
 
-char_num:95
+char:_
+num:95
 height:8
 width:3
 space:1
@@ -830,7 +894,8 @@ space:1
 ###
 ...
 
-char_num:96
+char:`
+num:96
 height:8
 width:3
 space:1
@@ -843,7 +908,8 @@ space:1
 ...
 ...
 
-char_num:97
+char:a
+num:97
 height:8
 width:3
 space:1
@@ -856,7 +922,8 @@ space:1
 ...
 ...
 
-char_num:98
+char:b
+num:98
 height:8
 width:3
 space:1
@@ -869,7 +936,8 @@ space:1
 ...
 ...
 
-char_num:99
+char:c
+num:99
 height:8
 width:3
 space:1
@@ -882,7 +950,8 @@ space:1
 ...
 ...
 
-char_num:100
+char:d
+num:100
 height:8
 width:3
 space:1
@@ -895,7 +964,8 @@ space:1
 ...
 ...
 
-char_num:101
+char:e
+num:101
 height:8
 width:2
 space:1
@@ -908,7 +978,8 @@ space:1
 ..
 ..
 
-char_num:102
+char:f
+num:102
 height:8
 width:3
 space:1
@@ -921,7 +992,8 @@ space:1
 ..#
 ##.
 
-char_num:103
+char:g
+num:103
 height:8
 width:3
 space:1
@@ -934,7 +1006,8 @@ space:1
 ...
 ...
 
-char_num:104
+char:h
+num:104
 height:8
 width:1
 space:1
@@ -947,7 +1020,8 @@ space:1
 .
 .
 
-char_num:105
+char:i
+num:105
 height:8
 width:1
 space:1
@@ -960,7 +1034,8 @@ space:1
 #
 #
 
-char_num:106
+char:j
+num:106
 height:8
 width:3
 space:1
@@ -973,7 +1048,8 @@ space:1
 ...
 ...
 
-char_num:107
+char:k
+num:107
 height:8
 width:1
 space:1
@@ -986,7 +1062,8 @@ space:1
 .
 .
 
-char_num:108
+char:l
+num:108
 height:8
 width:5
 space:1
@@ -999,7 +1076,8 @@ space:1
 .....
 .....
 
-char_num:109
+char:m
+num:109
 height:8
 width:3
 space:1
@@ -1012,7 +1090,8 @@ space:1
 ...
 ...
 
-char_num:110
+char:n
+num:110
 height:8
 width:3
 space:1
@@ -1025,7 +1104,8 @@ space:1
 ...
 ...
 
-char_num:111
+char:o
+num:111
 height:8
 width:3
 space:1
@@ -1038,7 +1118,8 @@ space:1
 #..
 #..
 
-char_num:112
+char:p
+num:112
 height:8
 width:3
 space:1
@@ -1051,7 +1132,8 @@ space:1
 ..#
 ..#
 
-char_num:113
+char:q
+num:113
 height:8
 width:2
 space:1
@@ -1064,7 +1146,8 @@ space:1
 ..
 ..
 
-char_num:114
+char:r
+num:114
 height:8
 width:3
 space:1
@@ -1077,7 +1160,8 @@ space:1
 ...
 ...
 
-char_num:115
+char:s
+num:115
 height:8
 width:2
 space:1
@@ -1090,7 +1174,8 @@ space:1
 ..
 ..
 
-char_num:116
+char:t
+num:116
 height:8
 width:3
 space:1
@@ -1103,7 +1188,8 @@ space:1
 ...
 ...
 
-char_num:117
+char:u
+num:117
 height:8
 width:3
 space:1
@@ -1116,7 +1202,8 @@ space:1
 ...
 ...
 
-char_num:118
+char:v
+num:118
 height:8
 width:5
 space:1
@@ -1129,7 +1216,8 @@ space:1
 .....
 .....
 
-char_num:119
+char:w
+num:119
 height:8
 width:3
 space:1
@@ -1142,7 +1230,8 @@ space:1
 ...
 ...
 
-char_num:120
+char:x
+num:120
 height:8
 width:3
 space:1
@@ -1155,7 +1244,8 @@ space:1
 ..#
 ##.
 
-char_num:121
+char:y
+num:121
 height:8
 width:4
 space:1
@@ -1168,7 +1258,8 @@ space:1
 ....
 ....
 
-char_num:122
+char:z
+num:122
 height:8
 width:3
 space:1
@@ -1181,7 +1272,8 @@ space:1
 .#.
 ..#
 
-char_num:123
+char:{
+num:123
 height:8
 width:1
 space:1
@@ -1194,7 +1286,8 @@ space:1
 #
 #
 
-char_num:124
+char:|
+num:124
 height:8
 width:3
 space:1
@@ -1207,7 +1300,8 @@ space:1
 .#.
 #..
 
-char_num:125
+char:}
+num:125
 height:8
 width:4
 space:1
@@ -1220,7 +1314,8 @@ space:1
 ....
 ....
 
-char_num:126
+char:~
+num:126
 height:8
 width:3
 space:1

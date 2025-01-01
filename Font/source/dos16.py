@@ -1,5 +1,5 @@
 # dict
-# key: char_num
+# key: num
 # value: tuple(width, height, space, bitmap)
 
 font = dict()
@@ -7,7 +7,7 @@ font = dict()
 with open("dos16.font", "w", encoding="utf-8") as result:
     with open("dos16.dat", "r", encoding="utf-8") as source:
         lines = source.readlines()
-        char_num = 0
+        num = 0
         row = 0
         width = 0
         height = 0
@@ -20,9 +20,9 @@ with open("dos16.font", "w", encoding="utf-8") as result:
             
             if len(line) == 0:
                 # save char to dict
-                #dont[char_num] = ()
+                #dont[num] = ()
                 # print("================================")
-                # print(f"char_num: {char_num}")
+                # print(f"num: {num}")
                 # print(f"height:   {height}")
                 # print(f"width:    {width}")
                 
@@ -33,7 +33,8 @@ with open("dos16.font", "w", encoding="utf-8") as result:
                 # for a in bitmaps:
                     # print(a)
                 
-                result.write(f"char_num:{char_num}\n")
+                result.write(f"char:{chr(num) if num >= 32 else ""}\n")
+                result.write(f"num:{num}\n")
                 result.write(f"height:{height}\n")
                 result.write(f"width:{width}\n")
                 result.write(f"space:0\n")
@@ -43,7 +44,7 @@ with open("dos16.font", "w", encoding="utf-8") as result:
                 result.write(f"\n")
             
             elif(line[0] == "#"):
-                char_num = int(line[1:])
+                num = int(line[1:])
                 first_line = True
                 row = 0
                 width = 0
