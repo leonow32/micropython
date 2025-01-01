@@ -1,7 +1,7 @@
 import sys
+import os
 file  = sys.argv[1]
 
-font = {}
 bitmap = bytearray()
 
 def simulate(bitmap, width, height):
@@ -13,14 +13,16 @@ def simulate(bitmap, width, height):
             pixel = "#" if byte & bit else "."
             print(pixel, end="")
         print("")
-    
 
-with open(f"{file}.py", "w", encoding="utf-8") as result:
+if not os.path.exists("font"):
+    os.makedirs("font")
+
+with open(f"font/{file}.py", "w", encoding="utf-8") as result:
     result.write(f"{file} = {{\n")
     #result.write("{\n")
     
     
-    with open(f"{file}.font", "r", encoding="utf-8") as source:
+    with open(f"source/{file}.font", "r", encoding="utf-8") as source:
         lines      = source.readlines()
         
         for line in lines:
