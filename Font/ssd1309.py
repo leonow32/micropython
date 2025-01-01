@@ -54,9 +54,36 @@ class SSD1309(framebuf.FrameBuffer):
         return bitmap[1] + bitmap[2]
         
 
-    def print_text(self, font, text, x, y):
+    def print_text(self, font, text, x, y, align="L"):
+        width = self.get_text_width(font, text)
+        
+        if align == "R":
+            x = WIDTH - width
+        elif align == "C":
+            x = WIDTH//2 - width//2
+        elif align == "r":
+            x = x - width + 1
+        elif align == "c":
+            x = x - width//2
+        
         for char in text:
-            x += self.print_char(font, char, x, y)
+            x += self.print_char(font, char, x, y)        
+    
+    def get_text_width(self, font, text):
+        width = 0
+        last_char_spacing = 0
+        for char in text:
+            try:
+                bitmap = font[ord(char)]
+            except:
+                bitmap = font[0]
+                print(f"Char {char} doesn't exist in font")
+            
+            width += bitmap[1]
+            width += bitmap[2]
+            last_char_spacing = bitmap[2]
+        
+        return width - last_char_spacing
 
 if __name__ == "__main__":
     i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=400000)
