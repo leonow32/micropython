@@ -9,3 +9,5 @@ python convert_to_py.py sans16_unicode
 python convert_to_py.py sans16B_unicode
 python convert_to_py.py sans24
 python convert_to_py.py sans24B
+python convert_to_py.py squared16_unicode
+python convert_to_py.py squared16B_unicode
