@@ -1,5 +1,6 @@
 from machine import Pin, I2C
 import framebuf
+import images
 import mem_used
 
 WIDTH   = const(128)
@@ -51,9 +52,27 @@ class SSD1309(framebuf.FrameBuffer):
         buffer = framebuf.FrameBuffer(bitmap[3:], bitmap[1], bitmap[0], 0)
         self.blit(buffer, x, y)
         return bitmap[1] + bitmap[2]
+    
+    def print_char_negative(self, font, char, x, y):
+        try:
+            bitmap = font[ord(char)]
+        except:
+            bitmap = font[0]
+            print(f"Char {char} doesn't exist in font")
+            
+        negative_bitmap = bitmap[:]
+        for i in range(3, len(bitmap)):
+            negative_bitmap[i] = ~negative_bitmap[i]
+        
+        buffer = framebuf.FrameBuffer(negative_bitmap[3:], bitmap[1], bitmap[0], 0)
+        self.blit(buffer, x, y)
+        self.rect(x-bitmap[2], y, bitmap[2], bitmap[0], 1, True)
+        self.rect(x+bitmap[1], y, bitmap[2], bitmap[0], 1, True)
+
+        return bitmap[1] + bitmap[2]
         
 
-    def print_text(self, font, text, x, y, align="L"):
+    def print_text(self, font, text, x, y, align="L", color=1):
         width = self.get_text_width(font, text)
         
         if align == "R":
@@ -66,7 +85,10 @@ class SSD1309(framebuf.FrameBuffer):
             x = x - width//2
         
         for char in text:
-            x += self.print_char(font, char, x, y)        
+            if color:
+                x += self.print_char(font, char, x, y)
+            else:
+                x += self.print_char_negative(font, char, x, y)
     
     def get_text_width(self, font, text):
         width = 0
