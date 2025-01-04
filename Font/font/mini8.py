@@ -1,4 +1,5 @@
 mini8 = {
+    0: bytearray(b'\x08\x03\x01\xff\x81\xff'),
     32: bytearray(b'\x08\x02\x01\x00\x00'),
     33: bytearray(b'\x08\x01\x01_'),
     34: bytearray(b'\x08\x03\x01\x03\x00\x03'),
