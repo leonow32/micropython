@@ -4,9 +4,8 @@ from machine import Pin
 print("Hello world!")
 
 button = Pin(0, Pin.IN, Pin.PULL_UP)
-led = Pin(21, Pin.OUT)
-
-name = input("Jak masz na imię? ")
+led    = Pin(21, Pin.OUT)
+name   = input("Jak masz na imię? ")
 print(f"Cześć {name}!!!")
 
 print("Naciśnij przycisk")
