@@ -10,7 +10,7 @@ name = input("Jak masz na imię? ")
 print(f"Cześć {name}!!!")
 
 print("Naciśnij przycisk")
-while button() != 0:
+while button():
     pass
 
 for i in range(5):
