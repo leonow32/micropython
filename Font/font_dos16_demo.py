@@ -1,5 +1,6 @@
 from machine import Pin, I2C
 from font.dos16 import *
+# from mpy.dos16 import *
 import framebuf
 import ssd1309
 import simulator
@@ -8,8 +9,10 @@ import time
 
 button = Pin(0, Pin.IN, Pin.PULL_UP)
 i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=400000)
-display = ssd1309.SSD1309(i2c)
-#display = simulator.SIM()
+try:
+    display = ssd1309.SSD1309(i2c)
+except:
+    display = simulator.SIM()
 
 char = 0
 for page in range(4):

@@ -1,5 +1,6 @@
 from machine import Pin, I2C
 from font.console7 import *
+# from mpy.console7 import *
 import framebuf
 import ssd1309
 import simulator
@@ -8,8 +9,10 @@ import time
 
 button = Pin(0, Pin.IN, Pin.PULL_UP)
 i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=400000)
-display = ssd1309.SSD1309(i2c)
-#display = simulator.SIM()
+try:
+    display = ssd1309.SSD1309(i2c)
+except:
+    display = simulator.SIM()
 start_time = time.ticks_us()
 
 display.print_text(console7,  "ABCDEFGHIJKLM", 0, 0, "C")

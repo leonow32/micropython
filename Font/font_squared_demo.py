@@ -1,6 +1,8 @@
 from machine import Pin, I2C
 from font.squared16_unicode import *
 from font.squared16B_unicode import *
+# from mpy.squared16_unicode import *
+# from mpy.squared16B_unicode import *
 import framebuf
 import ssd1309
 import simulator
@@ -9,9 +11,10 @@ import time
 
 button = Pin(0, Pin.IN, Pin.PULL_UP)
 i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=400000)
-display = ssd1309.SSD1309(i2c)
-#display = simulator.SIM()
-start_time = time.ticks_us()
+try:
+    display = ssd1309.SSD1309(i2c)
+except:
+    display = simulator.SIM()
 
 time.sleep_ms(100)
 while button(): pass
@@ -148,9 +151,5 @@ display.print_text(squared16_unicode,  "ґєіїћџђјљњ", 0, 32, "C")
 display.print_text(squared16B_unicode, "ґєіїћџђјљњ", 0, 48, "C")
 display.refresh()
 
-#display.simulate()
-
-end_time = time.ticks_us()
-print(f"Work time: {end_time-start_time} us")
 mem_used.print_ram_used()
 

@@ -1,5 +1,6 @@
 from machine import Pin, I2C
-from font.mini8 import *
+# from font.mini8 import *
+from mpy.mini8 import *
 import framebuf
 import ssd1309
 import simulator
@@ -8,9 +9,10 @@ import time
 
 button = Pin(0, Pin.IN, Pin.PULL_UP)
 i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=400000)
-display = ssd1309.SSD1309(i2c)
-#display = simulator.SIM()
-start_time = time.ticks_us()
+try:
+    display = ssd1309.SSD1309(i2c)
+except:
+    display = simulator.SIM()
 
 display.print_text(mini8,  "ABCDEFGHIJKLM", 0, 0, "C")
 display.print_text(mini8,  "NOPQRSTUVWXYZ", 0, 14, "C")
@@ -42,8 +44,6 @@ display.print_text(mini8,  "opieke ofiarowany martwa podnios-", 0, 48, "C")
 display.print_text(mini8,  "lem powieke i zaraz moglem pieszo", 0, 56, "C")
 display.refresh()
 
-end_time = time.ticks_us()
-print(f"Work time: {end_time-start_time} us")
 mem_used.print_ram_used()
 
 
