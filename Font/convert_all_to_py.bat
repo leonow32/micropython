@@ -5,6 +5,7 @@ python convert_to_py.py galaxy16_digits
 python convert_to_py.py galaxy24_digits
 python convert_to_py.py micro8
 python convert_to_py.py mini8
+python convert_to_py.py mini8B
 python convert_to_py.py sans16_unicode
 python convert_to_py.py sans16B_unicode
 python convert_to_py.py sans24
