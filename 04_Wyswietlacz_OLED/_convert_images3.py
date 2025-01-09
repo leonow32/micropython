@@ -26,13 +26,11 @@ def convert(name):
                 print(".", end="")
         print("")
         
-    #result = f"{name} = framebuf.FrameBuffer({bitmap}, {width}, {height}, framebuf.MONO_VLSB)\n"
-    output = bytearray([width]) + bytearray([height]) + bitmap
-    result = f"{name} = {output}\n"
+    result = f"{name} = ({width}, {height}, memoryview({bitmap}))\n"
     return result
 
 if __name__ == "__main__":
-    with open("images2.py", "w", encoding="utf-8") as images:
+    with open("images3.py", "w", encoding="utf-8") as images:
         images.write("import framebuf\n")
         files = os.listdir("images")
         for file in files:
