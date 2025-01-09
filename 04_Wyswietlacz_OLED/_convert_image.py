@@ -6,7 +6,7 @@ from PIL import Image   # instalacja poleceniem "pip install pillow"
 
 def convert(name):
     print(f"Processing: {name}")
-    source = Image.open(name)
+    source = Image.open(f"images/{name}")
     name = name.replace(".bmp", "")
     source.load()
     width, height = source.size
@@ -32,7 +32,8 @@ def convert(name):
 if __name__ == "__main__":
     with open("images.py", "w", encoding="utf-8") as images:
         images.write("import framebuf\n")
-        files = os.listdir()
+        files = os.listdir("images")
+        print(files)
         for file in files:
             if ".bmp" in file:
                 images.write(convert(file))
