@@ -14,11 +14,13 @@ try:
 except:
     display = simulator.SIM()
 
-display.print_text(mini8B,  "ABCDEFGHIJKLM", 0, 0, "C")
-display.print_text(mini8B,  "NOPQRSTUVWXYZ", 0, 14, "C")
-display.print_text(mini8B, "abcdefghijklmnopqrstuvwxyz", 0, 28, "C")
-display.print_text(mini8B,  "0123456789+-*/=()[]{}<>", 0, 42, "C")
-display.print_text(mini8B, "`~!@#$%^&*.,:;'|\/_\"", 0, 56, "C")
+display.print_text(mini8B, "ABCDEFGHIJKLMN",       0,  0, "C")
+display.print_text(mini8B, "OPQRSTUVWXYZ",         0,  9, "C")
+display.print_text(mini8B, "abcdefghijklmn",       0, 18, "C")
+display.print_text(mini8B, "opqrstuvwxyz",         0, 27, "C")
+display.print_text(mini8B, "0123456789+-*/=",      0, 36, "C")
+display.print_text(mini8B, "`~!@#$%^&*.,:;'|\_\"", 0, 45, "C")
+display.print_text(mini8B, "()[]{}<>",             0, 54, "C")
 display.refresh()
 """
 time.sleep_ms(100)
