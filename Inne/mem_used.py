@@ -11,6 +11,7 @@ def print_rom_used(path = ""):
     print(f"ROM: {used_rom} / {total_rom}")
 
 def print_ram_used():
+    gc.collect()
     total_ram = gc.mem_alloc() + gc.mem_free()
     used_ram  = gc.mem_alloc()
     print(f"RAM: {used_ram} / {total_ram}")
