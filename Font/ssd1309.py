@@ -22,6 +22,11 @@ class SSD1309(framebuf.FrameBuffer):
         for cmd in config:
             self.i2c.writeto(ADDRESS, bytes((0x80, cmd)))
             
+        bg, fg = 1, 0
+        self.palette = framebuf.FrameBuffer(bytearray(1), 1, 2, framebuf.MONO_VLSB)
+        self.palette.pixel(1, 0, fg)
+        self.palette.pixel(0, 0, bg)
+            
     def refresh(self):
         set_cursor = (0x21, 0x00, 0x7F, 0x22, 0x00, 0x07)
     
@@ -41,6 +46,21 @@ class SSD1309(framebuf.FrameBuffer):
                 print(pixel, end="")
             print("")
             
+    def bitmap4(self, source, x, y):
+        self.blit(source[0], x, y)
+        pass
+        
+    def bitmap4_invert(self, source, x, y):
+        array = bytearray(source[1] * source[2] // 8)
+        buffer = framebuf.FrameBuffer(array, source[1], source[2], framebuf.MONO_VLSB)
+        buffer.blit(source[0], 0, 0)        
+        self.blit(source[0], x, y, -1, self.palette)
+    
+    def bitmap3(self, source, x, y):
+        buffer = framebuf.FrameBuffer(source[2], source[0], source[1], 0)
+        self.blit(buffer, x, y)
+    
+    # ------------------------------
     def print_char(self, font, char, x, y):
         try:
             bitmap = font[ord(char)]
@@ -102,6 +122,203 @@ class SSD1309(framebuf.FrameBuffer):
             width += bitmap[1]
             width += bitmap[2]
             last_char_spacing = bitmap[2]
+        
+        return width - last_char_spacing
+    
+    # ----------------------
+    def print_char2(self, font, char, x, y):
+        try:
+            bitmap = font[ord(char)]
+        except:
+            bitmap = font[0]
+            print(f"Char {char} doesn't exist in font")
+        
+        self.blit(bitmap[0], x, y)
+        return bitmap[1] + bitmap[3]
+    
+    def print_char_negative2(self, font, char, x, y):
+        try:
+            bitmap = font[ord(char)]
+        except:
+            bitmap = font[0]
+            print(f"Char {char} doesn't exist in font")
+            
+        array = bytearray(bitmap[1] * bitmap[2] // 8)
+        buffer = framebuf.FrameBuffer(array, bitmap[1], bitmap[2], framebuf.MONO_VLSB)
+        buffer.blit(bitmap[0], 0, 0)        
+        self.blit(bitmap[0], x, y, -1, self.palette)
+        
+        self.rect(x-bitmap[3], y, bitmap[3], bitmap[2], 1, True)
+        self.rect(x+bitmap[1], y, bitmap[3], bitmap[2], 1, True)
+
+        return bitmap[1] + bitmap[3]
+        
+
+    def print_text2(self, font, text, x, y, align="L", color=1):
+        width = self.get_text_width2(font, text)
+        
+        if align == "R":
+            x = WIDTH - width
+        elif align == "C":
+            x = WIDTH//2 - width//2
+        elif align == "r":
+            x = x - width + 1
+        elif align == "c":
+            x = x - width//2
+        
+        for char in text:
+            if color:
+                x += self.print_char2(font, char, x, y)
+            else:
+                x += self.print_char_negative2(font, char, x, y)
+    
+    def get_text_width2(self, font, text):
+        width = 0
+        last_char_spacing = 0
+        for char in text:
+            try:
+                bitmap = font[ord(char)]
+            except:
+                bitmap = font[0]
+                print(f"Char {char} doesn't exist in font")
+            
+            width += bitmap[1]
+            width += bitmap[3]
+            last_char_spacing = bitmap[3]
+        
+        return width - last_char_spacing
+    
+    # ----------------------
+    def print_char3(self, font, char, x, y):
+        try:
+            bitmap = font[ord(char)]
+        except:
+            bitmap = font[0]
+            print(f"Char {char} doesn't exist in font")
+        
+        buffer = framebuf.FrameBuffer(bitmap[0], bitmap[1], bitmap[2], 0)
+        self.blit(buffer, x, y)
+        return bitmap[1] + bitmap[3]
+    
+    def print_char_negative3(self, font, char, x, y):
+        try:
+            bitmap = font[ord(char)]
+        except:
+            bitmap = font[0]
+            print(f"Char {char} doesn't exist in font")
+            
+        inverted = bytearray(bitmap[1] * bitmap[2] // 8)
+        
+        for i in range(len(bitmap[0])):
+            inverted[i] = ~bitmap[0][i]
+        
+        buffer = framebuf.FrameBuffer(inverted, bitmap[1], bitmap[2], framebuf.MONO_VLSB)     
+        self.blit(buffer, x, y)
+        
+        self.rect(x-bitmap[3], y, bitmap[3], bitmap[2], 1, True)
+        self.rect(x+bitmap[1], y, bitmap[3], bitmap[2], 1, True)
+
+        return bitmap[1] + bitmap[3]
+        
+
+    def print_text3(self, font, text, x, y, align="L", color=1):
+        width = self.get_text_width3(font, text)
+        
+        if align == "R":
+            x = WIDTH - width
+        elif align == "C":
+            x = WIDTH//2 - width//2
+        elif align == "r":
+            x = x - width + 1
+        elif align == "c":
+            x = x - width//2
+        
+        for char in text:
+            if color:
+                x += self.print_char3(font, char, x, y)
+            else:
+                x += self.print_char_negative3(font, char, x, y)
+    
+    def get_text_width3(self, font, text):
+        width = 0
+        last_char_spacing = 0
+        for char in text:
+            try:
+                bitmap = font[ord(char)]
+            except:
+                bitmap = font[0]
+                print(f"Char {char} doesn't exist in font")
+            
+            width += bitmap[1]
+            width += bitmap[3]
+            last_char_spacing = bitmap[3]
+        
+        return width - last_char_spacing
+    
+    # ----------------------
+    def print_char4(self, font, char, x, y):
+        try:
+            bitmap = font[ord(char)]
+        except:
+            bitmap = font[0]
+            print(f"Char {char} doesn't exist in font")
+        
+        buffer = framebuf.FrameBuffer(bitmap[0], bitmap[1], font["h"], 0)
+        self.blit(buffer, x, y)
+        return bitmap[1] + font["s"]
+    
+    def print_char_negative4(self, font, char, x, y):
+        try:
+            bitmap = font[ord(char)]
+        except:
+            bitmap = font[0]
+            print(f"Char {char} doesn't exist in font")
+            
+        inverted = bytearray(bitmap[1] * font["h"] // 8)
+        
+        for i in range(len(bitmap[0])):
+            inverted[i] = ~bitmap[0][i]
+        
+        buffer = framebuf.FrameBuffer(inverted, bitmap[1], font["h"], framebuf.MONO_VLSB)     
+        self.blit(buffer, x, y)
+        
+        self.rect(x-font["s"], y, font["s"], font["h"], 1, True)
+        self.rect(x+bitmap[1], y, font["s"], font["h"], 1, True)
+
+        return bitmap[1] + font["s"]
+        
+
+    def print_text4(self, font, text, x, y, align="L", color=1):
+        width = self.get_text_width4(font, text)
+        
+        if align == "R":
+            x = WIDTH - width
+        elif align == "C":
+            x = WIDTH//2 - width//2
+        elif align == "r":
+            x = x - width + 1
+        elif align == "c":
+            x = x - width//2
+        
+        for char in text:
+            if color:
+                x += self.print_char4(font, char, x, y)
+            else:
+                x += self.print_char_negative4(font, char, x, y)
+    
+    def get_text_width4(self, font, text):
+        width = 0
+        last_char_spacing = 0
+        for char in text:
+            try:
+                bitmap = font[ord(char)]
+            except:
+                bitmap = font[0]
+                print(f"Char {char} doesn't exist in font")
+            
+            width += bitmap[1]
+            width += font["s"]
+            last_char_spacing = font["s"]
         
         return width - last_char_spacing
 

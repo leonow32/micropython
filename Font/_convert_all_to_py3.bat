@@ -1,0 +1,14 @@
+python convert_to_py3.py console7
+python convert_to_py3.py dos16
+python convert_to_py3.py dos8
+python convert_to_py3.py galaxy16_digits
+python convert_to_py3.py galaxy24_digits
+python convert_to_py3.py micro8
+python convert_to_py3.py mini8
+python convert_to_py3.py mini8B
+python convert_to_py3.py sans16_unicode
+python convert_to_py3.py sans16B_unicode
+python convert_to_py3.py sans24
+python convert_to_py3.py sans24B
+python convert_to_py3.py squared16_unicode
+python convert_to_py3.py squared16B_unicode

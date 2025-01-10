@@ -27,10 +27,11 @@ def convert(name):
         print("")
         
     result = f"{name} = ({width}, {height}, {bitmap})\n"
+    result = f"{name} = (framebuf.FrameBuffer({bitmap}, {width}, {height}, framebuf.MONO_VLSB), {width}, {height})\n"
     return result
 
 if __name__ == "__main__":
-    with open("images3.py", "w", encoding="utf-8") as images:
+    with open("images4.py", "w", encoding="utf-8") as images:
         images.write("import framebuf\n")
         files = os.listdir("images")
         for file in files:
