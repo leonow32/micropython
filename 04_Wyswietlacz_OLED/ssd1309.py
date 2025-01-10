@@ -40,40 +40,25 @@ class SSD1309(framebuf.FrameBuffer):
                 pixel = "#" if byte & bit else "."
                 print(pixel, end="")
             print("")
-            
-    def bitmap3(self, source, x, y):
-        buffer = framebuf.FrameBuffer(source[2], source[0], source[1], 0)
-        self.blit(buffer, x, y)
     
-    def print_char(self, font, char, x, y):
+    def print_char(self, font, char, x, y, color=1):
         try:
             bitmap = font[ord(char)]
         except:
             bitmap = font[0]
             print(f"Char {char} doesn't exist in font")
         
-        buffer = framebuf.FrameBuffer(bitmap[3:], bitmap[1], bitmap[0], 0)
-        self.blit(buffer, x, y)
-        return bitmap[1] + bitmap[2]
-    
-    def print_char_negative(self, font, char, x, y):
-        try:
-            bitmap = font[ord(char)]
-        except:
-            bitmap = font[0]
-            print(f"Char {char} doesn't exist in font")
-            
-        negative_bitmap = bitmap[:]
-        for i in range(3, len(bitmap)):
-            negative_bitmap[i] = ~negative_bitmap[i]
+        if color:
+            buffer = framebuf.FrameBuffer(bitmap[3:], bitmap[1], bitmap[0], 0)
+        else:
+            negative_bitmap = bitmap[:]
+            for i in range(3, len(bitmap)): negative_bitmap[i] = ~negative_bitmap[i]
+            buffer = framebuf.FrameBuffer(negative_bitmap[3:], bitmap[1], bitmap[0], 0)
+            self.rect(x-bitmap[2], y, bitmap[2], bitmap[0], 1, True)
+            self.rect(x+bitmap[1], y, bitmap[2], bitmap[0], 1, True)
         
-        buffer = framebuf.FrameBuffer(negative_bitmap[3:], bitmap[1], bitmap[0], 0)
         self.blit(buffer, x, y)
-        self.rect(x-bitmap[2], y, bitmap[2], bitmap[0], 1, True)
-        self.rect(x+bitmap[1], y, bitmap[2], bitmap[0], 1, True)
-
-        return bitmap[1] + bitmap[2]
-        
+        return bitmap[1] + bitmap[2]       
 
     def print_text(self, font, text, x, y, align="L", color=1):
         width = self.get_text_width(font, text)
@@ -88,10 +73,7 @@ class SSD1309(framebuf.FrameBuffer):
             x = x - width//2
         
         for char in text:
-            if color:
-                x += self.print_char(font, char, x, y)
-            else:
-                x += self.print_char_negative(font, char, x, y)
+            x += self.print_char(font, char, x, y, color)
     
     def get_text_width(self, font, text):
         width = 0

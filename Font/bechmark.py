@@ -8,17 +8,9 @@ import time
 from font.console7 import *
 from font.dos8 import *
 from font.galaxy16_digits import *
-# from font.galaxy24_digits import *
 from font.mini8 import *
 from font.squared16_unicode import *
 from font.squared16B_unicode import *
-# from mpy.console7 import *
-# from mpy.dos8 import *
-# from mpy.galaxy16_digits import *
-# from mpy.galaxy24_digits import *
-# from mpy.mini8 import *
-# from mpy.squared16_unicode import *
-# from mpy.squared16B_unicode import *
       
 i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=400000)
 try:
