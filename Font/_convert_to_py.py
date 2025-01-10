@@ -43,7 +43,7 @@ with open(f"font/{file}.py", "w", encoding="utf-8") as result:
                 
             elif len(line) == 0:
                 output = bytearray([width]) + bytearray([height]) + bytearray([space]) + bitmap
-                result.write(f"    {num}: {output},\n")
+                result.write(f"{num}: {output},\n")
                 bitmap = bytearray()
                 
             elif "." in line or "#" in line:
