@@ -16,36 +16,6 @@ try:
 except:
     display = simulator.SIM()
 
-time.sleep_ms(100)
-while button(): pass
-display.fill(0)
-display.print_text(squared16_unicode,  "ABEFGHKPRS", 0, 0, "C")
-display.print_text(squared16B_unicode, "ABEFGHKPRS", 0, 16, "C", 0)
-display.print_text(squared16_unicode,  "", 0, 32, "C")
-display.print_text(squared16B_unicode, "", 0, 48, "C")
-display.refresh()
-
-time.sleep_ms(100)
-while button(): pass
-display.fill(0)
-display.print_text(squared16_unicode,  "АБВЕЁЖЗКМНПРУ", 0, 0, "C")
-display.print_text(squared16B_unicode, "АБВЕЁЖЗКМНПРУ", 0, 16, "C", 0)
-display.print_text(squared16_unicode,  "ХЧЪЫЬЭЮЯЄЋЂЈЉЊ", 0, 32, "C")
-display.print_text(squared16B_unicode, "ХЧЪЫЬЭЮЯЄЋЂЈЉЊ", 0, 48, "C", 0)
-display.refresh()
-
-time.sleep_ms(100)
-while button(): pass
-display.fill(0)
-display.print_text(squared16_unicode,  "абвеёжзкмнпру", 0, 0, "C")
-display.print_text(squared16B_unicode, "абвеёжзкмнпру", 0, 16, "C", 0)
-display.print_text(squared16_unicode,  "хчъыьэюяєћђјљњ", 0, 32, "C")
-display.print_text(squared16B_unicode, "хчъыьэюяєћђјљњ", 0, 48, "C", 0)
-display.refresh()
-
-time.sleep_ms(100)
-while button(): pass
-display.fill(0)
 display.print_text(squared16_unicode,  "ABCDEFGHIJKL", 0, 0, "C")
 display.print_text(squared16B_unicode, "ABCDEFGHIJKL", 0, 16, "C")
 display.print_text(squared16_unicode,  "MNOPQRSTUVWXYZ", 0, 32, "C")

@@ -25,5 +25,4 @@ display.blit(images.down_32x32,     96, 32)
 end_time = time.ticks_us()
 display.refresh()
 
-print(f"Work time: {end_time-start_time} us")
 mem_used.print_ram_used()

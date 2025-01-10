@@ -1,6 +1,5 @@
 from machine import Pin, I2C
-# from font.mini8 import *
-from mpy.mini8 import *
+from font.mini8 import *
 import framebuf
 import ssd1309
 import simulator
