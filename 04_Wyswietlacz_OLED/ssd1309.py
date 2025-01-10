@@ -48,36 +48,36 @@ class SSD1309(framebuf.FrameBuffer):
             bitmap = font[0]
             print(f"Char {char} doesn't exist in font")
         
+        width  = bitmap[0]
+        height = bitmap[1]
+        space  = bitmap[2]
+        
         if color:
-            buffer = framebuf.FrameBuffer(bitmap[3:], bitmap[1], bitmap[0], 0)
+            buffer = framebuf.FrameBuffer(bitmap[3:], width, height, 0)
         else:
             negative_bitmap = bitmap[:]
             for i in range(3, len(bitmap)): negative_bitmap[i] = ~negative_bitmap[i]
-            buffer = framebuf.FrameBuffer(negative_bitmap[3:], bitmap[1], bitmap[0], 0)
-            self.rect(x-bitmap[2], y, bitmap[2], bitmap[0], 1, True)
-            self.rect(x+bitmap[1], y, bitmap[2], bitmap[0], 1, True)
+            buffer = framebuf.FrameBuffer(negative_bitmap[3:], width, height, 0)
+            self.rect(x-space, y, space, height, 1, True)
+            self.rect(x+width, y, space, height, 1, True)
         
         self.blit(buffer, x, y)
-        return bitmap[1] + bitmap[2]       
+        return width + space     
 
     def print_text(self, font, text, x, y, align="L", color=1):
         width = self.get_text_width(font, text)
         
-        if align == "R":
-            x = WIDTH - width
-        elif align == "C":
-            x = WIDTH//2 - width//2
-        elif align == "r":
-            x = x - width + 1
-        elif align == "c":
-            x = x - width//2
+        if   align == "R": x = WIDTH - width
+        elif align == "C": x = WIDTH//2 - width//2
+        elif align == "r": x = x - width + 1
+        elif align == "c": x = x - width//2
         
         for char in text:
             x += self.print_char(font, char, x, y, color)
     
     def get_text_width(self, font, text):
-        width = 0
-        last_char_spacing = 0
+        total = 0
+        last_char_space = 0
         for char in text:
             try:
                 bitmap = font[ord(char)]
@@ -85,11 +85,11 @@ class SSD1309(framebuf.FrameBuffer):
                 bitmap = font[0]
                 print(f"Char {char} doesn't exist in font")
             
-            width += bitmap[1]
-            width += bitmap[2]
-            last_char_spacing = bitmap[2]
+            total += bitmap[0]
+            total += bitmap[2]
+            last_char_space = bitmap[2]
         
-        return width - last_char_spacing
+        return total - last_char_space
 
 if __name__ == "__main__":
     i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=400000)
