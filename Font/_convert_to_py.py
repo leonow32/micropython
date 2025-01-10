@@ -19,8 +19,6 @@ if not os.path.exists("font"):
 
 with open(f"font/{file}.py", "w", encoding="utf-8") as result:
     result.write(f"{file} = {{\n")
-    #result.write("{\n")
-    
     
     with open(f"source/{file}.font", "r", encoding="utf-8") as source:
         lines      = source.readlines()
@@ -44,30 +42,20 @@ with open(f"font/{file}.py", "w", encoding="utf-8") as result:
                 space = int(line[line.find(":")+1:])
                 
             elif len(line) == 0:
-                #print(f"Saving {num}, {width}, {height}, {space}")
-                #simulate(bitmap, width, height)
-                
-                output = bytearray([height]) + bytearray([width]) + bytearray([space]) + bitmap
+                output = bytearray([width]) + bytearray([height]) + bytearray([space]) + bitmap
                 result.write(f"    {num}: {output},\n")
-                
                 bitmap = bytearray()
                 
             elif "." in line or "#" in line:
                 if len(bitmap) == 0:
-                    #print(f"Create new bitmap {num}, {width}, {height}, {space}")
                     bitmap = bytearray(width * height // 8)
                     x = 0
                     y = 0
                 
-                #print(line)
-                
                 for pixel in line:
-                    #print(f"x={x}, y={y}")
                     if pixel == "#":
-                        #set_pixel(x, y)
                         address = (y // 8) * width + x
                         bitmap[address] |= 1 << (y % 8)
-                        
                         
                     x += 1
                     if x == width:
