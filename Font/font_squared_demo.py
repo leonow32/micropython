@@ -1,8 +1,8 @@
+# MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+
 from machine import Pin, I2C
 from font.squared16_unicode import *
 from font.squared16B_unicode import *
-# from mpy.squared16_unicode import *
-# from mpy.squared16B_unicode import *
 import framebuf
 import ssd1309
 import simulator

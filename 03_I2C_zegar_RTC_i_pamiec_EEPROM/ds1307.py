@@ -1,3 +1,5 @@
+# MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+
 import time
 from machine import Pin, I2C, RTC
 
@@ -116,10 +118,9 @@ def print_system_time():
 if __name__ == "__main__":
     dump()
 
-#read()
+    read()
 
-# import time
-# aaa = time.localtime()
-# write(aaa)
+    # Ustawianie czasu w DS1307 na podstawie czasu systemowego w ESP32
+#     import time
+#     write(time.localtime())
 
-#read2()

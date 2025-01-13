@@ -1,3 +1,5 @@
+# MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+
 import _thread
 import esp32
 import gc
@@ -67,7 +69,7 @@ def task():
     
     while True:
         try:
-            #gc.collect()
+            gc.collect()
             
             conn, addr = sock.accept()
             #conn.settimeout(3.0)

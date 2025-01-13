@@ -1,6 +1,7 @@
+# MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+
 from machine import Pin, I2C
 from font.mini8B import *
-# from mpy.mini8B import *
 import framebuf
 import ssd1309
 import simulator

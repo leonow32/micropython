@@ -1,3 +1,5 @@
+# MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+
 import _thread
 import esp32
 import gc
@@ -69,8 +71,8 @@ def index_html():
     return content
 
 def task():
-    #sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock = socket.socket()
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #sock = socket.socket()
     #sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.bind(("", 80))
 #     try:
@@ -84,7 +86,7 @@ def task():
     
     while True:
         try:
-            gc.collect()
+            #gc.collect()
             
             # Pause here and wait for any request
             conn, addr = sock.accept()

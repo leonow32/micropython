@@ -1,3 +1,4 @@
+# MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
 # Dekoder zapytań pochodzi z https://github.com/anson-vandoren/esp8266-captive-portal/blob/master/captive_dns.py
 
 import _thread

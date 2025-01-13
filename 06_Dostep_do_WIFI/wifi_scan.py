@@ -1,3 +1,5 @@
+# MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+
 import network
 station = network.WLAN(network.STA_IF)
 station.active(True)

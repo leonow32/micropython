@@ -1,3 +1,4 @@
+# MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
 
 def read_file_content():
     with open("plik.txt") as file:

@@ -1,6 +1,8 @@
+# MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+
 import bluetooth
 
-DEVICE_NAME = "ESP32-S3xxx"
+DEVICE_NAME = "ESP32-S3"
 
 # Simple
 SIMPLE_UUID = bluetooth.UUID(1)
@@ -31,11 +33,11 @@ TUART_TX   = (bluetooth.UUID("00000003-0000-0000-0000-000000000000"), bluetooth.
 TUART_SERVICE = (TUART_UUID, (TUART_TX, TUART_RX,),)
 
 # Services
-SERVICES = (SIMPLE_SERVICE,)
+#SERVICES = (SIMPLE_SERVICE,)
 #SERVICES = (HR_SERVICE, UART_SERVICE, MUART_SERVICE)
 #SERVICES = (HR_SERVICE, UART_SERVICE,)
 #SERVICES = (HR_SERVICE,)
-#SERVICES = (UART_SERVICE,)
+SERVICES = (UART_SERVICE,)
 #SERVICES = (MUART_SERVICE,)
 #SERVICES = (TUART_SERVICE,)
 
@@ -75,7 +77,6 @@ def bluetooth_interrupt(event, data):
         print("Event 27 - _IRQ_CONNECTION_UPDATE")
         pass
     
-    
     else:
         print("other")
             
@@ -96,7 +97,6 @@ def init():
     ble = bluetooth.BLE()
     ble.active(True)
     ble.irq(bluetooth_interrupt)
-    #register()
     register_services()
     advertiser()
     
