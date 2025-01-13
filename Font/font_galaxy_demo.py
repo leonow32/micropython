@@ -1,8 +1,8 @@
+# MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+
 from machine import Pin, I2C
 from font.galaxy16_digits import *
 from font.galaxy24_digits import *
-# from mpy.galaxy16_digits import *
-# from mpy.galaxy24_digits import *
 import framebuf
 import ssd1309
 import simulator

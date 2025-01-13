@@ -1,3 +1,5 @@
+# MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+
 from machine import Pin, SPI
 import st7796
 import mem_used

@@ -1,3 +1,5 @@
+# MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+
 class Zwierze():
     def __init__(self, imie, wiek):
         print(f"Zwierze.__init__({self}, {imie}, {wiek})")

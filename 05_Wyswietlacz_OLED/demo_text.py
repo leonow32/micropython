@@ -1,3 +1,5 @@
+# MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+
 from machine import Pin, I2C
 import ssd1309
 import mem_used

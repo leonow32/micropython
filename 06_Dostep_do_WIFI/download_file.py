@@ -1,3 +1,5 @@
+# MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+
 import network
 import requests
 import time
@@ -28,10 +30,7 @@ def download_file(url):
         print(f"Error {result.status_code}")
         
 if __name__ == "__main__":    
-
     wifi_connect()
-    #result = download_file("https://retro.hackaday.com/about.html")
-    #result = download_file("https://ep.com.pl/robots.txt")
-    result = download_file("https://raw.githubusercontent.com/leonow32/micropython_kurs/refs/heads/main/09_Kolorowy_wyswietlacz_TFT_z_panelem_dotykowym/ft6336.py")
+    result = download_file("https://raw.githubusercontent.com/leonow32/micropython_kurs/refs/heads/main/05_Wyswietlacz_OLED/ssd1309.py")
    
 

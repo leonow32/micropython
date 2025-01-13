@@ -1,3 +1,5 @@
+# MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+
 from machine import Pin, I2C
 import framebuf
 import ssd1309
