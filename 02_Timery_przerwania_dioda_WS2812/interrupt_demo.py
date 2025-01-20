@@ -26,6 +26,7 @@ def button_int(source):
     Timer(0, mode=Timer.ONE_SHOT, period=2000, callback=timer_int)
 
 button = Pin(0, Pin.IN, Pin.PULL_UP)
-button.irq(trigger=Pin.IRQ_FALLING, handler=button_int)
+#button.irq(trigger=Pin.IRQ_FALLING, handler=button_int)
+button.irq(button_int, Pin.IRQ_FALLING)
 led = neopixel.NeoPixel(Pin(38, Pin.OUT), 1)
 mem_used.print_ram_used()
