@@ -1,5 +1,3 @@
-# MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
-
 import framebuf
 import mem_used
 
@@ -12,6 +10,12 @@ class SIM(framebuf.FrameBuffer):
         self.array = bytearray(WIDTH * HEIGHT // 8)
         super().__init__(self.array, WIDTH, HEIGHT, framebuf.MONO_VLSB)
             
+    def display_on(self, value):
+        print(f"Display on: {value}")
+    
+    def contrast(self, value):
+        print(f"Display contrast: {value}")
+        
     def refresh(self):
         self.simulate()
         

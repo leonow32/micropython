@@ -24,6 +24,12 @@ class SSD1309(framebuf.FrameBuffer):
         for cmd in config:
             self.i2c.writeto(ADDRESS, bytes((0x80, cmd)))
             
+    def display_on(self, value):
+        self.i2c.writeto(ADDRESS, bytes([0x80, 0xAF if value else 0xAE]))
+    
+    def contrast(self, value):
+        self.i2c.writeto(ADDRESS, bytes([0x80, 0x81, 0x80, value]))
+    
     def refresh(self):
         set_cursor = (0x21, 0x00, 0x7F, 0x22, 0x00, 0x07)
     
@@ -102,6 +108,6 @@ if __name__ == "__main__":
     display.text('nopqrstuvwxyz', 1, 10, 1)
     display.refresh()
 
-    display.simulate()
+    #display.simulate()
     mem_used.print_ram_used()
     
