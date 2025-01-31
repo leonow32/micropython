@@ -1,4 +1,4 @@
-# 241218
+# 250131
 import os
 import sys
 import numpy            # instalacja poleceniem "pip install numpy"
@@ -30,11 +30,12 @@ def convert(name):
     return result
 
 if __name__ == "__main__":
-    with open("images.py", "w", encoding="utf-8") as images:
-        images.write("import framebuf\n")
-        files = os.listdir("images")
-        print(files)
-        for file in files:
-            if ".bmp" in file:
-                images.write(convert(file))
+    files = os.listdir("image_source")
+    print(files)
+    for file in files:
+        if ".bmp" in file:
+            file_name = file.replace("bmp", "py")
+            with open(f"image/{file_name}", "w", encoding="utf-8") as output:
+                output.write("import framebuf\n")
+                output.write(convert(file))
         
