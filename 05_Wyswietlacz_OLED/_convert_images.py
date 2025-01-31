@@ -1,4 +1,4 @@
-# 241218
+# 250131
 import os
 import sys
 import numpy            # instalacja poleceniem "pip install numpy"
@@ -6,7 +6,7 @@ from PIL import Image   # instalacja poleceniem "pip install pillow"
 
 def convert(name):
     print(f"Processing: {name}")
-    source = Image.open(f"images/{name}")
+    source = Image.open(f"image_source/{name}")
     name = name.replace(".bmp", "")
     source.load()
     width, height = source.size
@@ -30,11 +30,12 @@ def convert(name):
     return result
 
 if __name__ == "__main__":
-    with open("images.py", "w", encoding="utf-8") as images:
-        images.write("import framebuf\n")
-        files = os.listdir("images")
-        print(files)
-        for file in files:
-            if ".bmp" in file:
-                images.write(convert(file))
+    image_files = os.listdir("image_source")
+    print(image_files)
+    for image_file in image_files:
+        if ".bmp" in image_file:
+            output_file = image_file.replace("bmp", "py")
+            with open(f"image/{output_file}", "w", encoding="utf-8") as output:
+                output.write("import framebuf\n")
+                output.write(convert(image_file))
         
