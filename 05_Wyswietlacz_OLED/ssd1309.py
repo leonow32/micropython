@@ -10,6 +10,7 @@ ADDRESS = const(0x3C)
 
 class SSD1309(framebuf.FrameBuffer):
     
+    @micropython.viper
     def __init__(self, i2c):
         self.i2c = i2c
         self.array = bytearray(WIDTH * HEIGHT // 8)
@@ -24,12 +25,15 @@ class SSD1309(framebuf.FrameBuffer):
         for cmd in config:
             self.i2c.writeto(ADDRESS, bytes((0x80, cmd)))
             
-    def display_on(self, value):
+    @micropython.viper
+    def display_on(self, value: int) -> int:
         self.i2c.writeto(ADDRESS, bytes([0x80, 0xAF if value else 0xAE]))
     
+    @micropython.viper
     def contrast(self, value):
         self.i2c.writeto(ADDRESS, bytes([0x80, 0x81, 0x80, value]))
     
+    @micropython.viper
     def refresh(self):
         set_cursor = (0x21, 0x00, 0x7F, 0x22, 0x00, 0x07)
     
@@ -39,16 +43,18 @@ class SSD1309(framebuf.FrameBuffer):
         write_list = [b"\x40", self.array]
         self.i2c.writevto(ADDRESS, write_list)
         
+    @micropython.viper
     def simulate(self):
         for y in range(HEIGHT):
             print(f"{y}\t", end="")
             for x in range(WIDTH):
                 bit  = 1 << (y % 8)
-                byte = self.array[(y // 8) * WIDTH + x]
+                byte = int(self.array[(y // 8) * WIDTH + x])
                 pixel = "#" if byte & bit else "."
                 print(pixel, end="")
             print("")
     
+    @micropython.native
     def print_char(self, font, char, x, y, color=1):
         try:
             bitmap = font[ord(char)]
@@ -72,6 +78,7 @@ class SSD1309(framebuf.FrameBuffer):
         self.blit(buffer, x, y)
         return width + space     
 
+    @micropython.native
     def print_text(self, font, text, x, y, align="L", color=1):
         width = self.get_text_width(font, text)
         
@@ -83,6 +90,7 @@ class SSD1309(framebuf.FrameBuffer):
         for char in text:
             x += self.print_char(font, char, x, y, color)
     
+    @micropython.native
     def get_text_width(self, font, text):
         total = 0
         last_char_space = 0
