@@ -1,20 +1,20 @@
-from machine import Pin, I2C
-from font.dos16 import *
+import machine
 from font.galaxy16_digits import *
 from font.galaxy24_digits import *
 import framebuf
 import ssd1309
 import mem_used
-import time       
+import time
 
-i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=400000)
+i2c = machine.I2C(0, scl=machine.Pin(1), sda=machine.Pin(2), freq=400000)
 display = ssd1309.SSD1309(i2c)
-start_time = time.ticks_us()
 
-display.print_text(galaxy24_digits, "23:59", 127, 10, "C")
-display.print_text(galaxy16_digits, "12.05.2025", 127, 38, "C")
-display.refresh()
-
-end_time = time.ticks_us()
-print(f"Work time: {end_time-start_time} us")
-mem_used.print_ram_used()
+while True:
+    time_tuple = time.localtime()
+    display.fill(0)
+    display.print_text(galaxy24_digits, f"{time_tuple[3]}:{time_tuple[4]:02}", 127, 10, "C")
+    display.print_text(galaxy16_digits, f"{time_tuple[2]}.{time_tuple[1]:02}.{time_tuple[0]}", 127, 38, "C")
+    display.refresh()
+    mem_used.print_ram_used()
+    time.sleep(60)
+    #machine.lightsleep(60_000)
