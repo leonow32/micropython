@@ -2,7 +2,7 @@
 
 from machine import Pin, SPI
 import st7796_vertical as st7796
-import st7796_horizontal as st7796
+# import st7796_horizontal as st7796
 import mem_used
 import random
 import time
