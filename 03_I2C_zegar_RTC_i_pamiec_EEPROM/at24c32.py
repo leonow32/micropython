@@ -42,8 +42,3 @@ if __name__ == "__main__":
     #write(0x0010, b"0123")
     #write(0x0020, b"ABCD")
     dump()
-    
-    import gc
-    total_ram = gc.mem_alloc() + gc.mem_free()
-    used_ram  = gc.mem_alloc()
-    print(f'RAM: {used_ram} / {total_ram}')
