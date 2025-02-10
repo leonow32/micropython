@@ -2,8 +2,6 @@
 
 from machine import Pin, I2C
 import framebuf
-import ssd1309
-import simulator
 import mem_used
 import time
 
@@ -16,8 +14,10 @@ from font.squared16B_unicode import *
       
 i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=400000)
 try:
+    import ssd1309
     display = ssd1309.SSD1309(i2c)
 except:
+    import simulator
     display = simulator.SIM()
 
 start_time = time.ticks_us()
