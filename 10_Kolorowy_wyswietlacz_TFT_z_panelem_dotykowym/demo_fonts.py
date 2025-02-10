@@ -1,7 +1,6 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
 
 from machine import Pin, SPI
-import framebuf
 import mem_used
 import st7796_horizontal as st7796
 # import st7796_vertical as st7796
