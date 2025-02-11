@@ -1,12 +1,15 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
 
 import time
+import mem_used
+import measure_time
 from machine import Pin, I2C, RTC
 
 ds1307_address = 0x68
 i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=100000)
 
 def dump():
+    measure_time.begin()
     buffer = bytearray(b'\x00')
     
     try:
@@ -15,6 +18,8 @@ def dump():
     except:
         print("DS1307 communication error")
         return None
+    
+    measure_time.end("dump")
     
     print("     0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F")
     for i in range(64):
@@ -31,10 +36,6 @@ def read():
     except:
         print("DS1307 communication error")
         return None
-    
-#     for byte in buffer:
-#         print(f"{byte:02X}", end=" ")
-#     print()
     
     if buffer[0] & 0b10000000:
         print("Clock not set")
@@ -82,12 +83,6 @@ def write(time_tuple):
     buffer[7] = bin2bcd(year)
     
     i2c.writeto(ds1307_address, buffer)
-
-# def read2():
-#     buffer = i2c.readfrom_mem(ds1307_address, 0x00, 7)
-#     
-#     for byte in buffer:
-#         print(f"{byte:02X} ", end="")
         
 def write_mem():
     buffer = bytearray(56)
@@ -119,6 +114,8 @@ if __name__ == "__main__":
     dump()
 
     read()
+    
+    mem_used.print_ram_used()
 
     # Ustawianie czasu w DS1307 na podstawie czasu systemowego w ESP32
 #     import time
