@@ -1,7 +1,6 @@
 import machine
 from font.galaxy16_digits import *
 from font.galaxy24_digits import *
-import framebuf
 import ssd1309
 import mem_used
 import time

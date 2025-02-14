@@ -28,40 +28,38 @@ class SSD1309(framebuf.FrameBuffer):
             0xD5, 0x80,               # Set clock and oscillator frequency to freq=8, clock=0
             0xD9, 0xF1,               # Set pre-charge period to phase_2=F, phase_1=1
             0xDB, 0x3C,               # Set VCOMH to max
-            0x81, 0xFF,               # Contrast set to 255 (max)
-            0xA4,                     # Use image memory
+            0x81, 0xFF,               # Set contrast to 255 (max)
+            0xA4,                     # Use image in GDDRAM memory
             0xA6,                     # Display not inverted
             0x8D, 0x14,               # SSD1306 only - charge pump enable
-            0xAF                      # Display on
+            0xAF,                     # Display on
         )
         
         for cmd in config:
-            self.i2c.writeto(ADDRESS, bytes((0x80, cmd)))
+            self.write_cmd(cmd)
             
-#     @micropython.viper
-#     def write_cmd(self, cmd: int):
-#         self.i2c.writeto(ADDRESS, bytes([0x80, cmd]))
+    @micropython.viper
+    def write_cmd(self, cmd: int):
+        self.i2c.writeto(ADDRESS, bytes([0x80, cmd]))
     
     @micropython.viper
     def display_on(self):
-        self.i2c.writeto(ADDRESS, bytes([0x80, 0xAF]))
+        self.write_cmd(0xAF)
         
     @micropython.viper
     def display_off(self):
-        self.i2c.writeto(ADDRESS, bytes([0x80, 0xAE]))
+        self.write_cmd(0xAE)
     
     @micropython.viper
     def contrast(self, value):
-        self.i2c.writeto(ADDRESS, bytes([0x80, 0x81, 0x80, value]))
+        self.write_cmd(0x81)
+        self.write_cmd(value)
     
     @micropython.viper
     def refresh(self):
-#         set_cursor = (0x21, 0x00, 0x7F, 0x22, 0x00, 0x07)
-#     
-#         for cmd in set_cursor:
-#             self.i2c.writeto(ADDRESS, bytes([0x80, cmd]))
-            
-        self.i2c.writeto(ADDRESS, bytes([0x80, 0x21, 0x80, 0x00, 0x80, 0x7F, 0x80, 0x22, 0x80, 0x00, 0x80, 0x07]))
+        # Set column address range from 0x00 to 0x7F, set page address range from 0x00 to 0x07
+        for cmd in (0x21, 0x00, 0x7F, 0x22, 0x00, 0x07):
+            self.write_cmd(cmd)
         
         write_list = [b"\x40", self.array]
         self.i2c.writevto(ADDRESS, write_list)
