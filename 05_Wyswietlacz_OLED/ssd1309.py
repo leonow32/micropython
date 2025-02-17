@@ -61,8 +61,7 @@ class SSD1309(framebuf.FrameBuffer):
         for cmd in (0x21, 0x00, 0x7F, 0x22, 0x00, 0x07):
             self.write_cmd(cmd)
         
-        write_list = [b"\x40", self.array]
-        self.i2c.writevto(self.address, write_list)
+        self.i2c.writevto(self.address, (b"\x40", self.array))
         
     @micropython.viper
     def simulate(self):
@@ -91,7 +90,8 @@ class SSD1309(framebuf.FrameBuffer):
             buffer = framebuf.FrameBuffer(bitmap[3:], width, height, 0)
         else:
             negative_bitmap = bitmap[:]
-            for i in range(3, len(bitmap)): negative_bitmap[i] = ~negative_bitmap[i]
+            for i in range(3, len(bitmap)):
+                negative_bitmap[i] = ~negative_bitmap[i]
             buffer = framebuf.FrameBuffer(negative_bitmap[3:], width, height, 0)
             self.rect(x-space, y, space, height, 1, True)
             self.rect(x+width, y, space, height, 1, True)
@@ -103,10 +103,14 @@ class SSD1309(framebuf.FrameBuffer):
     def print_text(self, font, text, x, y, align="L", color=1):
         width = self.get_text_width(font, text)
         
-        if   align == "R": x = WIDTH - width
-        elif align == "C": x = WIDTH//2 - width//2
-        elif align == "r": x = x - width + 1
-        elif align == "c": x = x - width//2
+        if   align == "R":
+            x = WIDTH - width
+        elif align == "C":
+            x = WIDTH//2 - width//2
+        elif align == "r":
+            x = x - width + 1
+        elif align == "c":
+            x = x - width//2
         
         for char in text:
             x += self.print_char(font, char, x, y, color)
@@ -116,12 +120,7 @@ class SSD1309(framebuf.FrameBuffer):
         total = 0
         last_char_space = 0
         for char in text:
-            try:
-                bitmap = font[ord(char)]
-            except:
-                bitmap = font[0]
-                print(f"Char {char} doesn't exist in font")
-            
+            bitmap = font.get(ord(char), font[0])
             total += bitmap[0]
             total += bitmap[2]
             last_char_space = bitmap[2]
