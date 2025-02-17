@@ -6,13 +6,13 @@ import mem_used
 
 WIDTH   = const(128)
 HEIGHT  = const(64)
-ADDRESS = const(0x3C)
 
 class SSD1309(framebuf.FrameBuffer):
     
     @micropython.native
-    def __init__(self, i2c, rotate=False):
+    def __init__(self, i2c, rotate=False, address=0x3C):
         self.i2c = i2c
+        self.address = address
         self.array = bytearray(WIDTH * HEIGHT // 8)
         super().__init__(self.array, WIDTH, HEIGHT, framebuf.MONO_VLSB)
         
@@ -40,7 +40,7 @@ class SSD1309(framebuf.FrameBuffer):
             
     @micropython.viper
     def write_cmd(self, cmd: int):
-        self.i2c.writeto(ADDRESS, bytes([0x80, cmd]))
+        self.i2c.writeto(self.address, bytes([0x80, cmd]))
     
     @micropython.viper
     def display_on(self):
@@ -62,7 +62,7 @@ class SSD1309(framebuf.FrameBuffer):
             self.write_cmd(cmd)
         
         write_list = [b"\x40", self.array]
-        self.i2c.writevto(ADDRESS, write_list)
+        self.i2c.writevto(self.address, write_list)
         
     @micropython.viper
     def simulate(self):

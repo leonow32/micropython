@@ -15,7 +15,7 @@ from font.squared16B_unicode import *
 i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=400000)
 try:
     import ssd1309
-    display = ssd1309.SSD1309(i2c)
+    display = ssd1309.SSD1309(i2c, rotate=False, address=0x3C)
 except:
     import simulator
     display = simulator.SIM()
