@@ -15,5 +15,5 @@ while True:
     display.print_text(galaxy16_digits, f"{time_tuple[2]}.{time_tuple[1]:02}.{time_tuple[0]}", 127, 38, "C")
     display.refresh()
     mem_used.print_ram_used()
-    time.sleep(60)
-    #machine.lightsleep(60_000)
+    #time.sleep(60)
+    machine.lightsleep(60_000)
