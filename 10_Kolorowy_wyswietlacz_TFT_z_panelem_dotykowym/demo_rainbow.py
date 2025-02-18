@@ -1,7 +1,8 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
 
 from machine import Pin, SPI
-import st7796
+import st7796_vertical as st7796
+# import st7796_horizontal as st7796
 import mem_used
 import random
 import time
@@ -9,7 +10,7 @@ import time
 cs  = Pin(17, Pin.OUT, value=1)
 dc  = Pin(15, Pin.OUT, value=1)
 rst = Pin(16, Pin.OUT, value=1)
-spi = SPI(2, baudrate=80_000_000, polarity=0, phase=0, sck=Pin(5), mosi=Pin(6), miso=Pin(4))
+spi = SPI(2, baudrate=80_000_000, polarity=0, phase=0, sck=Pin(6), mosi=Pin(7), miso=None)
 display = st7796.ST7796(spi, cs, dc, rst)
 
 start_time = time.ticks_us()
