@@ -4,7 +4,7 @@ import time
 from machine import Pin, I2C, RTC
 
 _DS1307_ADDRESS = const(0x68)
-i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=90000)
+i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=100000)
 
 def dump():
     buffer = bytearray(64)
@@ -72,7 +72,7 @@ def write(time_tuple):
     
     i2c.writeto(_DS1307_ADDRESS, buffer)
 
-def copy_time_from_rtc_to_system():
+def copy_time_from_ds1307_to_system():
     Y, M, D, h, m, s, _, _ = read()
     new_time_tuple = (Y, M, D, 0, h, m, s, 0)
     RTC().datetime(new_time_tuple)
