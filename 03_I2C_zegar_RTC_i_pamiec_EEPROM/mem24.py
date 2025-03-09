@@ -12,7 +12,7 @@ class Mem24():
     def wait_for_ready(self):
         while True:
             try:
-#               print(".", end="")
+                print(".", end="")
                 self.i2c.readfrom(self.device_address, 1)
                 break
             except:
@@ -24,10 +24,70 @@ class Mem24():
     
     def write(self, memory_address, data):
         self.wait_for_ready()
-        i2c.writeto_mem(self.device_address, memory_address, data, addrsize=self.addr_size)
+        self.i2c.writeto_mem(self.device_address, memory_address, data, addrsize=16)
+    
+    def write_new(self, memory_address, data):
+#         bytes_left = len(data)
+#         page_first = memory_address // self.page_size
+#         page_last  = (memory_address + bytes_left) // self.page_size
+#         print(f"len(data)  = {len(data)}")
+#         print(f"page_first = {page_first}")
+#         print(f"page_last  = {page_last}")
+        
+        begin = 0
+        bytes_to_write = len(Data)
+        
+        while True:
+            
+            # Znajdź numer aktualnie zpaisywanej strony
+            page_num = memory_address // self.page_size
+            print(f"page_num = {page_num}")
+            
+            # Znajdź adres końca bieżącej strony
+            last_address_in_page = (1 + page_num) * self.page_size - 1
+            print(f"last_address_in_page = {last_address_in_page:04X}")
+            
+            if memory_address + bytes_to_write - 1 >= last_address_in_page:
+                end = last_address_in_page - memory_address
+            else:
+                end = 
+            
+            # Ile bajtów jest między aktualnym adresem a końcem strony
+            margin = last_address_in_page - memory_address + 1
+            print(f"margin = {margin}")
+            
+            
+            
+            
+            
+            bytes_written = 0;
+            
+            self.wait_for_ready()
+            i2c.writeto_mem(self.device_address, memory_address, data[begin:end], addrsize=self.addr_size)
+            
+#             if memory_address + len(data) - 1 <= last_address_in_page:
+#                 bytes_to_write = 
+            
+            
+#             if memory_address + len(data) - 1 <= last_address_in_page:
+#                 self.wait_for_ready()
+#                 i2c.writeto_mem(self.device_address, memory_address, data, addrsize=self.addr_size)
+#                 break;
+#             else:
+#                 print("x")
+#                 break
+            
+            if bytes_written == len(data):
+                print("Done")
+                break
+        
+        
+        
+        
+        
         
     def erase_chip(self):
-        buffer = bytes(self.page_size * [0xFF])
+        buffer = bytes(self.page_size * [0x00])
         memory_address = 0
         
         while memory_address < self.memory_size:
@@ -38,7 +98,7 @@ class Mem24():
     def dump(self):
         buffer = bytearray(16)
         memory_address = 0
-        print("       0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F")
+        print("           0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F")
         
         while memory_address < self.memory_size:
             self.i2c.readfrom_mem_into(self.device_address, memory_address, buffer, addrsize=self.addr_size)
