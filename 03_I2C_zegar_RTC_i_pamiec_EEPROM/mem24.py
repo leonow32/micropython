@@ -33,24 +33,39 @@ class Mem24():
 #         print(f"len(data)  = {len(data)}")
 #         print(f"page_first = {page_first}")
 #         print(f"page_last  = {page_last}")
+
         
-        begin = 0
-        bytes_to_write = len(Data)
+        
+        address_end = memory_address + len(data) - 1
+        print(f"memory_address = {memory_address:04X}")
+        
+        page_actual = memory_address // self.page_size
+        print(f"page_actual = {page_actual}")
+        
+        page_end = address_end // self.page_size
+        print(f"page_end = {page_end}")
+        
+        data_begin = 0
+        
+        while page_actual <= page_end:
+
+            # Znajdź adres końca bieżącej strony
+            last_address_in_page = (1 + page_actual) * self.page_size - 1
+            print(f"last_address_in_page = {last_address_in_page:04X}")
+            
+            
+        
+        return
+        
         
         while True:
             
-            # Znajdź numer aktualnie zpaisywanej strony
-            page_num = memory_address // self.page_size
-            print(f"page_num = {page_num}")
             
-            # Znajdź adres końca bieżącej strony
-            last_address_in_page = (1 + page_num) * self.page_size - 1
-            print(f"last_address_in_page = {last_address_in_page:04X}")
             
-            if memory_address + bytes_to_write - 1 >= last_address_in_page:
-                end = last_address_in_page - memory_address
-            else:
-                end = 
+#             if memory_address + bytes_to_write - 1 >= last_address_in_page:
+#                 end = last_address_in_page - memory_address
+#             else:
+#                 end = 
             
             # Ile bajtów jest między aktualnym adresem a końcem strony
             margin = last_address_in_page - memory_address + 1
