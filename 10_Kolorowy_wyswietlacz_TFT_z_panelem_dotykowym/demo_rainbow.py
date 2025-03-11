@@ -10,7 +10,7 @@ import time
 cs  = Pin(17, Pin.OUT, value=1)
 dc  = Pin(15, Pin.OUT, value=1)
 rst = Pin(16, Pin.OUT, value=1)
-spi = SPI(2, baudrate=80_000_000, polarity=0, phase=0, sck=Pin(6), mosi=Pin(7), miso=None)
+spi = SPI(2, baudrate=80_000_000, polarity=0, phase=0, sck=Pin(6), mosi=Pin(7), miso=Pin(15))
 display = st7796.ST7796(spi, cs, dc, rst)
 
 start_time = time.ticks_us()
