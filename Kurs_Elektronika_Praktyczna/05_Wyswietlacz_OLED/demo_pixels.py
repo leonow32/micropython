@@ -8,7 +8,8 @@ import time
 
 LOOPS = const(1000)
 
-i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=400000)
+i2c = I2C(0) # use default pinout and clock frequency
+print(i2c)   # print pinout and clock frequency
 display = ssd1309.SSD1309(i2c)
 
 x1 = 0

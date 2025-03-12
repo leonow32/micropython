@@ -12,7 +12,9 @@ from font.mini8 import *
 from font.squared16_unicode import *
 from font.squared16B_unicode import *
       
-i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=400000)
+i2c = I2C(0) # use default pinout and clock frequency
+print(i2c)   # print pinout and clock frequency
+    
 try:
     import ssd1309
     display = ssd1309.SSD1309(i2c, rotate=False, address=0x3C)

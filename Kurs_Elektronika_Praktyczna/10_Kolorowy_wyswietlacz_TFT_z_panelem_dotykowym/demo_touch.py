@@ -20,7 +20,8 @@ rst = Pin(16, Pin.OUT, value=1)
 spi = SPI(2, baudrate=80_000_000, polarity=0, phase=0, sck=Pin(6), mosi=Pin(7), miso=None)
 display = st7796.ST7796(spi, cs, dc, rst)
 
-i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=400000)
+i2c = I2C(0) # use default pinout and clock frequency
+print(i2c)   # print pinout and clock frequency
 touch = ft6336.FT6336(i2c, 10, draw_point)
 
 mem_used.print_ram_used()
