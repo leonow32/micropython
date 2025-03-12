@@ -40,8 +40,10 @@ display.blit(down_32x32,     96, 32)
 # display.blit(ep_logo_128x40, 0, 0)
 
 end_time = time.ticks_us()
+
 display.refresh()
 
+print(f"Time: {(end_time-start_time)/1000}")
 mem_used.print_ram_used()
 
 
