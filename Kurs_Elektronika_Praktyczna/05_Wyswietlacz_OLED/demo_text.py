@@ -4,7 +4,8 @@ from machine import Pin, I2C
 import ssd1309
 import mem_used
 
-i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=400000)
+i2c = I2C(0) # use default pinout and clock frequency
+print(i2c)   # print pinout and clock frequency
 display = ssd1309.SSD1309(i2c)
 
 display.rect(0, 0, 128, 64, 1)

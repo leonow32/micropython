@@ -89,14 +89,12 @@ class DS1307():
 if __name__ == "__main__":
     import mem_used
     
-    i2c = I2C(0, freq=400000)
-    print(i2c)
+    i2c = I2C(0) # use default pinout and clock frequency
+    print(i2c)   # print pinout and clock frequency
     
     ds1307 = DS1307(i2c)
     
-    
     ds1307.dump()
-#   ds1307.read()
 
 #   new_time = time.localtime()
 #   new_time = (2030, 04, 27, 12, 05, 00, 0, 0)

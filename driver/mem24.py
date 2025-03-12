@@ -130,7 +130,8 @@ if __name__ == "__main__":
             print(f"{byte:02X} ", end="")
         print()
     
-    i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=400000)
+    i2c = I2C(0) # use default pinout and clock frequency
+    print(i2c)   # print pinout and clock frequency
     mem = Mem24(i2c, device_address=0x50, memory_size=4096, page_size=32, addr_size=16)
     
     buffer = mem.read(0x0000, 16)

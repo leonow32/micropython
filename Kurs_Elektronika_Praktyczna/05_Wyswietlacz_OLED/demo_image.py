@@ -20,7 +20,8 @@ from image.test_16x16 import *
 from image.up_32x32 import *
 from image.world_128x64 import *
 
-i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=400000)
+i2c = I2C(0) # use default pinout and clock frequency
+print(i2c)   # print pinout and clock frequency
 display = ssd1309.SSD1309(i2c)
 
 start_time = time.ticks_us()

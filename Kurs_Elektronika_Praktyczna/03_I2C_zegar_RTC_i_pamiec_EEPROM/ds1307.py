@@ -5,7 +5,7 @@ from machine import Pin, I2C, RTC
 import mem_used
 
 _DS1307_ADDRESS = const(0x68)
-i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=100000)
+i2c = I2C(0, scl=Pin(9), sda=Pin(8), freq=100000)
 
 def dump():
     buffer = i2c.readfrom_mem(_DS1307_ADDRESS, 0x00, 64)

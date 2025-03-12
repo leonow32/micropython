@@ -9,7 +9,8 @@ import mem_used
 import time       
 
 button = Pin(0, Pin.IN, Pin.PULL_UP)
-i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=400000)
+i2c = I2C(0) # use default pinout and clock frequency
+print(i2c)   # print pinout and clock frequency
 try:
     display = ssd1309.SSD1309(i2c)
 except:
