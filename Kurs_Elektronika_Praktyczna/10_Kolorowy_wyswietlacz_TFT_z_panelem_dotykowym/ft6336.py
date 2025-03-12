@@ -38,7 +38,8 @@ if __name__ == "__main__":
         x, y, pressed = result_tuple
         print(f"{x:3d} {y:3d} {pressed}")
     
-    i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=400000)
+    i2c = I2C(0) # use default pinout and clock frequency
+    print(i2c)   # print pinout and clock frequency
     
     #ft6336 = FT6336(i2c)
     ft6336 = FT6336(i2c, 100, debug)
