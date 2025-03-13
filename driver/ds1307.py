@@ -1,5 +1,5 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
-# v1.0.0 2025.03.12
+# v1.0.1 2025.03.13
 
 import time
 from machine import Pin, I2C, RTC
@@ -17,10 +17,10 @@ class DS1307():
     
     def read(self):
         """
-        Read time from DS1307 and return it as a time tuple
+        Read time from the clock and return it as a time tuple
         """
         
-        buffer = i2c.readfrom_mem(_DS1307_ADDRESS, 0x00, 7)
+        buffer = self.i2c.readfrom_mem(_DS1307_ADDRESS, 0x00, 7)
         
         if buffer[0] & 0b10000000:
             print("Clock not set")
@@ -38,15 +38,13 @@ class DS1307():
         D = bcd2bin(buffer[4])
         M = bcd2bin(buffer[5])
         Y = bcd2bin(buffer[6]) + 2000
-        
-        print(f"{Y}.{M:02}.{D:02} {h:02}:{m:02}:{s:02}")
-        
         return (Y, M, D, h, m, s, w, 0)
     
     def write(self, time_tuple):
         """
-        Write time to DS1307
+        Write time to the clock
         """
+        
         def bin2bcd(value):
             tens = value // 10
             ones = value % 10
@@ -62,14 +60,18 @@ class DS1307():
             bin2bcd(time_tuple[0] - 2000),  # Year (00..99)
         ])
         
-        i2c.writeto_mem(_DS1307_ADDRESS, 0x00, buffer)
-        
+        self.i2c.writeto_mem(_DS1307_ADDRESS, 0x00, buffer)
+       
+    def print(self):
+        Y, M, D, h, m, s, _, _ = self.read()
+        print(f"{Y}.{M:02}.{D:02} {h:02}:{m:02}:{s:02}")
+         
     def dump(self):
         """
         Read and print all contents of the memory. Useful for debug.
         """
         
-        buffer = i2c.readfrom_mem(_DS1307_ADDRESS, 0x00, 64)
+        buffer = self.i2c.readfrom_mem(_DS1307_ADDRESS, 0x00, 64)
         
         print("     0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F")
         for i in range(64):
@@ -77,31 +79,31 @@ class DS1307():
                 print(f"{i:02X}: ", end = "")
             print(f"{buffer[i]:02X}", end="\n" if i % 16 == 15 else " ")
 
-    def copy_time_from_ds1307_to_system(self):
+    def copy_time_to_system(self):
         """
-        Read time from DS1307 and copy it to system.
+        Read time from the clock and copy it to system.
         """
         
-        Y, M, D, h, m, s, _, _ = read()
+        Y, M, D, h, m, s, _, _ = self.read()
         new_time_tuple = (Y, M, D, 0, h, m, s, 0)
         RTC().datetime(new_time_tuple)
 
 if __name__ == "__main__":
     import mem_used
     
-    i2c = I2C(0) # use default pinout and clock frequency
+    i2c = I2C(0, freq=100000) # use default pinout and clock frequency
     print(i2c)   # print pinout and clock frequency
     
-    ds1307 = DS1307(i2c, freq=100000)
+    rtc = DS1307(i2c)
     
-    ds1307.dump()
+    rtc.dump()
 
 #   new_time = time.localtime()
 #   new_time = (2030, 04, 27, 12, 05, 00, 0, 0)
 #   new_time = (2025, 12, 24, 12, 34, 56, 0, 0) 
-#   ds1307.write(new_time)
+#   rtc.write(new_time)
     
-    ds1307.read()
+    rtc.read()
+    rtc.copy_time_to_system()
     
     mem_used.print_ram_used()
-
