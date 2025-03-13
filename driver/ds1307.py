@@ -9,7 +9,7 @@ _DS1307_ADDRESS = const(0x68)
 class DS1307():
     """
     Create an object to support DS1307 real time clock.
-    - i2c: instance of I2C object
+    - i2c: instance of I2C object, max clock speed is 100 kHz!
     """
     
     def __init__(self, i2c):
@@ -92,7 +92,7 @@ if __name__ == "__main__":
     i2c = I2C(0) # use default pinout and clock frequency
     print(i2c)   # print pinout and clock frequency
     
-    ds1307 = DS1307(i2c)
+    ds1307 = DS1307(i2c, freq=100000)
     
     ds1307.dump()
 
