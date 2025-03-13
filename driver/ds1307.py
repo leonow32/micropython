@@ -63,8 +63,15 @@ class DS1307():
         self.i2c.writeto_mem(_DS1307_ADDRESS, 0x00, buffer)
        
     def print(self):
-        Y, M, D, h, m, s, _, _ = self.read()
-        print(f"{Y}.{M:02}.{D:02} {h:02}:{m:02}:{s:02}")
+        """
+        Read the time and print it to the console.
+        """
+        
+        try:
+            Y, M, D, h, m, s, _, _ = self.read()
+            print(f"{Y}.{M:02}.{D:02} {h:02}:{m:02}:{s:02}")
+        except:
+            print("Time not set")
          
     def dump(self):
         """
