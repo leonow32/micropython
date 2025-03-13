@@ -128,7 +128,8 @@ class SSD1309(framebuf.FrameBuffer):
         return total - last_char_space
 
 if __name__ == "__main__":
-    i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=400000)
+    i2c = I2C(0) # use default pinout and clock frequency
+    print(i2c)   # print pinout and clock frequency
     display = SSD1309(i2c)
 
     display.rect(0, 0, 128, 64, 1)

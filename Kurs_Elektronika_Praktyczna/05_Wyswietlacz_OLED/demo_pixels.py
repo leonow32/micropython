@@ -6,9 +6,10 @@ import mem_used
 import random
 import time
 
-LOOPS = const(100)
+LOOPS = const(1000)
 
-i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=400000)
+i2c = I2C(0) # use default pinout and clock frequency
+print(i2c)   # print pinout and clock frequency
 display = ssd1309.SSD1309(i2c)
 
 x1 = 0
@@ -17,12 +18,13 @@ y1 = 0
 start_time = time.ticks_ms()
 
 for i in range(LOOPS):
-    x2 = random.randrange(ssd1309.WIDTH)
-    y2 = random.randrange(ssd1309.HEIGHT)
-    display.line(x1, y1, x2, y2, 1)
+    x = random.randrange(ssd1309.WIDTH)
+    y = random.randrange(ssd1309.HEIGHT)
+    display.pixel(x, y, 0) # black pixel
+    x = random.randrange(ssd1309.WIDTH)
+    y = random.randrange(ssd1309.HEIGHT)
+    display.pixel(x, y, 1) # white pixel
     display.refresh()
-    x1 = x2
-    y1 = y2
 
 end_time = time.ticks_ms()
 work_time = end_time - start_time
@@ -32,3 +34,4 @@ print(f"Frame time: {frame_time} ms")
 print(f"Frame rate: {1000/frame_time} fps")
 
 mem_used.print_ram_used()
+

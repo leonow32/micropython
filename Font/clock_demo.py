@@ -5,7 +5,9 @@ import ssd1309
 import mem_used
 import time
 
-i2c = machine.I2C(0, scl=machine.Pin(1), sda=machine.Pin(2), freq=400000)
+i2c = I2C(0) # use default pinout and clock frequency
+print(i2c)   # print pinout and clock frequency
+
 display = ssd1309.SSD1309(i2c)
 
 while True:
@@ -15,5 +17,6 @@ while True:
     display.print_text(galaxy16_digits, f"{time_tuple[2]}.{time_tuple[1]:02}.{time_tuple[0]}", 127, 38, "C")
     display.refresh()
     mem_used.print_ram_used()
-    #time.sleep(60)
-    machine.lightsleep(60_000)
+    time.sleep(60)
+    #machine.lightsleep(60_000)
+

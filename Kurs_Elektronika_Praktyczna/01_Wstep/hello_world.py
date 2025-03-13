@@ -23,3 +23,4 @@ for i in range(5):
     time.sleep_ms(250)
 
 print("Koniec programu!")
+
