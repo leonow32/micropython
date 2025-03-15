@@ -3,47 +3,61 @@
 from machine import Pin, I2C
 import gc
 import os
+import mem24
 import time
 
-DEVICE_ADDRESS = 0x50
-MEMORY_SIZE = 4096
-BLOCK_SIZE = 64
-PAGE_SIZE = 32
-WRITE_DELAY_MS = 2
-i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=400000)
+# DEVICE_ADDRESS = 0x50
+# MEMORY_SIZE = 4096
+# BLOCK_SIZE = 64
+# PAGE_SIZE = 32
+# WRITE_DELAY_MS = 2
+
+
 
 #drive = 0
 
 class DriveBlock:
-    def __init__(self):
-        #print(f".init()")
-        # init i2c
-        pass
+    def __init__(self, memory):
+#         print(f".init()")
+        self.memory = memory
+        
+        if memory.page_size < 64:
+#             print(f"memory.page_size = {self.memory.page_size}")
+            self.block_size = 64
+        else:
+            self.block_size = memory.page_size
         
     def readblocks(self, block_num, buf, offset=0):
-        #print(f".readblocks(block_num={block_num}, len(buf)={len(buf)}, offset={offset})")
-        address = block_num * BLOCK_SIZE + offset
-        i2c.readfrom_mem_into(DEVICE_ADDRESS, address, buf, addrsize=16)
+#         print(f".readblocks(block_num={block_num}, len(buf)={len(buf)}, offset={offset})")
+        address = block_num * self.block_size + offset
+#         i2c.readfrom_mem_into(DEVICE_ADDRESS, address, buf, addrsize=16)
+        
+        self.memory.read_into(address, buf)
 
     def writeblocks(self, block_num, buf, offset=0):
-        #print(f".writeblocks(block_num={block_num}, len(buf)={len(buf)} offset={offset}")
+#         print(f".writeblocks(block_num={block_num}, len(buf)={len(buf)} offset={offset}")
         
         if offset is None:
             offset = 0
+            print("offset is None")
 
-        address = block_num * BLOCK_SIZE + offset
-        length = len(buf)
-        fragment = 0
+        address = block_num * self.block_size + offset
         
-        while length >= PAGE_SIZE:
-            i2c.writeto_mem(DEVICE_ADDRESS, address, buf[fragment : fragment+PAGE_SIZE], addrsize=16)
-            time.sleep_ms(WRITE_DELAY_MS)
-            length   -= PAGE_SIZE
-            address  += PAGE_SIZE
-            fragment += PAGE_SIZE
+        self.memory.write(address, buf)
+        
+        
+#         length = len(buf)
+#         fragment = 0
+#         
+#         while length >= PAGE_SIZE:
+#             i2c.writeto_mem(DEVICE_ADDRESS, address, buf[fragment : fragment+PAGE_SIZE], addrsize=16)
+#             time.sleep_ms(WRITE_DELAY_MS)
+#             length   -= PAGE_SIZE
+#             address  += PAGE_SIZE
+#             fragment += PAGE_SIZE
 
     def ioctl(self, op, arg):
-        #print(f".ioctl(op={op}, arg={arg})\t", end="")
+#         print(f".ioctl(op={op}, arg={arg})\t", end="")
         
         # Init
         if op == 1:
@@ -62,36 +76,40 @@ class DriveBlock:
         
         # Number of blocks
         if op == 4:
-            res = MEMORY_SIZE // BLOCK_SIZE
-            #print(f"BlockCount={res}")
+            res = self.memory.memory_size // self.block_size
+#             print(f"BlockCount={res}")
             return res
         
         # Block size
         if op == 5:
-            res = BLOCK_SIZE
-            #print(f"BlockSize={res}")
+            res = self.block_size
+#             print(f"BlockSize={res}")
             return res
         
         # Block erase
         if op == 6: 
-            #print(f"BlockErase={arg}")
-            address = arg * BLOCK_SIZE
-            data_to_write = bytearray(b'\x00' * PAGE_SIZE)
-            i2c.writeto_mem(DEVICE_ADDRESS, address, data_to_write, addrsize=16)
-            time.sleep_ms(WRITE_DELAY_MS)
-            i2c.writeto_mem(DEVICE_ADDRESS, address + PAGE_SIZE, data_to_write, addrsize=16)
-            time.sleep_ms(WRITE_DELAY_MS)
+#             print(f"BlockErase={arg}")
+            address = arg * self.block_size
+            buffer = bytes(b'\x00' * self.block_size)
+            
+            self.memory.write(address, buffer)
+            
+            
+#             i2c.writeto_mem(DEVICE_ADDRESS, address, data_to_write, addrsize=16)
+#             time.sleep_ms(WRITE_DELAY_MS)
+#             i2c.writeto_mem(DEVICE_ADDRESS, address + PAGE_SIZE, data_to_write, addrsize=16)
+#             time.sleep_ms(WRITE_DELAY_MS)
             return 0
     
-    def format_disk(self):
-        print("format_disk")
-        global drive
-        os.VfsLfs2.mkfs(drive)
-        
-    def mount_disk(self):
-        print("mount")
-        global drive
-        os.mount(drive, "/at24c32")
+#     def format_disk(self):
+#         print("format_disk")
+#         global drive
+#         os.VfsLfs2.mkfs(drive)
+#         
+#     def mount_disk(self):
+#         print("mount")
+#         global drive
+#         os.mount(drive, "/at24c32")
 
 # Tworzenie RAM Drive
 """
@@ -123,11 +141,11 @@ def drive_remove():
     del drive
 
 # Zapisywanie testowych plików
-def drive_test(BytesInFile):
+def drive_test(path, bytes_in_file):
 
     # Create dummy content to store in files
     content_to_write = bytearray()
-    for i in range(BytesInFile):
+    for i in range(bytes_in_file):
         content_to_write += bytearray(b'x')   # lub bytearray([i])
 
     # Save as many files as possible
@@ -135,7 +153,7 @@ def drive_test(BytesInFile):
     TimeStart = time.ticks_ms()
     i = 0
     while True:
-        name = f"/at24c32/{i}.txt"
+        name = f"{path}/{i}.txt"
         print(f"Writing {name}")
         try:
             with open(name, "wb") as f:
@@ -151,7 +169,7 @@ def drive_test(BytesInFile):
     TimeStart = time.ticks_ms()
     files = i
     for i in range(0, files):
-        name = f"/at24c32/{i}.txt"
+        name = f"{path}/{i}.txt"
         print(f"Reading {name}")
         try:
             with open(name, "rb") as f:
@@ -162,8 +180,20 @@ def drive_test(BytesInFile):
     print(f"Time: {time.ticks_ms()-TimeStart} ms")
 
 if __name__ == "__main__":
-    drive = DriveBlock()
-    drive.format_disk()
-    drive.mount_disk()
+    i2c    = I2C(0)
+    eeprom = mem24.Mem24(i2c, device_address=0x50, memory_size=4096, page_size=32, addr_size=16)
+    drive  = DriveBlock(eeprom)
+    
+#     print("format")
+#     os.VfsLfs2.mkfs(drive)
+    
+    print("mount")
+    os.mount(drive, "/at24c32")
+    
+    
+#     drive = DriveBlock()
+#     drive.format_disk()
+#     drive.mount_disk()
     #drive_test(10)
+
 
