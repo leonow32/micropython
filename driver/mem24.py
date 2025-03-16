@@ -4,7 +4,7 @@
 import time
 from machine import Pin, I2C
 
-TIMEOUT = const(20)   # Timeout value = TIMEOUT * 100us
+TIMEOUT_MS = const(5)
 
 class Mem24():
     """
@@ -31,13 +31,13 @@ class Mem24():
         by TIMEOUT.
         """
         
-        timeout = TIMEOUT
+        timeout = TIMEOUT_MS
         while timeout:
             try:
                 self.i2c.readfrom(self.device_address, 1)
                 return
             except:
-                time.sleep_us(100)
+                time.sleep_ms(1)
                 timeout -= 1
         
         raise OSError(errno.ETIMEDOUT, "I2C polling too many times without ACK")
@@ -132,7 +132,8 @@ if __name__ == "__main__":
     
     i2c = I2C(0) # use default pinout and clock frequency
     print(i2c)   # print pinout and clock frequency
-    mem = Mem24(i2c, device_address=0x50, memory_size=4096, page_size=32, addr_size=16)
+#   mem = Mem24(i2c, device_address=0x50, memory_size=4096, page_size=32, addr_size=16)   # AT24C32
+    mem = Mem24(i2c, device_address=0x50, memory_size=65536, page_size=128, addr_size=16) # AT24C512
     
     buffer = mem.read(0x0000, 16)
     print_hex(buffer)
