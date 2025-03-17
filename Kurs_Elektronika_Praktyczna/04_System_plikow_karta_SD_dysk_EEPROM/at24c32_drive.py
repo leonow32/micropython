@@ -181,19 +181,20 @@ def drive_test(path, bytes_in_file):
 
 if __name__ == "__main__":
     i2c    = I2C(0)
-    eeprom = mem24.Mem24(i2c, device_address=0x50, memory_size=4096, page_size=32, addr_size=16)
+#     eeprom = mem24.Mem24(i2c, device_address=0x50, memory_size=4096, page_size=32, addr_size=16)
+    eeprom = mem24.Mem24(i2c, device_address=0x50, memory_size=65536, page_size=128, addr_size=16)
     drive  = DriveBlock(eeprom)
     
-#     print("format")
-#     os.VfsLfs2.mkfs(drive)
+    print("format")
+    os.VfsLfs2.mkfs(drive)
     
     print("mount")
-    os.mount(drive, "/at24c32")
+    os.mount(drive, "/eeprom")
     
     
 #     drive = DriveBlock()
 #     drive.format_disk()
 #     drive.mount_disk()
-    #drive_test(10)
+    drive_test("/eeprom", 1000)
 
 
