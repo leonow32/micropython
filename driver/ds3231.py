@@ -1,5 +1,5 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
-# v1.0.1 2025.03.13
+# v1.0.0 2025.03.17
 
 import time
 from machine import Pin, I2C, RTC
@@ -9,7 +9,8 @@ _DS3231_ADDRESS = const(0x68)
 class DS3231():
     """
     Create an object to support DS3231 real time clock.
-    - i2c: instance of I2C object, max clock speed is 100 kHz!
+    Does not support alarms and configuration.
+    - i2c: instance of I2C object, max clock speed is 400 kHz.
     """
     
     def __init__(self, i2c):
@@ -42,15 +43,9 @@ class DS3231():
         """
         
         buffer = self.i2c.readfrom_mem(_DS3231_ADDRESS, 0x11, 2)
-        
         value = ((buffer[0] & 0b01111111) << 2) | ((buffer[1] & 0b11000000) >> 6)
-        
-        if buffer[0] & 0b1000000:
-            value = -(~value & 0b011111111111) - 1 
-        
-        value /= 4
-        
-        print(value)
+        if value & (1 << 11): value = -2**11 + (value & (2**11 - 1))
+        return value / 4
     
     def write(self, time_tuple):
         """
@@ -111,7 +106,7 @@ if __name__ == "__main__":
     import mem_used
     
     i2c = I2C(0, freq=100000) # use default pinout and clock frequency
-    print(i2c)   # print pinout and clock frequency
+    print(i2c)                # print pinout and clock frequency
     
     rtc = DS3231(i2c)
     
@@ -122,10 +117,10 @@ if __name__ == "__main__":
 #   new_time = (2025, 12, 24, 12, 34, 56, 0, 0) 
 #   rtc.write(new_time)
     
-#   rtc.read()
+    rtc.print()
 #   rtc.copy_time_to_system()
 
-    rtc.read_temperature()
+    print(rtc.read_temperature())
     
     mem_used.print_ram_used()
 
