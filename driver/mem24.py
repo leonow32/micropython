@@ -22,6 +22,10 @@ class Mem24():
         self.memory_size = memory_size
         self.page_size = page_size
         self.addr_size = addr_size
+        
+    def __str__(self):
+        return f"Mem24({str(self.i2c)}, device_address=0x{self.device_address:02X}," \
+        f"memory_size={self.memory_size}, page_size={self.page_size}, addr_size={self.addr_size})"      
     
     def wait_for_ready(self):
         """
@@ -132,18 +136,19 @@ if __name__ == "__main__":
     
     i2c = I2C(0) # use default pinout and clock frequency
     print(i2c)   # print pinout and clock frequency
-#   mem = Mem24(i2c, device_address=0x50, memory_size=4096, page_size=32, addr_size=16)   # AT24C32
-    mem = Mem24(i2c, device_address=0x50, memory_size=65536, page_size=128, addr_size=16) # AT24C512
+#   eeprom = Mem24(i2c, device_address=0x50, memory_size=4096, page_size=32, addr_size=16)   # AT24C32
+    eeprom = Mem24(i2c, device_address=0x50, memory_size=65536, page_size=128, addr_size=16) # AT24C512
+    print(eeprom)
     
-    buffer = mem.read(0x0000, 16)
+    buffer = eeprom.read(0x0000, 64)
     print_hex(buffer)
+#     
+#     buffer = bytearray(16)
+#     eeprom.read_into(0x0010, buffer)
+#     print_hex(buffer)
     
-    buffer = bytearray(16)
-    mem.read_into(0x0010, buffer)
-    print_hex(buffer)
+#   eeprom.write(0x0F10, b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefABCDEFGHIJKLMNOPQRSTUVWXYZabcdefABCDEFGHIJKLMNOPQRSTUVWXYZabcdef')
     
-#   mem.write(0x0F10, b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefABCDEFGHIJKLMNOPQRSTUVWXYZabcdefABCDEFGHIJKLMNOPQRSTUVWXYZabcdef')
-    
-    mem.dump()
+#   eeprom.dump()
     
 #   mem_used.print_ram_used()
