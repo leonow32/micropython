@@ -195,6 +195,6 @@ if __name__ == "__main__":
 #     drive = DriveBlock()
 #     drive.format_disk()
 #     drive.mount_disk()
-    drive_test("/eeprom", 10)
+    drive_test("/eeprom", 1000)
 
 
