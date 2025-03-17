@@ -74,11 +74,8 @@ class DS3231():
         Read the time and print it to the console.
         """
         
-        try:
-            Y, M, D, h, m, s, _, _ = self.read()
-            print(f"{Y}.{M:02}.{D:02} {h:02}:{m:02}:{s:02}")
-        except:
-            print("Time not set")
+        Y, M, D, h, m, s, _, _ = self.read()
+        print(f"{Y}.{M:02}.{D:02} {h:02}:{m:02}:{s:02}")
          
     def dump(self):
         """
