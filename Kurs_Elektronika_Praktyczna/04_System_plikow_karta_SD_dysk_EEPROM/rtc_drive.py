@@ -19,7 +19,7 @@ class RtcDriveBlock:
         Data = bytearray(machine.RTC().memory())
         
         # Rozciaganie
-        BytesToAdd = 2048-len(Data)
+        BytesToAdd = RTC_SIZE - len(Data)
         Data = Data + bytes(b'\x00' * BytesToAdd)
         
         # Zapis do bufora wyjsciowego
@@ -35,7 +35,7 @@ class RtcDriveBlock:
         Data = machine.RTC().memory()
         
         # Rozciaganie
-        BytesToAdd = 2048-len(Data)
+        BytesToAdd = RTC_SIZE - len(Data)
         Data = Data + bytes(b'\x00' * BytesToAdd)
         
         Address = block_num * self.BlockSize + offset
@@ -95,7 +95,7 @@ gc.collect()
 BlockSize = 64 # oryginalnie 128
 
 # kasowanie
-machine.RTC().memory(bytes([0x00]*2048))
+machine.RTC().memory(bytes([0x00] * RTC_SIZE))
 
 print(f"RamDrive = RtcDriveBlock(BlockSize={BlockSize})")
 RamDrive = RtcDriveBlock(BlockSize)
