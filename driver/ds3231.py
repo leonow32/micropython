@@ -38,18 +38,17 @@ class DS3231():
     
     def read_temperature(self):
         """
-
+        Returns float. Temperature resolution is 0.25'C.
         """
         
         buffer = self.i2c.readfrom_mem(_DS3231_ADDRESS, 0x11, 2)
         
-        sign = buffer[0] & 0b1000000
+        value = ((buffer[0] & 0b01111111) << 2) | ((buffer[1] & 0b11000000) >> 6)
         
-        value_h = (buffer[0] & 0b01111111) 
-        value_l = (buffer[1] & 0b11000000) >> 6
-        value = value_h + value_l / 4
+        if buffer[0] & 0b1000000:
+            value = -(~value & 0b011111111111) - 1 
         
-        value2 = (buffer[0] & 0b01111111) 
+        value /= 4
         
         print(value)
     
@@ -116,15 +115,17 @@ if __name__ == "__main__":
     
     rtc = DS3231(i2c)
     
-    rtc.dump()
+#   rtc.dump()
 
-    new_time = time.localtime()
+#   new_time = time.localtime()
 #   new_time = (2030, 04, 27, 12, 05, 00, 0, 0)
 #   new_time = (2025, 12, 24, 12, 34, 56, 0, 0) 
-    rtc.write(new_time)
+#   rtc.write(new_time)
     
-    rtc.read()
-    rtc.copy_time_to_system()
+#   rtc.read()
+#   rtc.copy_time_to_system()
+
+    rtc.read_temperature()
     
     mem_used.print_ram_used()
 
