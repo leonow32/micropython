@@ -4,7 +4,7 @@
 import time
 from machine import Pin, I2C
 
-TIMEOUT_MS = const(5)
+TIMEOUT_MS = const(10)
 
 class Mem24():
     """
