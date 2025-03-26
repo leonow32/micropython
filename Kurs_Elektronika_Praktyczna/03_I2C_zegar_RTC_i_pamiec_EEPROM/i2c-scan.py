@@ -9,3 +9,4 @@ print("Znalezione urządzenia: ", end="")
 for device in devices:
     print(f"{device:02X} ", end="")
 
+
