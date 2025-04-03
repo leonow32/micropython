@@ -55,6 +55,42 @@ class AHT20():
         print_hex(buffer)
         
         # Check CRC
+        # Initial value of CRC is 0xFF.
+        # The CRC polynomial: X^8 + X^5 + X^4 + 1 => 0b00110001 (0x31)
+        """
+          static uint8_t crc8( uint8_t *data, int len ) {
+            // calculate CRC8 (Dallas/Maxim)
+            // The initial value of CRC is 0xFF.
+            // The CRC polynomial: X^8 + X^5 + X^4 + 1 => 0b00110001 (0x31)
+            uint8_t crc = 0xff;
+            for ( uint8_t j=0; j < len; j++ ) {
+               crc ^= data[j];
+               for ( uint8_t i=0; i < 8; i++ ) {
+                 if (crc & 0x80) {
+                   crc = (crc << 1) ^ 0x31;
+                 } else {
+                   crc = crc << 1;
+                }
+              }
+            }
+            return crc;
+          }
+
+        """
+        
+        crc = 0xFF
+        for byte in buffer[:-1]:
+            crc ^= byte
+            for i in range(8):
+                if crc & 0x80:
+                    crc <<= 1
+                    crc &= 0xFF
+                    crc ^= 0x31
+                else:
+                    crc <<= 1
+                    crc &= 0xFF
+                    
+        print(f"CRC = {crc:02X}")
         
         
         # Calculate humidity
@@ -88,27 +124,8 @@ if __name__ == "__main__":
     sensor = AHT20(i2c)
     print(sensor)
     
+    sensor.measure()
     sensor.read()
 
     mem_used.print_ram_used()
 
-"""
-  static uint8_t crc8( uint8_t *data, int len ) {
-    // calculate CRC8 (Dallas/Maxim)
-    // The initial value of CRC is 0xFF.
-    // The CRC polynomial: X^8 + X^5 + X^4 + 1 => 0b00110001 (0x31)
-    uint8_t crc = 0xff;
-    for ( uint8_t j=0; j < len; j++ ) {
-       crc ^= data[j];
-       for ( uint8_t i=0; i < 8; i++ ) {
-         if (crc & 0x80) {
-           crc = (crc << 1) ^ 0x31;
-         } else {
-           crc = crc << 1;
-        }
-      }
-    }
-    return crc;
-  }
-
-"""
