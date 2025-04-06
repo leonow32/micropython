@@ -2,7 +2,6 @@
 # v1.0.0 2025.03.11
 
 import time
-from machine import Pin, I2C
 
 TIMEOUT_MS = const(10)
 
@@ -127,14 +126,15 @@ class Mem24():
             memory_address += 16
     
 if __name__ == "__main__":
-#   import mem_used
+    import mem_used
+    import machine
     
     def print_hex(buffer):
         for byte in buffer:
             print(f"{byte:02X} ", end="")
         print()
     
-    i2c = I2C(0) # use default pinout and clock frequency
+    i2c = machine.I2C(0) # use default pinout and clock frequency
     print(i2c)   # print pinout and clock frequency
 #   eeprom = Mem24(i2c, device_address=0x50, memory_size=4096, page_size=32, addr_size=16)   # AT24C32
     eeprom = Mem24(i2c, device_address=0x50, memory_size=65536, page_size=128, addr_size=16) # AT24C512
@@ -151,4 +151,4 @@ if __name__ == "__main__":
     
 #   eeprom.dump()
     
-#   mem_used.print_ram_used()
+    mem_used.print_ram_used()
