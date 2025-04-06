@@ -6,14 +6,9 @@ import time
 I2C_ADDRESS = const(0x38)
 TIMEOUT     = const(10)
 
-def print_hex(buffer):
-    for byte in buffer:
-        print(f"{byte:02X} ", end="")
-    print()
-
 class AHT20():
     """
-    Create an object to support AHT temperature and humidity sensor.
+    Create an object to support AHT20 temperature and humidity sensor.
     - i2c: instance of I2C object.
     """
     
@@ -27,13 +22,27 @@ class AHT20():
         return f"AHT20({str(self.i2c)})"
     
     def status_get(self):
+        """
+        Return status byte.
+        - Bit 7: measurement in progress.
+        - Bit 3: sensor calibrated.
+        """
         buffer = self.i2c.readfrom(I2C_ADDRESS, 1)
         return buffer[0]
     
     def measure(self):
+        """
+        Start measurement process. After start you need to wait as long as bit 8 of ststur register is high.
+        """
         self.i2c.writeto(I2C_ADDRESS, b"\xAC\x33\x00")
     
     def wait_for_ready(self):
+        """
+        Wait as long as bit 8 of ststur register is high. This function may throw
+        ETIMEDOUT exception if memory does not acknowledge in requirewd time, specified
+        by TIMEOUT.
+        """
+        
         timeout = TIMEOUT
         while timeout:
             buffer = self.i2c.readfrom(I2C_ADDRESS, 1)
@@ -47,6 +56,9 @@ class AHT20():
         raise OSError(errno.ETIMEDOUT, "Measurement time expired")
     
     def read(self):
+        """
+        Reas the result of the measurement. Result is given as a dictionary with "temp" and "humi" keys.
+        """
         self.wait_for_ready()
         buffer = self.i2c.readfrom(I2C_ADDRESS, 7)
         
@@ -82,6 +94,9 @@ class AHT20():
         self.i2c.writeto(I2C_ADDRESS, b"\xBA")
     
     def dump(self):
+        """
+        Read and print all the information.
+        """
         status = self.status_get()
         print(f"Busy:        {(status & 0b10000000) >> 7}")
         print(f"Calibrated:  {(status & 0b00001000) >> 3}")
