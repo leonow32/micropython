@@ -33,6 +33,7 @@ library = {
     0x69: "SPS30",
     0x6F: "MCP7940",
     0x76: "BME280",
+    0x77: "BMP280"
 }
 
 print("Found devices: ")
