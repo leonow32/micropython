@@ -1,5 +1,5 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
-# v1.0.0 2025.03.11
+# v1.0.1 2025.04.26
 
 import time
 
