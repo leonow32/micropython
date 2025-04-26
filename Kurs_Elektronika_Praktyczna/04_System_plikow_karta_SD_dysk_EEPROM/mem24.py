@@ -63,7 +63,7 @@ class Mem24():
         Write data into a single page in the memory.
         """
         self.wait_for_ready()
-        self.i2c.writeto_mem(self.device_address, memory_address, data, addrsize=16)
+        self.i2c.writeto_mem(self.device_address, memory_address, data, addrsize=self.addr_size)
     
     def write(self, memory_address, data):
         """
