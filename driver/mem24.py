@@ -101,7 +101,7 @@ class Mem24():
         
         while memory_address < self.memory_size:
             self.wait_for_ready()
-            self.write(memory_address, buffer)
+            self.write_page(memory_address, buffer)
             memory_address += self.page_size
     
     def dump(self):
@@ -128,27 +128,34 @@ class Mem24():
 if __name__ == "__main__":
     import mem_used
     import machine
-    
+    import time
+           
     def print_hex(buffer):
         for byte in buffer:
             print(f"{byte:02X} ", end="")
         print()
     
+    start_time = time.ticks_us()
+    
     i2c = machine.I2C(0) # use default pinout and clock frequency
     print(i2c)   # print pinout and clock frequency
-#   eeprom = Mem24(i2c, device_address=0x50, memory_size=4096, page_size=32, addr_size=16)   # AT24C32
-    eeprom = Mem24(i2c, device_address=0x50, memory_size=65536, page_size=128, addr_size=16) # AT24C512
+    eeprom = Mem24(i2c, device_address=0x50, memory_size=4096, page_size=32, addr_size=16)   # AT24C32
+#   eeprom = Mem24(i2c, device_address=0x50, memory_size=65536, page_size=128, addr_size=16) # AT24C512
     print(eeprom)
     
-    buffer = eeprom.read(0x0000, 64)
-    print_hex(buffer)
+#   buffer = eeprom.read(0x0000, 64)
+#   print_hex(buffer)
 #     
-#     buffer = bytearray(16)
-#     eeprom.read_into(0x0010, buffer)
-#     print_hex(buffer)
+#   buffer = bytearray(16)
+#   eeprom.read_into(0x0010, buffer)
+#   print_hex(buffer)
     
 #   eeprom.write(0x0F10, b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefABCDEFGHIJKLMNOPQRSTUVWXYZabcdefABCDEFGHIJKLMNOPQRSTUVWXYZabcdef')
+
+#   eeprom.erase_chip()
     
-#   eeprom.dump()
+    print(f"Time: {(time.ticks_us() - start_time) / 1000} ms")
+    
+    eeprom.dump()
     
     mem_used.print_ram_used()
