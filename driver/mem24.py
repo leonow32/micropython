@@ -5,7 +5,7 @@ import time
 
 TIMEOUT_MS = const(10)
 
-class Mem24():
+class Mem24:
     """
     Create an object to support EEPROM memories, such as AT24C32.
     - i2c: instance of I2C object

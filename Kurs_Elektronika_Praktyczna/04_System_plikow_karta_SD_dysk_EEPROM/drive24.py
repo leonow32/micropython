@@ -2,7 +2,7 @@
 
 import os
 
-class DriveBlock:
+class Drive:
     def __init__(self, memory, path):
         self.memory = memory
         self.path = path

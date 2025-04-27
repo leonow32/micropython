@@ -46,7 +46,7 @@ def drive_test(path, bytes_in_file):
 i2c    = I2C(0)
 eeprom = mem24.Mem24(i2c, device_address=0x50, memory_size=4096, page_size=32, addr_size=16)
 # eeprom = mem24.Mem24(i2c, device_address=0x50, memory_size=65536, page_size=128, addr_size=16)
-drive  = drive24.DriveBlock(eeprom, "/eeprom")
+drive  = drive24.Drive(eeprom, "/eeprom")
 
-# drive_test("/eeprom", 100)
+drive_test("/eeprom", 100)
 
