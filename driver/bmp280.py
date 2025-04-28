@@ -229,23 +229,25 @@ if __name__ == "__main__":
     
     
     # demo of forced mode
-    
+    """
     sensor.config(OSRT_T_X16, OSRT_P_X16, MODE_FORCED, T_SB_05MS, FILTER_OFF)
+    button = machine.Pin(0, machine.Pin.IN, machine.Pin.PULL_UP)
     while True:
-        input("Press enter or CTRL-C")
-        sensor.measure()
+        if button() == 0:
+            print("Single shot")
+            sensor.measure()
+        
         result = sensor.read()
         print(f"{result["temp"]:.4f} 'C \t {result["pres"]:.2f} hPa")
-    
+        time.sleep_ms(100)
+    """
     
     # demo of normal mode
-    """
     sensor.config(OSRT_T_X16, OSRT_P_X16, MODE_NORMAL, T_SB_05MS, FILTER_OFF)
     while True:    
         result = sensor.read()
         print(f"{result["temp"]:.4f} 'C \t {result["pres"]:.2f} hPa")
         time.sleep_ms(100)
-    """
     
     mem_used.print_ram_used()
 
