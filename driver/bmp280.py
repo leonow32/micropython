@@ -19,19 +19,19 @@ MODE_NORMAL   = const(0b00000_11)   # periodic measurement
 
 # osrs_t setting - temperature oversampling
 OSRT_T_SKIP   = const(0b000_00000)
-OSRT_T_X1     = const(0b001_00000) # resolution 16 bit (0.0050 'C)
-OSRT_T_X2     = const(0b010_00000) # resolution 17 bit (0.0025 'C)
-OSRT_T_X4     = const(0b011_00000) # resolution 18 bit (0.0012 'C)
-OSRT_T_X8     = const(0b100_00000) # resolution 19 bit (0.0006 'C)
-OSRT_T_X16    = const(0b101_00000) # resolution 20 bit (0.0003 'C)
+OSRT_T_X1     = const(0b001_00000)  # resolution 16 bit (0.0050 'C)
+OSRT_T_X2     = const(0b010_00000)  # resolution 17 bit (0.0025 'C)
+OSRT_T_X4     = const(0b011_00000)  # resolution 18 bit (0.0012 'C)
+OSRT_T_X8     = const(0b100_00000)  # resolution 19 bit (0.0006 'C)
+OSRT_T_X16    = const(0b101_00000)  # resolution 20 bit (0.0003 'C)
 
 # osrs_p setting - pressure oversampling
 OSRT_P_SKIP   = const(0b000_000_00)
-OSRT_P_X1     = const(0b000_001_00) # resolution 16 bit (2.62 Pa)
-OSRT_P_X2     = const(0b000_010_00) # resolution 17 bit (1.31 Pa)
-OSRT_P_X4     = const(0b000_011_00) # resolution 18 bit (0.66 Pa)
-OSRT_P_X8     = const(0b000_100_00) # resolution 19 bit (0.33 Pa)
-OSRT_P_X16    = const(0b000_101_00) # resolution 20 bit (0.16 Pa)
+OSRT_P_X1     = const(0b000_001_00)  # resolution 16 bit (2.62 Pa)
+OSRT_P_X2     = const(0b000_010_00)  # resolution 17 bit (1.31 Pa)
+OSRT_P_X4     = const(0b000_011_00)  # resolution 18 bit (0.66 Pa)
+OSRT_P_X8     = const(0b000_100_00)  # resolution 19 bit (0.33 Pa)
+OSRT_P_X16    = const(0b000_101_00)  # resolution 20 bit (0.16 Pa)
 
 # t_sb setting - time between sampling
 T_SB_05MS     = const(0b000_00000)
@@ -50,7 +50,7 @@ FILTER_4      = const(0b000_010_00)
 FILTER_8      = const(0b000_011_00)
 FILTER_16     = const(0b000_100_00)
 
-TIMEOUT_MS    = const(100)
+TIMEOUT_MS    = const(50)
 
 class BMP280():
     """
@@ -63,7 +63,6 @@ class BMP280():
         time.sleep_ms(40)
         self.i2c = i2c
         self.device_address = device_address
-        
         self.reset()
         self.wait_for_ready()
         
@@ -84,6 +83,19 @@ class BMP280():
     def __str__(self):
         return f"BMP280({str(self.i2c)}, device_address=0x{self.device_address:02X})"
     
+    def read_register(self, register, length=1):
+        return self.i2c.readfrom_mem(self.device_address, register, length, addrsize=8)[0]
+    
+    def write_register(self, register, value):
+        self.i2c.writeto_mem(self.device_address, register, bytes([value]), addrsize=8)
+        
+    def reset(self):
+        self.write_register(REG_RESET, 0xB6)
+        
+    def config(self, osrs_t, osrs_p, mode, t_sb, filtr):
+        self.write_register(REG_CTRL_MEAS, osrs_t | osrs_p | mode)
+        self.write_register(REG_CONFIG, t_sb | filtr)
+    
     def status_get(self):
         """
         Return status byte.
@@ -92,9 +104,18 @@ class BMP280():
         """
         return self.i2c.readfrom_mem(self.device_address, REG_STATUS, 1, addrsize=8)[0]
     
+    def sleep(self):
+        """
+        Save power. Use `measure` to wake up.
+        """
+        config = self.read_register(REG_CTRL_MEAS)
+        config = config & 0b11111100
+        config = config | MODE_SLEEP
+        self.write_register(REG_CTRL_MEAS, config)
+    
     def measure(self):
         """
-        Start measurement process. Use it only in forced mode. No need in normaln mode.
+        Start measurement process. Use it only in forced mode. No need call this method in normal mode.
         """
         config = self.read_register(REG_CTRL_MEAS)
         config = config & 0b11111100
@@ -107,15 +128,13 @@ class BMP280():
         ETIMEDOUT exception if memory does not acknowledge in requirewd time, specified
         by TIMEOUT.
         """
+    
         timeout = TIMEOUT_MS
-        while timeout:
-            if (self.status_get() & 0b00000001) == 0:
-                return
-            else:
-                timeout -= 1;
-                time.sleep_ms(1)
-        
-        raise OSError(errno.ETIMEDOUT, "Measurement time expired")
+        while self.status_get() & 0b00000001:
+            timeout -= 1;
+            time.sleep_ms(1)
+            if timeout == 0:
+                raise OSError(errno.ETIMEDOUT, "Measurement time expired")
     
     def read(self):
         """
@@ -123,56 +142,35 @@ class BMP280():
         """
         
         buffer = bytearray(6)
-        self.i2c.readfrom_mem_into(self.device_address, 0xF7, buffer, addrsize=8)
+        self.i2c.readfrom_mem_into(self.device_address, 0xF7, buffer)
         
-        raw_pressure = (buffer[0] << 12) | (buffer[1] << 4) | (buffer[2] >> 4)
-        raw_temperature = (buffer[3] << 12) | (buffer[4] << 4) | (buffer[5] >> 4)
+        adc_p = (buffer[0] << 12) | (buffer[1] << 4) | (buffer[2] >> 4)
+        adc_t = (buffer[3] << 12) | (buffer[4] << 4) | (buffer[5] >> 4)
         
-        var1 = (raw_temperature / 16384 - self.T1 / 1024) * self.T2
-        var2 = ((raw_temperature / 131072 - self.T1 / 8192) * (raw_temperature / 131072 - self.T1 / 8192)) * self.T3
+        var1 = (((adc_t>>3) - (self.T1<<1)) * self.T2) >> 11
+        var2 = (((((adc_t>>4) - self.T1) * ((adc_t>>4) - self.T1)) >> 12) * self.T3) >> 14
         t_fine = var1 + var2
-        temperature = (var1 + var2) / 5120
+        t = (t_fine * 5 + 128) >> 8
+        t = t / 100
         
-#         print(f"t_fine = {t_fine}")
-#         print(f"temperature = {temperature}")
-        
-        # pressure
-        var1 = (t_fine / 2) - 64000
-        var2 = var1 * var1 * self.P6 / 32768
-        var2 = var2 + var1 * self.P5 * 2
-        var2 = (var2 / 4) + (self.P4 * 65536)
-        var1 = (self.P3 * var1 * var1 / 524288 + self.P2 * var1) / 524288
-        var1 = (1 + var1 / 32768) * self.P1
+        var1 = t_fine - 128000
+        var2 = var1 * var1 * self.P6
+        var2 = var2 + ((var1 * self.P5) << 17)
+        var2 = var2 + (self.P4 << 35)
+        var1 = ((var1 * var1 * self.P3) >> 8) + ((var1 * self.P2) << 12)
+        var1 = ((1<<47) + var1) * self.P1 >> 33
 
         if var1 == 0:
-            pressure = 0
-#             return 0
+            p = 0
         else:
-            p = 1048576 - raw_pressure
-            p = (p - (var2 / 4096)) * 6250 / var1
-            var1 = self.P9 * p * p / 2147483648
-            var2 = p * self.P8 / 32768
-            p = p + (var1 + var2 + self.P7) / 16
-
-            pressure = p / 100
-            
-#         print(f"pressure: {pressure}")
+            p = 1048576 - adc_p
+            p = (((p<<31) - var2) * 3125) // var1
+            var1 = (self.P9 * (p>>13) * (p>>13)) >> 25
+            var2 = (self.P8 * p) >> 19
+            p = ((p + var1 + var2) >> 8) + (self.P7<<4)
+            p = p / 25600
         
-        return {"temp": temperature, "pres": pressure}
-        
-    
-    def read_register(self, register, length=1):
-        return self.i2c.readfrom_mem(self.device_address, register, length, addrsize=8)[0]
-    
-    def write_register(self, register, value):
-        self.i2c.writeto_mem(self.device_address, register, bytes([value]), addrsize=8)
-
-    def config(self, osrs_t, osrs_p, mode, t_sb, filter):
-        self.write_register(REG_CTRL_MEAS, osrs_t | osrs_p | mode)
-        self.write_register(REG_CONFIG,    t_sb | filter)
-    
-    def reset(self):
-        self.write_register(REG_RESET, 0xB6)
+        return {"temp": t, "pres": p}
     
     def dump(self):
         """
@@ -206,7 +204,6 @@ class BMP280():
         print(f"P7 = {self.P7}")
         print(f"P8 = {self.P8}")
         print(f"P9 = {self.P9}")
-        
     
 if __name__ == "__main__":
     import mem_used
@@ -215,40 +212,33 @@ if __name__ == "__main__":
     i2c = machine.I2C(0) # use default pinout and clock frequency
     sensor = BMP280(i2c, 0x77)
     print(sensor)
-       
     
-    sensor.reset()
-    print(f"status: {sensor.status_get():02X}")
-    print(f"status: {sensor.status_get():02X}")
-    print(f"status: {sensor.status_get():02X}")
-    print(f"status: {sensor.status_get():02X}")
-    print(f"status: {sensor.status_get():02X}")
-#     sensor.dump()
-    print(sensor.read())
+    # demo of dumping all the data
+    if 1:
+        sensor.config(OSRT_T_X16, OSRT_P_X16, MODE_NORMAL, T_SB_05MS, FILTER_OFF)
+        time.sleep_ms(75)
+#       sensor.dump()
+        print(sensor.read())
 
-    
-    
     # demo of forced mode
-    """
-    sensor.config(OSRT_T_X16, OSRT_P_X16, MODE_FORCED, T_SB_05MS, FILTER_OFF)
-    button = machine.Pin(0, machine.Pin.IN, machine.Pin.PULL_UP)
-    while True:
-        if button() == 0:
-            print("Single shot")
-            sensor.measure()
-        
-        result = sensor.read()
-        print(f"{result["temp"]:.4f} 'C \t {result["pres"]:.2f} hPa")
-        time.sleep_ms(100)
-    """
+    if 0:
+        sensor.config(OSRT_T_X16, OSRT_P_X16, MODE_FORCED, T_SB_05MS, FILTER_OFF)
+        button = machine.Pin(0, machine.Pin.IN, machine.Pin.PULL_UP)
+        while True:
+            if button() == 0:
+                print("Single shot")
+                sensor.measure()
+            
+            result = sensor.read()
+            print(f"{result["temp"]:.4f} 'C \t {result["pres"]:.2f} hPa")
+            time.sleep_ms(100)    
     
     # demo of normal mode
-    sensor.config(OSRT_T_X16, OSRT_P_X16, MODE_NORMAL, T_SB_05MS, FILTER_OFF)
-    while True:    
-        result = sensor.read()
-        print(f"{result["temp"]:.4f} 'C \t {result["pres"]:.2f} hPa")
-        time.sleep_ms(100)
-    
+    if 0:
+        sensor.config(OSRT_T_X16, OSRT_P_X16, MODE_NORMAL, T_SB_05MS, FILTER_OFF)
+        while True:    
+            result = sensor.read()
+            print(f"{result["temp"]:.4f} 'C \t {result["pres"]:.2f} hPa")
+            time.sleep_ms(100)
+        
     mem_used.print_ram_used()
-
-
