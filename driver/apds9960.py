@@ -6,14 +6,56 @@ import struct
 import time
 
 # useful registers
-REG_ENABLE    = const(0x80)
-REG_ID        = const(0x92)
-REG_STATUS    = const(0x93)
-REG_GFIFO_U   = const(0xFC) # Gesture FIFO UP value
-REG_GFIFO_D   = const(0xFD) # Gesture FIFO DOWN value
-REG_GFIFO_L   = const(0xFE) # Gesture FIFO LEFT value
-REG_GFIFO_R   = const(0xFF) # Gesture FIFO RIGHT value
-
+REG_ENABLE     = const(0x80)
+REG_ATIME      = const(0x81)
+REG_WTIME      = const(0x83)
+REG_AILTL      = const(0x84)
+REG_AILTH      = const(0x85)
+REG_AIHTL      = const(0x86)
+REG_AIHTH      = const(0x87)
+REG_PILT       = const(0x89)
+REG_PIHT       = const(0x8B)
+REG_PERS       = const(0x8C)
+REG_CONFIG1    = const(0x8D)
+REG_PPULSE     = const(0x8E)
+REG_CONTROL    = const(0x8F)
+REG_CONFIG2    = const(0x90)
+REG_ID         = const(0x92)
+REG_STATUS     = const(0x93)
+REG_CDATAL     = const(0x94)
+REG_CDATAH     = const(0x95)
+REG_RDATAL     = const(0x96)
+REG_RDATAH     = const(0x97)
+REG_GDATAL     = const(0x98)
+REG_GDATAH     = const(0x99)
+REG_BDATAL     = const(0x9A)
+REG_BDATAH     = const(0x9B)
+REG_PDATA      = const(0x9C)
+REG_POFFSET_UR = const(0x9D)
+REG_POFFSET_DL = const(0x9E)
+REG_CONFIG3    = const(0x9F)
+REG_GPENTH     = const(0xA0)
+REG_GEXTH      = const(0xA1)
+REG_GCONF1     = const(0xA2)
+REG_GCONF2     = const(0xA3)
+REG_GOFFSET_U  = const(0xA4)
+REG_GOFFSET_D  = const(0xA5)
+REG_GOFFSET_L  = const(0xA7)
+REG_GOFFSET_R  = const(0xA9)
+REG_GPULSE     = const(0xA6)
+REG_GCONF3     = const(0xAA)
+REG_GCONF4     = const(0xAB)
+REG_GFLVL      = const(0xAE)
+REG_GSTATUS    = const(0xAF)
+REG_IFORCE     = const(0xE4)
+REG_PICLEAR    = const(0xE5)
+REG_CICLEAR    = const(0xE6)
+REG_AICLEAR    = const(0xE7)
+REG_GFIFO_U    = const(0xFC) # Gesture FIFO UP value
+REG_GFIFO_D    = const(0xFD) # Gesture FIFO DOWN value
+REG_GFIFO_L    = const(0xFE) # Gesture FIFO LEFT value
+REG_GFIFO_R    = const(0xFF) # Gesture FIFO RIGHT value
+                    
 # other
 I2C_ADDRESS   = const(0x39)
 TIMEOUT_MS    = const(50)
