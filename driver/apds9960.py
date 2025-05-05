@@ -1,0 +1,163 @@
+# MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+# v1.0.0 2025.04.25
+
+from micropython import const
+import struct
+import time
+
+# useful registers
+REG_ENABLE    = const(0x80)
+REG_ID        = const(0x92)
+REG_STATUS    = const(0x93)
+REG_GFIFO_U   = const(0xFC) # Gesture FIFO UP value
+REG_GFIFO_D   = const(0xFD) # Gesture FIFO DOWN value
+REG_GFIFO_L   = const(0xFE) # Gesture FIFO LEFT value
+REG_GFIFO_R   = const(0xFF) # Gesture FIFO RIGHT value
+
+# other
+I2C_ADDRESS   = const(0x39)
+TIMEOUT_MS    = const(50)
+
+class APDS9960():
+    """
+    Create an object to support APDS9960.
+    - i2c: instance of I2C object.
+    - device_address: address of the memory chip on I2C bus.
+    """
+    
+    def __init__(self, i2c):
+        time.sleep_ms(40)
+        self.i2c = i2c
+        
+    def __str__(self):
+        return f"APDS9960({str(self.i2c)})"
+    
+    def read_register(self, register):
+        return self.i2c.readfrom_mem(I2C_ADDRESS, register, 1, addrsize=8)[0]
+    
+    def read_register_str(self, register):
+        return f"{self.read_register(register):02X}"
+    
+    def write_register(self, register, value):
+        self.i2c.writeto_mem(I2C_ADDRESS, register, bytes([value]), addrsize=8)
+        
+    def reset(self):
+        pass
+#     self.write_register(REG_RESET, 0xB6)
+        
+    def config(self, osrs_t, osrs_p, mode, t_sb, filtr):
+        pass
+#         self.write_register(REG_CTRL_MEAS, osrs_t | osrs_p | mode)
+#         self.write_register(REG_CONFIG, t_sb | filtr)
+    
+    def id_get(self):
+        return self.i2c.readfrom_mem(I2C_ADDRESS, REG_ID, 1)[0]
+    
+    def status_get(self):
+        """
+        Return status byte.
+        - Bit 3: measurement in progress.
+        - Bit 0: calibration data is being copied from NVM.
+        """
+        return self.i2c.readfrom_mem(I2C_ADDRESS, REG_STATUS, 1)[0]
+    
+    def sleep(self):
+        """
+        Save power. Use `measure` to wake up.
+        """
+        pass
+#         config = self.read_register(REG_CTRL_MEAS)
+#         config = config & 0b11111100
+#         config = config | MODE_SLEEP
+#         self.write_register(REG_CTRL_MEAS, config)
+    
+    def measure(self):
+        """
+        Start measurement process. Use it only in forced mode. No need call this method in normal mode.
+        """
+        pass
+#         config = self.read_register(REG_CTRL_MEAS)
+#         config = config & 0b11111100
+#         config = config | MODE_FORCED
+#         self.write_register(REG_CTRL_MEAS, config)
+    
+    def wait_for_ready(self):
+        """
+        Wait as long as status register is equal to 0. This function may throw
+        ETIMEDOUT exception if memory does not acknowledge in requirewd time, specified
+        by TIMEOUT.
+        """
+        pass
+    
+#         timeout = TIMEOUT_MS
+#         while self.status_get() & 0b00000001:
+#             timeout -= 1;
+#             time.sleep_ms(1)
+#             if timeout == 0:
+#                 raise OSError(errno.ETIMEDOUT, "Measurement time expired")
+    
+    def read(self):
+        """
+        Reas the result of the measurement. Result is given as a dictionary with "temp" and "pres" keys.
+        """
+        print(f"GFIFO_U: {self.read_register_str(REG_GFIFO_U)}")
+        print(f"GFIFO_D: {self.read_register_str(REG_GFIFO_D)}")
+        print(f"GFIFO_L: {self.read_register_str(REG_GFIFO_L)}")
+        print(f"GFIFO_R: {self.read_register_str(REG_GFIFO_R)}")
+        
+#         buffer = bytearray(6)
+#         self.i2c.readfrom_mem_into(I2C_ADDRESS, 0xF7, buffer)
+#         
+#         adc_p = (buffer[0] << 12) | (buffer[1] << 4) | (buffer[2] >> 4)
+#         adc_t = (buffer[3] << 12) | (buffer[4] << 4) | (buffer[5] >> 4)
+#         
+#         var1 = (((adc_t>>3) - (self.T1<<1)) * self.T2) >> 11
+#         var2 = (((((adc_t>>4) - self.T1) * ((adc_t>>4) - self.T1)) >> 12) * self.T3) >> 14
+#         t_fine = var1 + var2
+#         t = (t_fine * 5 + 128) >> 8
+#         t = t / 100
+#         
+#         var1 = t_fine - 128000
+#         var2 = var1 * var1 * self.P6
+#         var2 = var2 + ((var1 * self.P5) << 17)
+#         var2 = var2 + (self.P4 << 35)
+#         var1 = ((var1 * var1 * self.P3) >> 8) + ((var1 * self.P2) << 12)
+#         var1 = ((1<<47) + var1) * self.P1 >> 33
+# 
+#         if var1 == 0:
+#             p = 0
+#         else:
+#             p = 1048576 - adc_p
+#             p = (((p<<31) - var2) * 3125) // var1
+#             var1 = (self.P9 * (p>>13) * (p>>13)) >> 25
+#             var2 = (self.P8 * p) >> 19
+#             p = ((p + var1 + var2) >> 8) + (self.P7<<4)
+#             p = p / 25600
+#         
+#         return {"temp": t, "pres": p}
+    
+    def dump(self):
+        """
+        Read and print all the information.
+        """
+        buffer = self.i2c.readfrom_mem(I2C_ADDRESS, 0x00, 256)
+        
+        print("     0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F")
+        for i in range(len(buffer)):
+            if i % 16 == 0:
+                print(f"{i:02X}: ", end = "")
+            print(f"{buffer[i]:02X}", end="\n" if i % 16 == 15 else " ")
+    
+if __name__ == "__main__":
+    import mem_used
+    import machine
+        
+    i2c = machine.I2C(0) # use default pinout and clock frequency
+    sensor = APDS9960(i2c)
+    print(sensor)
+    
+    sensor.dump()
+    print(f"ID: {sensor.id_get():02X}")
+        
+    mem_used.print_ram_used()
+
