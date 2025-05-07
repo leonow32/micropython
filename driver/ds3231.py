@@ -15,6 +15,9 @@ class DS3231():
     
     def __init__(self, i2c):
         self.i2c = i2c
+        
+    def __str__(self):
+        return f"DS3231({self.i2c})"
     
     def read(self):
         """
@@ -106,6 +109,7 @@ if __name__ == "__main__":
     print(i2c)                # print pinout and clock frequency
     
     rtc = DS3231(i2c)
+    print(rtc)
     
 #   rtc.dump()
 

@@ -67,7 +67,7 @@ class BMP280():
         
         
     def __str__(self):
-        return f"APDS({str(self.i2c)}, device_address=0x{self.device_address:02X})"
+        return f"APDS({self.i2c}, device_address=0x{self.device_address:02X})"
     
     def read_register(self, register):
         pass

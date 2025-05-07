@@ -23,7 +23,7 @@ class Mem24():
         self.addr_size = addr_size
         
     def __str__(self):
-        return f"Mem24({str(self.i2c)}, device_address=0x{self.device_address:02X}," \
+        return f"Mem24({self.i2c}, device_address=0x{self.device_address:02X}," \
         f"memory_size={self.memory_size}, page_size={self.page_size}, addr_size={self.addr_size})"      
     
     def wait_for_ready(self):

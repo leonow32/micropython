@@ -19,7 +19,7 @@ class AHT20():
         time.sleep_ms(10)
         
     def __str__(self):
-        return f"AHT20({str(self.i2c)})"
+        return f"AHT20({self.i2c})"
     
     def status_get(self):
         """
