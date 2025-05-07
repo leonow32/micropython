@@ -100,7 +100,6 @@ class APDS9960():
         
     def reset(self):
         pass
-#     self.write_register(REG_RESET, 0xB6)
         
     def config(self, osrs_t, osrs_p, mode, t_sb, filtr):
         pass
@@ -109,6 +108,24 @@ class APDS9960():
     
     def id_get(self):
         return self.i2c.readfrom_mem(I2C_ADDRESS, REG_ID, 1)[0]
+    
+    def sensor_gesture_enable(self):
+        pass
+    
+    def sensor_gesture_disable(self):
+        pass
+    
+    def sensor_proximity_enable(self):
+        pass
+    
+    def sensor_proximity_disable(self):
+        pass
+    
+    def sensor_light_enable(self):
+        pass
+    
+    def sensor_light_disable(self):
+        pass
     
     def status_get(self):
         """
