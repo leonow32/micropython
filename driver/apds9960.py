@@ -67,12 +67,21 @@ class APDS9960():
     - device_address: address of the memory chip on I2C bus.
     """
     
-    def __init__(self, i2c):
+    def __init__(self, i2c, int_gpio):
         time.sleep_ms(40)
         self.i2c = i2c
+        self.int_gpio = int_gpio
+        self.int_gpio.init(mode=machine.Pin.IN, pull=machine.Pin.PULL_UP)
+        self.int_gpio.irq(self.irq_handler, machine.Pin.IRQ_FALLING | machine.Pin.IRQ_RISING)
         
     def __str__(self):
-        return f"APDS9960({str(self.i2c)})"
+        return f"APDS9960({self.i2c}, {self.int_gpio}"
+    
+    def irq_handler(self, source):
+        print(f"IRQ, {source}, input_state={source.value()}")
+        
+    def irq_read(self):
+        return self.int_gpio.value()
     
     def read_register(self, register):
         return self.i2c.readfrom_mem(I2C_ADDRESS, register, 1, addrsize=8)[0]
@@ -228,12 +237,16 @@ if __name__ == "__main__":
     import machine
         
     i2c = machine.I2C(0) # use default pinout and clock frequency
-    sensor = APDS9960(i2c)
+    int_gpio = machine.Pin(16)
+    sensor = APDS9960(i2c, int_gpio)
     print(sensor)
     
     sensor.dump()
     print(f"ID: {sensor.id_get():02X}")
     
+    sensor.write_register(REG_CONFIG1, 0b01100000)   # don't enable long wait
+    sensor.write_register(REG_CONFIG2, 0b00000001)   # disable saturation interrupts
+    sensor.write_register(REG_CONFIG3, 0b00000000)   # jakieś wzmocnienia fotodiod proximity
     sensor.write_register(REG_ENABLE, 0b01111111)
     sensor.read_rgbc()
     
