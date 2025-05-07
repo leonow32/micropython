@@ -77,6 +77,12 @@ class APDS9960():
     def read_register(self, register):
         return self.i2c.readfrom_mem(I2C_ADDRESS, register, 1, addrsize=8)[0]
     
+    def read_register16(self, register):
+        result = self.i2c.readfrom_mem(I2C_ADDRESS, register, 2, addrsize=8)
+        output = result[0] | (result[1] << 8)
+#         print(f"{output:04X}")
+        return output
+    
     def read_register_str(self, register):
         return f"{self.read_register(register):02X}"
     
@@ -177,7 +183,34 @@ class APDS9960():
 #             p = p / 25600
 #         
 #         return {"temp": t, "pres": p}
+
+    def read_rgbc(self):
+        c = self.read_register16(REG_CDATAL)
+        r = self.read_register16(REG_RDATAL)
+        g = self.read_register16(REG_GDATAL)
+        b = self.read_register16(REG_BDATAL)
+        
+        print(f"C: {c:04X} {c}")
+        print(f"R: {r:04X} {r}")
+        print(f"G: {g:04X} {g}")
+        print(f"B: {b:04X} {b}")
     
+    def read_gfifo(self):
+        fifo_level = self.read_register(REG_GFLVL)
+        gest_status = self.read_register(REG_GSTATUS)
+        u = self.read_register(REG_GFIFO_U)
+        d = self.read_register(REG_GFIFO_D)
+        l = self.read_register(REG_GFIFO_L)
+        r = self.read_register(REG_GFIFO_R)
+        
+        print(f"FIFO: {fifo_level}")
+        print(f"Status: {gest_status}")
+        print(f"GFIFO_U: {u}")
+        print(f"GFIFO_D: {d}")
+        print(f"GFIFO_L: {l}")
+        print(f"GFIFO_R: {r}")
+        pass
+
     def dump(self):
         """
         Read and print all the information.
@@ -200,6 +233,9 @@ if __name__ == "__main__":
     
     sensor.dump()
     print(f"ID: {sensor.id_get():02X}")
-        
+    
+    sensor.write_register(REG_ENABLE, 0b01111111)
+    sensor.read_rgbc()
+    
     mem_used.print_ram_used()
 
