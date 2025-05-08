@@ -32,7 +32,7 @@ library = {
     0x68: "DS1307 / MCP342x",
     0x69: "SPS30",
     0x6F: "MCP7940",
-    0x76: "BME280",
+    0x76: "BME280 / BMP280",
     0x77: "BMP280"
 }
 
