@@ -104,6 +104,10 @@ class APDS9960():
     def write_register(self, register, value):
         self.i2c.writeto_mem(I2C_ADDRESS, register, bytes([value]), addrsize=8)
         
+    def write_register16(self, register, value):
+        buffer = bytes([value & 0x00FF, (value & 0xFF00) >> 8])
+        self.i2c.writeto_mem(I2C_ADDRESS, register, buffer, addrsize=8)
+        
     def reset(self):
         pass
         
@@ -115,23 +119,40 @@ class APDS9960():
     def id_get(self):
         return self.i2c.readfrom_mem(I2C_ADDRESS, REG_ID, 1)[0]
     
-    def sensor_gesture_enable(self):
+    def gesture_enable(self):
         pass
     
-    def sensor_gesture_disable(self):
+    def gesture_disable(self):
         pass
     
-    def sensor_proximity_enable(self):
+    def proximity_enable(self):
         pass
     
-    def sensor_proximity_disable(self):
+    def proximity_disable(self):
         pass
     
-    def sensor_light_enable(self):
+    def light_enable(self):
+        value = self.read_register(REG_ENABLE)
+        value = value | 0b00011011
+        self.write_register(REG_ENABLE, value)
         pass
     
-    def sensor_light_disable(self):
+    def light_disable(self):
         pass
+    
+    def light_low_threshold_get(self):
+        value = self.read_register16(REG_AILTL)
+        return value
+    
+    def light_low_threshold_set(self, value):
+        self.write_register16(REG_AILTL, value)
+        
+    def light_high_threshold_get(self):
+        value = self.read_register16(REG_AIHTL)
+        return value
+    
+    def light_high_threshold_set(self, value):
+        self.write_register16(REG_AIHTL, value)
     
     def status_get(self):
         """
@@ -262,16 +283,24 @@ if __name__ == "__main__":
     i2c = machine.I2C(0) # use default pinout and clock frequency
     int_gpio = machine.Pin(16)
     sensor = APDS9960(i2c, int_gpio)
-    print(sensor)
+#     print(sensor)
     
-    sensor.dump()
-    print(f"ID: {sensor.id_get():02X}")
+#     sensor.dump()
+#     print(f"ID: {sensor.id_get():02X}")
     
     sensor.write_register(REG_CONFIG1, 0b01100000)   # don't enable long wait
     sensor.write_register(REG_CONFIG2, 0b00000001)   # disable saturation interrupts
     sensor.write_register(REG_CONFIG3, 0b00000000)   # jakieś wzmocnienia fotodiod proximity
-    sensor.write_register(REG_ENABLE, 0b01111111)
+#     sensor.write_register(REG_ENABLE, 0b01111111)
     sensor.read_rgbc()
+    
+    sensor.light_enable()
+    
+    sensor.light_low_threshold_set(100)
+    sensor.light_high_threshold_set(200)
+    
+    print(f"light_low_threshold_get()  = {sensor.light_low_threshold_get()}")
+    print(f"light_high_threshold_get() = {sensor.light_high_threshold_get()}")
     
     mem_used.print_ram_used()
 
