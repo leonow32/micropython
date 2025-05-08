@@ -80,8 +80,14 @@ class APDS9960():
     def irq_handler(self, source):
         print(f"IRQ, {source}, input_state={source.value()}")
         
+    # debug
     def irq_read(self):
         return self.int_gpio.value()
+    
+    def irq_clear_all_flags(self):
+        self.write_register(REG_PICLEAR, 0xFF)
+        self.write_register(REG_CICLEAR, 0xFF)
+        self.write_register(REG_AICLEAR, 0xFF)
     
     def read_register(self, register):
         return self.i2c.readfrom_mem(I2C_ADDRESS, register, 1, addrsize=8)[0]
