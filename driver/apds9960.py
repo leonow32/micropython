@@ -5,6 +5,9 @@ from micropython import const
 import struct
 import time
 
+# Włączenie gesture i light jednocześnie chyba jest niemożliwe
+# Po włączeniu gesture sensor light sensor wyłącza się automatcznie
+
 # useful registers
 REG_ENABLE     = const(0x80)
 REG_ATIME      = const(0x81)
@@ -51,14 +54,32 @@ REG_IFORCE     = const(0xE4)
 REG_PICLEAR    = const(0xE5)
 REG_CICLEAR    = const(0xE6)
 REG_AICLEAR    = const(0xE7)
-REG_GFIFO_U    = const(0xFC) # Gesture FIFO UP value
-REG_GFIFO_D    = const(0xFD) # Gesture FIFO DOWN value
-REG_GFIFO_L    = const(0xFE) # Gesture FIFO LEFT value
-REG_GFIFO_R    = const(0xFF) # Gesture FIFO RIGHT value
+REG_GFIFO_U    = const(0xFC) # gesture_sensor FIFO UP value
+REG_GFIFO_D    = const(0xFD) # gesture_sensor FIFO DOWN value
+REG_GFIFO_L    = const(0xFE) # gesture_sensor FIFO LEFT value
+REG_GFIFO_R    = const(0xFF) # gesture_sensor FIFO RIGHT value
+
+# Light sensor gain
+AGAIN_1X       = const(0b00000000)
+AGAIN_4X       = const(0b00000001)
+AGAIN_16X      = const(0b00000010)
+AGAIN_64X      = const(0b00000011)
                     
+# Proximity sensor gain
+PGAIN_1X       = const(0b00000000)
+PGAIN_2X       = const(0b00000100)
+PGAIN_4X       = const(0b00001000)
+PGAIN_8X       = const(0b00001100)
+
+# LED current
+LED_100_MA     = const(0b00000000)
+LED_50_MA      = const(0b01000000)
+LED_25_MA      = const(0b10000000)
+LED_12_MA      = const(0b11000000)
+
 # other
-I2C_ADDRESS   = const(0x39)
-TIMEOUT_MS    = const(50)
+I2C_ADDRESS    = const(0x39)
+TIMEOUT_MS     = const(50)
 
 class APDS9960():
     """
@@ -77,17 +98,7 @@ class APDS9960():
     def __str__(self):
         return f"APDS9960({self.i2c}, {self.int_gpio}"
     
-    def irq_handler(self, source):
-        print(f"IRQ, {source}, input_state={source.value()}")
-        
-    # debug
-    def irq_read(self):
-        return self.int_gpio.value()
-    
-    def irq_clear_all_flags(self):
-        self.write_register(REG_PICLEAR, 0xFF)
-        self.write_register(REG_CICLEAR, 0xFF)
-        self.write_register(REG_AICLEAR, 0xFF)
+### REGISTER READ/WRITE ###
     
     def read_register(self, register):
         return self.i2c.readfrom_mem(I2C_ADDRESS, register, 1, addrsize=8)[0]
@@ -95,11 +106,7 @@ class APDS9960():
     def read_register16(self, register):
         result = self.i2c.readfrom_mem(I2C_ADDRESS, register, 2, addrsize=8)
         output = result[0] | (result[1] << 8)
-#         print(f"{output:04X}")
         return output
-    
-    def read_register_str(self, register):
-        return f"{self.read_register(register):02X}"
     
     def write_register(self, register, value):
         self.i2c.writeto_mem(I2C_ADDRESS, register, bytes([value]), addrsize=8)
@@ -107,137 +114,92 @@ class APDS9960():
     def write_register16(self, register, value):
         buffer = bytes([value & 0x00FF, (value & 0xFF00) >> 8])
         self.i2c.writeto_mem(I2C_ADDRESS, register, buffer, addrsize=8)
+
+### INTERRUPTS ###
+
+    def irq_handler(self, source):
+        print(f"IRQ, {source}, input_state={source.value()}")
         
-    def reset(self):
-        pass
-        
-    def config(self, osrs_t, osrs_p, mode, t_sb, filtr):
-        pass
-#         self.write_register(REG_CTRL_MEAS, osrs_t | osrs_p | mode)
-#         self.write_register(REG_CONFIG, t_sb | filtr)
+    def irq_read(self):
+        value = self.read_register(REG_STATUS)
+        print(f"Proximity INT: {(value & 0b00100000) >> 5}")
+        print(f"Light INT:     {(value & 0b00010000) >> 4}")
+        print(f"Gesture INT:   {(value & 0b00000100) >> 2}")
+        print(f"INT GPIO:      {self.int_gpio.value()}")
     
-    def id_get(self):
-        return self.i2c.readfrom_mem(I2C_ADDRESS, REG_ID, 1)[0]
+    def irq_clear_all_flags(self):
+        self.write_register(REG_PICLEAR, 0xFF)
+        self.write_register(REG_CICLEAR, 0xFF)
+        self.write_register(REG_AICLEAR, 0xFF)
+
+### LIGHT SENSOR ###
     
-    def gesture_enable(self):
-        pass
-    
-    def gesture_disable(self):
-        pass
-    
-    def proximity_enable(self):
-        pass
-    
-    def proximity_disable(self):
-        pass
-    
-    def light_enable(self):
+    def light_sensor_enable(self):
         value = self.read_register(REG_ENABLE)
-        value = value | 0b00011011
+        value = value | 0b00001011
+        self.write_register(REG_ENABLE, value)
+    
+    def light_sensor_disable(self):
+        value = self.read_register(REG_ENABLE)
+        value = value & 0b11110101
         self.write_register(REG_ENABLE, value)
         pass
     
-    def light_disable(self):
-        pass
+    def light_sensor_enabled_check(self):
+        return (self.read_register(REG_ENABLE) & 0b00000010) >> 1
     
-    def light_low_threshold_get(self):
+    def light_sensor_irq_enable(self):
+        value = self.read_register(REG_ENABLE)
+        value = value | 0b00010000
+        self.write_register(REG_ENABLE, value)
+    
+    def light_sensor_irq_disable(self):
+        value = self.read_register(REG_ENABLE)
+        value = value & 0b11101111
+        self.write_register(REG_ENABLE, value)
+        
+    def light_sensor_irq_flag_clear(self):
+        self.write_register(REG_AICLEAR, 0xFF)
+    
+    def light_sensor_irq_low_threshold_get(self):
         value = self.read_register16(REG_AILTL)
         return value
     
-    def light_low_threshold_set(self, value):
+    def light_sensor_irq_low_threshold_set(self, value):
         self.write_register16(REG_AILTL, value)
         
-    def light_high_threshold_get(self):
+    def light_sensor_irq_high_threshold_get(self):
         value = self.read_register16(REG_AIHTL)
         return value
     
-    def light_high_threshold_set(self, value):
+    def light_sensor_irq_high_threshold_set(self, value):
         self.write_register16(REG_AIHTL, value)
-    
-    def status_get(self):
-        """
-        Return status byte.
-        - Bit 3: measurement in progress.
-        - Bit 0: calibration data is being copied from NVM.
-        """
-        return self.i2c.readfrom_mem(I2C_ADDRESS, REG_STATUS, 1)[0]
-    
-    def sleep(self):
-        """
-        Save power. Use `measure` to wake up.
-        """
-        pass
-#         config = self.read_register(REG_CTRL_MEAS)
-#         config = config & 0b11111100
-#         config = config | MODE_SLEEP
-#         self.write_register(REG_CTRL_MEAS, config)
-    
-    def measure(self):
-        """
-        Start measurement process. Use it only in forced mode. No need call this method in normal mode.
-        """
-        pass
-#         config = self.read_register(REG_CTRL_MEAS)
-#         config = config & 0b11111100
-#         config = config | MODE_FORCED
-#         self.write_register(REG_CTRL_MEAS, config)
-    
-    def wait_for_ready(self):
-        """
-        Wait as long as status register is equal to 0. This function may throw
-        ETIMEDOUT exception if memory does not acknowledge in requirewd time, specified
-        by TIMEOUT.
-        """
-        pass
-    
-#         timeout = TIMEOUT_MS
-#         while self.status_get() & 0b00000001:
-#             timeout -= 1;
-#             time.sleep_ms(1)
-#             if timeout == 0:
-#                 raise OSError(errno.ETIMEDOUT, "Measurement time expired")
-    
-    def read(self):
-        """
-        Reas the result of the measurement. Result is given as a dictionary with "temp" and "pres" keys.
-        """
-        print(f"GFIFO_U: {self.read_register_str(REG_GFIFO_U)}")
-        print(f"GFIFO_D: {self.read_register_str(REG_GFIFO_D)}")
-        print(f"GFIFO_L: {self.read_register_str(REG_GFIFO_L)}")
-        print(f"GFIFO_R: {self.read_register_str(REG_GFIFO_R)}")
         
-#         buffer = bytearray(6)
-#         self.i2c.readfrom_mem_into(I2C_ADDRESS, 0xF7, buffer)
-#         
-#         adc_p = (buffer[0] << 12) | (buffer[1] << 4) | (buffer[2] >> 4)
-#         adc_t = (buffer[3] << 12) | (buffer[4] << 4) | (buffer[5] >> 4)
-#         
-#         var1 = (((adc_t>>3) - (self.T1<<1)) * self.T2) >> 11
-#         var2 = (((((adc_t>>4) - self.T1) * ((adc_t>>4) - self.T1)) >> 12) * self.T3) >> 14
-#         t_fine = var1 + var2
-#         t = (t_fine * 5 + 128) >> 8
-#         t = t / 100
-#         
-#         var1 = t_fine - 128000
-#         var2 = var1 * var1 * self.P6
-#         var2 = var2 + ((var1 * self.P5) << 17)
-#         var2 = var2 + (self.P4 << 35)
-#         var1 = ((var1 * var1 * self.P3) >> 8) + ((var1 * self.P2) << 12)
-#         var1 = ((1<<47) + var1) * self.P1 >> 33
-# 
-#         if var1 == 0:
-#             p = 0
-#         else:
-#             p = 1048576 - adc_p
-#             p = (((p<<31) - var2) * 3125) // var1
-#             var1 = (self.P9 * (p>>13) * (p>>13)) >> 25
-#             var2 = (self.P8 * p) >> 19
-#             p = ((p + var1 + var2) >> 8) + (self.P7<<4)
-#             p = p / 25600
-#         
-#         return {"temp": t, "pres": p}
-
-    def read_rgbc(self):
+    def light_sensor_gain_get(self):
+        value = self.read_register(REG_CONTROL) & 0b00000011
+        print(value)
+        return value
+        
+    def light_sensor_gain_set(self, again):
+        value = self.read_register(REG_CONTROL)
+        value = value & 0b11111100
+        value = value | again
+        self.write_register(REG_CONTROL, value)
+        
+    def light_sensor_integration_time_get(self):
+        value = self.read_register(REG_ATIME)
+        return (256-value) / 2.78
+        
+    def light_sensor_integration_time_set(self, time_ms):
+        if time_ms > 712: time_ms = 712
+        if time_ms < 1:   time_ms = 1
+        value = int(256 - time_ms / 2.78)
+        self.write_register(REG_ATIME, value)
+        
+    def light_sensor_valid_check(self):
+        return self.read_register(REG_STATUS) & 0b00000001
+        
+    def light_sensor_read(self):
         c = self.read_register16(REG_CDATAL)
         r = self.read_register16(REG_RDATAL)
         g = self.read_register16(REG_GDATAL)
@@ -248,6 +210,47 @@ class APDS9960():
         print(f"G: {g:04X} {g}")
         print(f"B: {b:04X} {b}")
     
+###############
+# OTHER
+###############
+
+    def wait_time_get(self):
+        value = self.read_register(REG_WTIME)
+        return (256-value) / 2.78
+        
+    def wait_time_set(self, time_ms):
+        if time_ms > 712: time_ms = 712
+        if time_ms < 1:   time_ms = 1
+        value = int(256 - time_ms / 2.78)
+        self.write_register(REG_WTIME, value)
+
+    def gesture_sensor_enable(self):
+        value = self.read_register(REG_ENABLE)
+        value = value | 0b01000001
+        self.write_register(REG_ENABLE, value)
+    
+    def gesture_sensor_disable(self):
+        value = self.read_register(REG_ENABLE)
+        value = value & 0b10111111
+        self.write_register(REG_ENABLE, value)
+        pass
+    
+    def proximity_sensor_enable(self):
+        pass
+    
+    def proximity_sensor_disable(self):
+        pass
+    
+    def id_get(self):
+        return self.i2c.readfrom_mem(I2C_ADDRESS, REG_ID, 1)[0]
+    
+    def status_get(self):
+        """
+        Return status byte.
+        - Bit ...: ...
+        """
+        return self.read_register(REG_STATUS)
+
     def read_gfifo(self):
         fifo_level = self.read_register(REG_GFLVL)
         gest_status = self.read_register(REG_GSTATUS)
@@ -282,25 +285,25 @@ if __name__ == "__main__":
         
     i2c = machine.I2C(0) # use default pinout and clock frequency
     int_gpio = machine.Pin(16)
-    sensor = APDS9960(i2c, int_gpio)
-#     print(sensor)
+    dut = APDS9960(i2c, int_gpio)
+#     print(dut)
     
-#     sensor.dump()
-#     print(f"ID: {sensor.id_get():02X}")
+#     dut.dump()
+#     print(f"ID: {dut.id_get():02X}")
     
-    sensor.write_register(REG_CONFIG1, 0b01100000)   # don't enable long wait
-    sensor.write_register(REG_CONFIG2, 0b00000001)   # disable saturation interrupts
-    sensor.write_register(REG_CONFIG3, 0b00000000)   # jakieś wzmocnienia fotodiod proximity
-#     sensor.write_register(REG_ENABLE, 0b01111111)
-    sensor.read_rgbc()
+#     dut.write_register(REG_CONFIG1, 0b01100000)   # don't enable long wait
+#     dut.write_register(REG_CONFIG2, 0b00000001)   # disable saturation interrupts
+#     dut.write_register(REG_CONFIG3, 0b00000000)   # jakieś wzmocnienia fotodiod proximity_sensor
+#     dut.write_register(REG_ENABLE, 0b01111111)
+    dut.light_sensor_read()
     
-    sensor.light_enable()
+    dut.light_sensor_enable()
     
-    sensor.light_low_threshold_set(100)
-    sensor.light_high_threshold_set(200)
+#     dut.light_sensor_irq_low_threshold_set(100)
+#     dut.light_sensor_irq_high_threshold_set(200)
     
-    print(f"light_low_threshold_get()  = {sensor.light_low_threshold_get()}")
-    print(f"light_high_threshold_get() = {sensor.light_high_threshold_get()}")
+    print(f"light_sensor_irq_low_threshold_get()  = {dut.light_sensor_irq_low_threshold_get()}")
+    print(f"light_sensor_irq_high_threshold_get() = {dut.light_sensor_irq_high_threshold_get()}")
     
     mem_used.print_ram_used()
 
