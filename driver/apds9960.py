@@ -295,9 +295,10 @@ if __name__ == "__main__":
 #     dut.write_register(REG_CONFIG2, 0b00000001)   # disable saturation interrupts
 #     dut.write_register(REG_CONFIG3, 0b00000000)   # jakieś wzmocnienia fotodiod proximity_sensor
 #     dut.write_register(REG_ENABLE, 0b01111111)
-    dut.light_sensor_read()
+    
     
     dut.light_sensor_enable()
+    dut.light_sensor_read()
     
 #     dut.light_sensor_irq_low_threshold_set(100)
 #     dut.light_sensor_irq_high_threshold_set(200)
