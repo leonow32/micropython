@@ -145,13 +145,13 @@ if __name__ == "__main__":
     
     buffer = eeprom.read(0x0000, 16)
     print_hex(buffer)
-#     
+     
     buffer = bytearray(16)
     eeprom.read_into(0x0010, buffer)
     print_hex(buffer)
-#     
-    eeprom.write(0x0F10, b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefABCDEFGHIJKLMNOPQRSTUVWXYZabcdefABCDEFGHIJKLMNOPQRSTUVWXYZabcdef')
-#     
+     
+#   eeprom.write(0x0F10, b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefABCDEFGHIJKLMNOPQRSTUVWXYZabcdefABCDEFGHIJKLMNOPQRSTUVWXYZabcdef')
+     
     eeprom.dump()
     
 #   mem_used.print_ram_used()
