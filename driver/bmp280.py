@@ -55,7 +55,7 @@ TIMEOUT_MS    = const(50)
 
 class BMP280():
     """
-    Create an object to support BMP280 temperature and humidity sensor.
+    Create an object to support BMP280 temperature and air pressure sensor.
     - i2c: instance of I2C object.
     - device_address: address of the memory chip on I2C bus.
     """
