@@ -1,12 +1,12 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
-# v1.0.0 2025.03.11
+# v1.0.1 2025.04.26
 
 import time
 from machine import Pin, I2C
 
-TIMEOUT = const(20)   # Timeout value = TIMEOUT * 100us
+TIMEOUT_MS = const(20)   # Timeout value = TIMEOUT * 100us
 
-class Mem24():
+class Mem24:
     """
     Create an object to support EEPROM memories, such as AT24C32.
     - i2c: instance of I2C object
@@ -22,22 +22,26 @@ class Mem24():
         self.memory_size = memory_size
         self.page_size = page_size
         self.addr_size = addr_size
+        
+    def __str__(self):
+        return f"Mem24({str(self.i2c)}, device_address=0x{self.device_address:02X}," \
+        f"memory_size={self.memory_size}, page_size={self.page_size}, addr_size={self.addr_size})"  
     
     def wait_for_ready(self):
         """
         Check in a loop if the memory will respond to an address call on the I2C bus.
         The memory does not respond if a write is in progress. This function may throw
         ETIMEDOUT exception if memory does not acknowledge in requirewd time, specified
-        by TIMEOUT.
+        by TIMEOUT_MS.
         """
         
-        timeout = TIMEOUT
+        timeout = TIMEOUT_MS
         while timeout:
             try:
                 self.i2c.readfrom(self.device_address, 1)
                 return
             except:
-                time.sleep_us(100)
+                time.sleep_ms(1)
                 timeout -= 1
         
         raise OSError(errno.ETIMEDOUT, "I2C polling too many times without ACK")
@@ -63,7 +67,7 @@ class Mem24():
         Write data into a single page in the memory.
         """
         self.wait_for_ready()
-        self.i2c.writeto_mem(self.device_address, memory_address, data, addrsize=16)
+        self.i2c.writeto_mem(self.device_address, memory_address, data, addrsize=self.addr_size)
     
     def write(self, memory_address, data):
         """
@@ -98,7 +102,7 @@ class Mem24():
         
         while memory_address < self.memory_size:
             self.wait_for_ready()
-            self.write(memory_address, buffer)
+            self.write_page(memory_address, buffer)
             memory_address += self.page_size
     
     def dump(self):
@@ -132,17 +136,22 @@ if __name__ == "__main__":
     
     i2c = I2C(0) # use default pinout and clock frequency
     print(i2c)   # print pinout and clock frequency
-    mem = Mem24(i2c, device_address=0x50, memory_size=4096, page_size=32, addr_size=16)
     
-    buffer = mem.read(0x0000, 16)
+    eeprom = Mem24(i2c, device_address=0x50, memory_size=4096, page_size=32, addr_size=16)   # AT24C32
+#   eeprom = Mem24(i2c, device_address=0x50, memory_size=65536, page_size=128, addr_size=16) # AT24C512
+    print(eeprom)
+    
+#   eeprom.erase_chip()
+    
+    buffer = eeprom.read(0x0000, 16)
     print_hex(buffer)
-    
+     
     buffer = bytearray(16)
-    mem.read_into(0x0010, buffer)
+    eeprom.read_into(0x0010, buffer)
     print_hex(buffer)
-    
-#   mem.write(0x0F10, b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefABCDEFGHIJKLMNOPQRSTUVWXYZabcdefABCDEFGHIJKLMNOPQRSTUVWXYZabcdef')
-    
-    mem.dump()
+     
+#   eeprom.write(0x0F10, b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefABCDEFGHIJKLMNOPQRSTUVWXYZabcdefABCDEFGHIJKLMNOPQRSTUVWXYZabcdef')
+     
+    eeprom.dump()
     
 #   mem_used.print_ram_used()
