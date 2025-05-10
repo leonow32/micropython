@@ -118,7 +118,8 @@ class APDS9960():
 ### INTERRUPTS ###
 
     def irq_handler(self, source):
-        print(f"IRQ, {source}, input_state={source.value()}")
+        #print(f"IRQ, {source}, input_state={source.value()}")
+        pass
         
     def irq_read(self):
         value = self.read_register(REG_STATUS)
@@ -149,6 +150,9 @@ class APDS9960():
         return (self.read_register(REG_ENABLE) & 0b00000010) >> 1
     
     def light_sensor_irq_enable(self):
+        """
+        Must use light_sensor_irq_persistance_set(x) with x>=1 and x<=15
+        """
         value = self.read_register(REG_ENABLE)
         value = value | 0b00010000
         self.write_register(REG_ENABLE, value)
@@ -162,18 +166,25 @@ class APDS9960():
         self.write_register(REG_AICLEAR, 0xFF)
     
     def light_sensor_irq_low_threshold_get(self):
-        value = self.read_register16(REG_AILTL)
-        return value
+        return self.read_register16(REG_AILTL)
     
     def light_sensor_irq_low_threshold_set(self, value):
         self.write_register16(REG_AILTL, value)
         
     def light_sensor_irq_high_threshold_get(self):
-        value = self.read_register16(REG_AIHTL)
-        return value
+        return self.read_register16(REG_AIHTL)
     
     def light_sensor_irq_high_threshold_set(self, value):
         self.write_register16(REG_AIHTL, value)
+        
+    def light_sensor_irq_persistance_get(self):
+        return self.read_register16(REG_PERS) & 0x0F
+    
+    def light_sensor_irq_persistance_set(self, value):
+        var = self.read_register(REG_PERS)
+        var = var & 0b11110000
+        var = var | value
+        self.write_register(REG_PERS, var)
         
     def light_sensor_gain_get(self):
         value = self.read_register(REG_CONTROL) & 0b00000011
