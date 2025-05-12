@@ -2,7 +2,7 @@
 # v1.0.0 2025.04.25
 
 from micropython import const
-import struct
+import machine
 import time
 
 # Włączenie gesture i light jednocześnie chyba jest niemożliwe
@@ -71,6 +71,24 @@ PGAIN_2X       = const(0b00000100)
 PGAIN_4X       = const(0b00001000)
 PGAIN_8X       = const(0b00001100)
 
+# Light sensor interrupt persistance (when interrupt is executed)
+APERS_EVERYTIME = const(0b00000000) # Every ALS cycle
+APERS_1_CYCLE   = const(0b00000001) # Any ALS value outside of threshold range
+APERS_2_CYCLE   = const(0b00000010) # 2 consecutive ALS values out of range
+APERS_3_CYCLE   = const(0b00000011) # 3 consecutive ALS values out of range
+APERS_5_CYCLE   = const(0b00000100)
+APERS_10_CYCLE  = const(0b00000101)
+APERS_15_CYCLE  = const(0b00000110)
+APERS_20_CYCLE  = const(0b00000111)
+APERS_25_CYCLE  = const(0b00001000)
+APERS_30_CYCLE  = const(0b00001001)
+APERS_35_CYCLE  = const(0b00001010)
+APERS_40_CYCLE  = const(0b00001011)
+APERS_45_CYCLE  = const(0b00001100)
+APERS_50_CYCLE  = const(0b00001101)
+APERS_55_CYCLE  = const(0b00001110)
+APERS_60_CYCLE  = const(0b00001111)
+
 # LED current
 LED_100_MA     = const(0b00000000)
 LED_50_MA      = const(0b01000000)
@@ -93,10 +111,11 @@ class APDS9960():
         self.i2c = i2c
         self.int_gpio = int_gpio
         self.int_gpio.init(mode=machine.Pin.IN, pull=machine.Pin.PULL_UP)
-        self.int_gpio.irq(self.irq_handler, machine.Pin.IRQ_FALLING | machine.Pin.IRQ_RISING)
+        self.int_gpio.irq(self.irq_callback, machine.Pin.IRQ_FALLING | machine.Pin.IRQ_RISING)
+        self.light_sensor_irq_callback = None
         
     def __str__(self):
-        return f"APDS9960({self.i2c}, {self.int_gpio}"
+        return f"APDS9960({self.i2c}, int_gpio={self.int_gpio})"
     
 ### REGISTER READ/WRITE ###
     
@@ -117,9 +136,10 @@ class APDS9960():
 
 ### INTERRUPTS ###
 
-    def irq_handler(self, source):
-        #print(f"IRQ, {source}, input_state={source.value()}")
-        pass
+    def irq_callback(self, source):
+        value = self.read_register16(REG_CDATAL)
+        self.light_sensor_irq_callback(value)
+        self.irq_clear_all_flags()
         
     def irq_read(self):
         value = self.read_register(REG_STATUS)
@@ -164,7 +184,13 @@ class APDS9960():
         
     def light_sensor_irq_flag_clear(self):
         self.write_register(REG_AICLEAR, 0xFF)
-    
+        
+    def light_sensor_irq_callback_get(self):
+        return self.light_sensor_irq_callback
+        
+    def light_sensor_irq_callback_set(self, callback):
+        self.light_sensor_irq_callback = callback
+        
     def light_sensor_irq_low_threshold_get(self):
         return self.read_register16(REG_AILTL)
     
@@ -181,6 +207,9 @@ class APDS9960():
         return self.read_register16(REG_PERS) & 0x0F
     
     def light_sensor_irq_persistance_set(self, value):
+        """
+        Configure when the interrupt is executed. Use APERS_ values.
+        """
         var = self.read_register(REG_PERS)
         var = var & 0b11110000
         var = var | value
@@ -192,6 +221,9 @@ class APDS9960():
         return value
         
     def light_sensor_gain_set(self, again):
+        """
+        Use AGAIN_ values.
+        """
         value = self.read_register(REG_CONTROL)
         value = value & 0b11111100
         value = value | again
@@ -202,6 +234,9 @@ class APDS9960():
         return (256-value) / 2.78
         
     def light_sensor_integration_time_set(self, time_ms):
+        """
+        Exposure time of a single measurement in milliseconds. Allowable range 1...712 ms.
+        """
         if time_ms > 712: time_ms = 712
         if time_ms < 1:   time_ms = 1
         value = int(256 - time_ms / 2.78)
@@ -215,11 +250,7 @@ class APDS9960():
         r = self.read_register16(REG_RDATAL)
         g = self.read_register16(REG_GDATAL)
         b = self.read_register16(REG_BDATAL)
-        
-        print(f"C: {c:04X} {c}")
-        print(f"R: {r:04X} {r}")
-        print(f"G: {g:04X} {g}")
-        print(f"B: {b:04X} {b}")
+        return (c, r, g, b)
     
 ###############
 # OTHER
@@ -289,33 +320,3 @@ class APDS9960():
             if i % 16 == 0:
                 print(f"{i:02X}: ", end = "")
             print(f"{buffer[i]:02X}", end="\n" if i % 16 == 15 else " ")
-    
-if __name__ == "__main__":
-    import mem_used
-    import machine
-        
-    i2c = machine.I2C(0) # use default pinout and clock frequency
-    int_gpio = machine.Pin(16)
-    dut = APDS9960(i2c, int_gpio)
-#     print(dut)
-    
-#     dut.dump()
-#     print(f"ID: {dut.id_get():02X}")
-    
-#     dut.write_register(REG_CONFIG1, 0b01100000)   # don't enable long wait
-#     dut.write_register(REG_CONFIG2, 0b00000001)   # disable saturation interrupts
-#     dut.write_register(REG_CONFIG3, 0b00000000)   # jakieś wzmocnienia fotodiod proximity_sensor
-#     dut.write_register(REG_ENABLE, 0b01111111)
-    
-    
-    dut.light_sensor_enable()
-    dut.light_sensor_read()
-    
-#     dut.light_sensor_irq_low_threshold_set(100)
-#     dut.light_sensor_irq_high_threshold_set(200)
-    
-    print(f"light_sensor_irq_low_threshold_get()  = {dut.light_sensor_irq_low_threshold_get()}")
-    print(f"light_sensor_irq_high_threshold_get() = {dut.light_sensor_irq_high_threshold_get()}")
-    
-    mem_used.print_ram_used()
-
