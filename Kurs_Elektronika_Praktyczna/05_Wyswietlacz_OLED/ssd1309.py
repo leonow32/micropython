@@ -2,7 +2,6 @@
 
 from machine import Pin, I2C
 import framebuf
-import mem_used
 
 WIDTH   = const(128)
 HEIGHT  = const(64)
@@ -128,6 +127,7 @@ class SSD1309(framebuf.FrameBuffer):
         return total - last_char_space
 
 if __name__ == "__main__":
+    import mem_used
     i2c = I2C(0) # use default pinout and clock frequency
     print(i2c)   # print pinout and clock frequency
     display = SSD1309(i2c)
