@@ -251,7 +251,112 @@ class APDS9960():
         g = self.read_register16(REG_GDATAL)
         b = self.read_register16(REG_BDATAL)
         return (c, r, g, b)
+
+### PROXIMITY SENSOR ###
     
+    def proximity_sensor_enable(self):
+        pass
+    
+    def proximity_sensor_disable(self):
+        pass
+    
+    def proximity_sensor_enabled_check(self):
+#         return (self.read_register(REG_ENABLE) & 0b00000010) >> 1
+        pass
+    
+    def proximity_sensor_irq_enable(self):
+        """
+        Must use light_sensor_irq_persistance_set(x) with x>=1 and x<=15
+        """
+        pass
+#         value = self.read_register(REG_ENABLE)
+#         value = value | 0b00010000
+#         self.write_register(REG_ENABLE, value)
+    
+    def proximity_sensor_irq_disable(self):
+        pass
+#         value = self.read_register(REG_ENABLE)
+#         value = value & 0b11101111
+#         self.write_register(REG_ENABLE, value)
+        
+    def proximity_sensor_irq_flag_clear(self):
+        self.write_register(REG_PICLEAR, 0xFF)
+        
+    def proximity_sensor_irq_callback_get(self):
+        pass
+#         return self.light_sensor_irq_callback
+        
+    def proximity_sensor_irq_callback_set(self, callback):
+        pass
+#       self.light_sensor_irq_callback = callback
+        
+    def proximity_sensor_irq_low_threshold_get(self):
+        pass
+#         return self.read_register16(REG_AILTL)
+    
+    def proximity_sensor_irq_low_threshold_set(self, value):
+        pass
+#         self.write_register16(REG_AILTL, value)
+        
+    def proximity_sensor_irq_high_threshold_get(self):
+        pass
+#       return self.read_register16(REG_AIHTL)
+    
+    def proximity_sensor_irq_high_threshold_set(self, value):
+        pass
+#         self.write_register16(REG_AIHTL, value)
+        
+    def proximity_sensor_irq_persistance_get(self):
+        pass
+#         return self.read_register16(REG_PERS) & 0x0F
+    
+    def proximity_sensor_irq_persistance_set(self, value):
+        """
+        Configure when the interrupt is executed. Use APERS_ values.
+        """
+        pass
+#         var = self.read_register(REG_PERS)
+#         var = var & 0b11110000
+#         var = var | value
+#         self.write_register(REG_PERS, var)
+        
+    def proximity_sensor_gain_get(self):
+        pass
+#         value = self.read_register(REG_CONTROL) & 0b00000011
+#         print(value)
+#         return value
+        
+    def proximity_sensor_gain_set(self, again):
+        """
+        Use AGAIN_ values.
+        """
+        pass
+#         value = self.read_register(REG_CONTROL)
+#         value = value & 0b11111100
+#         value = value | again
+#         self.write_register(REG_CONTROL, value)
+    
+        
+    def proximity_sensor_valid_check(self):
+        pass
+#         return self.read_register(REG_STATUS) & 0b00000001
+    
+    def proximity_sensor_read(self):
+        pass
+
+### GESTURE SENSOR ###
+    
+    def gesture_sensor_enable(self):
+        value = self.read_register(REG_ENABLE)
+        value = value | 0b01000001
+        self.write_register(REG_ENABLE, value)
+    
+    def gesture_sensor_disable(self):
+        value = self.read_register(REG_ENABLE)
+        value = value & 0b10111111
+        self.write_register(REG_ENABLE, value)
+        pass
+
 ###############
 # OTHER
 ###############
@@ -266,22 +371,9 @@ class APDS9960():
         value = int(256 - time_ms / 2.78)
         self.write_register(REG_WTIME, value)
 
-    def gesture_sensor_enable(self):
-        value = self.read_register(REG_ENABLE)
-        value = value | 0b01000001
-        self.write_register(REG_ENABLE, value)
     
-    def gesture_sensor_disable(self):
-        value = self.read_register(REG_ENABLE)
-        value = value & 0b10111111
-        self.write_register(REG_ENABLE, value)
-        pass
     
-    def proximity_sensor_enable(self):
-        pass
     
-    def proximity_sensor_disable(self):
-        pass
     
     def id_get(self):
         return self.i2c.readfrom_mem(I2C_ADDRESS, REG_ID, 1)[0]
