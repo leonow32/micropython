@@ -1,7 +1,6 @@
 import apds9960
 import mem_used
 import machine
-import neopixel
 
 def light_data_print(source):
     result = dut.light_sensor_read()

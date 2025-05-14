@@ -113,6 +113,7 @@ class APDS9960():
         self.int_gpio.init(mode=machine.Pin.IN, pull=machine.Pin.PULL_UP)
         self.int_gpio.irq(self.irq_callback, machine.Pin.IRQ_FALLING | machine.Pin.IRQ_RISING)
         self.light_sensor_irq_callback = None
+        self.proximity_sensor_irq_callback = None
         
     def __str__(self):
         return f"APDS9960({self.i2c}, int_gpio={self.int_gpio})"
@@ -255,14 +256,17 @@ class APDS9960():
 ### PROXIMITY SENSOR ###
     
     def proximity_sensor_enable(self):
-        pass
+        value = self.read_register(REG_ENABLE)
+        value = value | 0b00000101
+        self.write_register(REG_ENABLE, value)
     
     def proximity_sensor_disable(self):
-        pass
+        value = self.read_register(REG_ENABLE)
+        value = value & 0b11111011
+        self.write_register(REG_ENABLE, value)
     
     def proximity_sensor_enabled_check(self):
-#         return (self.read_register(REG_ENABLE) & 0b00000010) >> 1
-        pass
+        return (self.read_register(REG_ENABLE) & 0b00000100) >> 2
     
     def proximity_sensor_irq_enable(self):
         """
@@ -283,8 +287,7 @@ class APDS9960():
         self.write_register(REG_PICLEAR, 0xFF)
         
     def proximity_sensor_irq_callback_get(self):
-        pass
-#         return self.light_sensor_irq_callback
+        return self.proximity_sensor_irq_callback
         
     def proximity_sensor_irq_callback_set(self, callback):
         pass
@@ -370,10 +373,6 @@ class APDS9960():
         if time_ms < 1:   time_ms = 1
         value = int(256 - time_ms / 2.78)
         self.write_register(REG_WTIME, value)
-
-    
-    
-    
     
     def id_get(self):
         return self.i2c.readfrom_mem(I2C_ADDRESS, REG_ID, 1)[0]
