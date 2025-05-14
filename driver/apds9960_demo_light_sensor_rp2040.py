@@ -6,7 +6,8 @@ def light_data_print(source):
     result = dut.light_sensor_read()
     print(f"C: {result[0]:5d}, R: {result[1]:5d}, G: {result[2]:5d}, B: {result[3]:5d}")
 
-def light_irq(value):
+def light_irq():
+    value = dut.light_sensor_read()[0]
     low_threshold  = dut.light_sensor_irq_low_threshold_get()
     high_threshold = dut.light_sensor_irq_high_threshold_get()
     if value >= high_threshold:
