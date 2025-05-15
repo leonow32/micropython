@@ -108,10 +108,16 @@ PPERS_14_CYCLE  = const(0b11100000)
 PPERS_15_CYCLE  = const(0b11110000)
 
 # LED current
-LED_100_MA     = const(0b00000000)
-LED_50_MA      = const(0b01000000)
-LED_25_MA      = const(0b10000000)
-LED_12_MA      = const(0b11000000)
+LDRIVE__100_MA  = const(0b00000000)
+LDRIVE__50_MA   = const(0b01000000)
+LDRIVE__25_MA   = const(0b10000000)
+LDRIVE__12_MA   = const(0b11000000)
+
+# LED boost
+LED_BOOST_100_P = const(0b00000000)
+LED_BOOST_150_P = const(0b00010000)
+LED_BOOST_200_P = const(0b00100000)
+LED_BOOST_300_P = const(0b00110000)
 
 # other
 I2C_ADDRESS    = const(0x39)
@@ -322,7 +328,7 @@ class APDS9960():
         return self.proximity_sensor_irq_callback
         
     def proximity_sensor_irq_callback_set(self, callback):
-        self.light_sensor_irq_callback = callback
+        self.proximity_sensor_irq_callback = callback
         
     def proximity_sensor_irq_low_threshold_get(self):
         return self.register_read(REG_PILT)
@@ -355,7 +361,7 @@ class APDS9960():
         self.register_write(REG_PERS, var)
         
     def proximity_sensor_gain_get(self):
-        return (self.register_read(REG_CONTROL) & 0b00001100) >> 2
+        return self.register_read(REG_CONTROL) & 0b00001100
         
     def proximity_sensor_gain_set(self, pgain):
         """
@@ -365,6 +371,30 @@ class APDS9960():
         value = value & 0b11110011
         value = value | pgain
         self.register_write(REG_CONTROL, value)
+        
+    def proximity_sensor_led_drive_get(self):
+        return self.register_read(REG_CONTROL) & 0b11000000
+        
+    def proximity_sensor_led_drive_set(self, ldrive):
+        """
+        Use LDRIVE_ values.
+        """
+        value = self.register_read(REG_CONTROL)
+        value = value & 0b11000000
+        value = value | ldrive
+        self.register_write(REG_CONTROL, value)
+        
+    def proximity_sensor_led_boost_get(self):
+        return self.register_read(REG_CONFIG2) & 0b00110000
+        
+    def proximity_sensor_led_boost_set(self, led_boost):
+        """
+        Use LED_BOOST_ values.
+        """
+        value = self.register_read(REG_CONFIG2)
+        value = value & 0b00110000
+        value = value | led_boost | 0b00000001
+        self.register_write(REG_CONFIG2, value)
 
 # Proximity Pulse Count Register (0x8E)
     
@@ -446,15 +476,32 @@ class APDS9960():
 
 if __name__ == "__main__":
     import mem_used
+    import neopixel
     
     def proximity_data_print(source):
-        dut.irq_read()
+#         dut.irq_read()
+        valid  = dut.proximity_sensor_valid_check()
         result = dut.proximity_sensor_read()
-        print(f"Proximity: {result:3d}")
+        print(f"Proximity: {result:3d}, valid: {valid}")
+        
+    def proximity_irq():
+        value = dut.proximity_sensor_read()
+        low_threshold  = dut.proximity_sensor_irq_low_threshold_get()
+        high_threshold = dut.proximity_sensor_irq_high_threshold_get()
+        if value >= high_threshold:
+            led[0] = (10, 0, 0)
+        elif value <= low_threshold:
+            led[0] = (0, 10, 0)
+        else:
+            led[0] = (0, 0, 10)
+            
+        led.write()
+        dut.proximity_sensor_irq_flag_clear()
         
     i2c = machine.I2C(0) # use default pinout and clock frequency
     irq = machine.Pin(16)
     dut = APDS9960(i2c, irq)
+    led = neopixel.NeoPixel(machine.Pin(48, machine.Pin.OUT), 1)
     tim = machine.Timer(0, mode=machine.Timer.PERIODIC, period=1000, callback=proximity_data_print)
 
     print(dut)
@@ -465,6 +512,13 @@ if __name__ == "__main__":
     dut.irq_clear_all_flags()
 
     dut.proximity_sensor_gain_set(PGAIN_8X)
+    dut.proximity_sensor_led_drive_set(LDRIVE__100_MA)
+    dut.proximity_sensor_led_boost_set(LED_BOOST_300_P)
+    dut.proximity_sensor_irq_low_threshold_set(100)
+    dut.proximity_sensor_irq_high_threshold_set(200)
+    dut.proximity_sensor_irq_persistance_set(PPERS_15_CYCLE)
+    dut.proximity_sensor_irq_callback_set(proximity_irq)
+#     dut.proximity_sensor_irq_enable()
     dut.proximity_sensor_enable()
 
     print(f"Enable register: {dut.register_read(0x80)}")
