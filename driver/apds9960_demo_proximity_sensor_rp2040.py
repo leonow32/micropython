@@ -3,7 +3,6 @@ import mem_used
 import machine
 
 def proximity_data_print(source):
-#     dut.irq_read()
     valid  = dut.light_sensor_valid_check()
     result = dut.proximity_sensor_read()
     print(f"Proximity: {result:3d}, Valid: {valid}")

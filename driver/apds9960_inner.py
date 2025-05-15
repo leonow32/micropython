@@ -123,7 +123,7 @@ LED_BOOST_300_P = const(0b00110000)
 I2C_ADDRESS    = const(0x39)
 TIMEOUT_MS     = const(50)
 
-class APDS9960():
+class APDS9960:
     """
     Create an object to support APDS9960.
     - i2c: instance of I2C object.
@@ -139,6 +139,8 @@ class APDS9960():
         self.light_sensor_irq_callback = None
         self.proximity_sensor_irq_callback = None
         self.gesture_sensor_irq_callback = None
+        
+        self.prox = self.Prox(self)
         
     def __str__(self):
         return f"APDS9960({self.i2c}, int_gpio={self.int_gpio})"
@@ -300,116 +302,121 @@ class APDS9960():
 
 ### PROXIMITY SENSOR ###
     
-    def proximity_sensor_enable(self):
-        value = self.register_read(REG_ENABLE)
-        value = value | 0b00000101
-        self.register_write(REG_ENABLE, value)
+    class Prox:
+        
+        def __init__(self, outer):
+            self.outer = outer
     
-    def proximity_sensor_disable(self):
-        value = self.register_read(REG_ENABLE)
-        value = value & 0b11111011
-        self.register_write(REG_ENABLE, value)
-    
-    def proximity_sensor_enabled_check(self):
-        return (self.register_read(REG_ENABLE) & 0b00000100) >> 2
-    
-    def proximity_sensor_irq_enable(self):
-        """
-        Must use light_sensor_irq_persistance_set(x) with x>=1 and x<=15
-        """
-        value = self.register_read(REG_ENABLE)
-        value = value | 0b00100000
-        self.register_write(REG_ENABLE, value)
-    
-    def proximity_sensor_irq_disable(self):
-        value = self.register_read(REG_ENABLE)
-        value = value & 0b11011111
-        self.register_write(REG_ENABLE, value)
+        def enable(self):
+            value = self.outer.register_read(REG_ENABLE)
+            value = value | 0b00000101
+            self.outer.register_write(REG_ENABLE, value)
         
-    def proximity_sensor_irq_flag_clear(self):
-        self.register_write(REG_PICLEAR, 0xFF)
+        def disable(self):
+            value = self.register_read(REG_ENABLE)
+            value = value & 0b11111011
+            self.outer.register_write(REG_ENABLE, value)
         
-    def proximity_sensor_irq_callback_get(self):
-        return self.proximity_sensor_irq_callback
+        def enabled_check(self):
+            return (self.outer.register_read(REG_ENABLE) & 0b00000100) >> 2
         
-    def proximity_sensor_irq_callback_set(self, callback):
-        self.proximity_sensor_irq_callback = callback
+        def irq_enable(self):
+            """
+            Must use light_sensor_irq_persistance_set(x) with x>=1 and x<=15
+            """
+            value = self.outer.register_read(REG_ENABLE)
+            value = value | 0b00100000
+            self.outer.register_write(REG_ENABLE, value)
         
-    def proximity_sensor_irq_low_threshold_get(self):
-        return self.register_read(REG_PILT)
-    
-    def proximity_sensor_irq_low_threshold_set(self, value):
-        """
-        Range 0...255
-        """
-        self.register_write(REG_PILT, value)
+        def irq_disable(self):
+            value = self.outer.register_read(REG_ENABLE)
+            value = value & 0b11011111
+            self.outer.register_write(REG_ENABLE, value)
+            
+        def irq_flag_clear(self):
+            self.outer.register_write(REG_PICLEAR, 0xFF)
+            
+        def irq_callback_get(self):
+            return self.outer.proximity_sensor_irq_callback
+            
+        def irq_callback_set(self, callback):
+            self.outer.proximity_sensor_irq_callback = callback
+            
+        def irq_low_threshold_get(self):
+            return self.outer.register_read(REG_PILT)
         
-    def proximity_sensor_irq_high_threshold_get(self):
-        return self.register_read(REG_PIHT)
-    
-    def proximity_sensor_irq_high_threshold_set(self, value):
-        """
-        Range 0...255
-        """
-        self.register_write(REG_PIHT, value)
+        def irq_low_threshold_set(self, value):
+            """
+            Range 0...255
+            """
+            self.outer.register_write(REG_PILT, value)
+            
+        def irq_high_threshold_get(self):
+            return self.outer.register_read(REG_PIHT)
         
-    def proximity_sensor_irq_persistance_get(self):
-        return self.register_read(REG_PERS) & 0xF0
-    
-    def proximity_sensor_irq_persistance_set(self, value):
-        """
-        Configure when the interrupt is executed. Use PPERS_ values.
-        """
-        var = self.register_read(REG_PERS)
-        var = var & 0b00001111
-        var = var | value
-        self.register_write(REG_PERS, var)
+        def irq_high_threshold_set(self, value):
+            """
+            Range 0...255
+            """
+            self.outer.register_write(REG_PIHT, value)
+            
+        def irq_persistance_get(self):
+            return self.outer.register_read(REG_PERS) & 0xF0
         
-    def proximity_sensor_gain_get(self):
-        return self.register_read(REG_CONTROL) & 0b00001100
-        
-    def proximity_sensor_gain_set(self, pgain):
-        """
-        Use PGAIN_ values.
-        """
-        value = self.register_read(REG_CONTROL)
-        value = value & 0b11110011
-        value = value | pgain
-        self.register_write(REG_CONTROL, value)
-        
-    def proximity_sensor_led_drive_get(self):
-        return self.register_read(REG_CONTROL) & 0b11000000
-        
-    def proximity_sensor_led_drive_set(self, ldrive):
-        """
-        Use LDRIVE_ values.
-        """
-        value = self.register_read(REG_CONTROL)
-        value = value & 0b11000000
-        value = value | ldrive
-        self.register_write(REG_CONTROL, value)
-        
-    def proximity_sensor_led_boost_get(self):
-        return self.register_read(REG_CONFIG2) & 0b00110000
-        
-    def proximity_sensor_led_boost_set(self, led_boost):
-        """
-        Use LED_BOOST_ values.
-        """
-        value = self.register_read(REG_CONFIG2)
-        value = value & 0b00110000
-        value = value | led_boost | 0b00000001
-        self.register_write(REG_CONFIG2, value)
+        def irq_persistance_set(self, value):
+            """
+            Configure when the interrupt is executed. Use PPERS_ values.
+            """
+            var = self.outer.register_read(REG_PERS)
+            var = var & 0b00001111
+            var = var | value
+            self.outer.register_write(REG_PERS, var)
+            
+        def gain_get(self):
+            return self.outer.register_read(REG_CONTROL) & 0b00001100
+            
+        def gain_set(self, pgain):
+            """
+            Use PGAIN_ values.
+            """
+            value = self.outer.register_read(REG_CONTROL)
+            value = value & 0b11110011
+            value = value | pgain
+            self.outer.register_write(REG_CONTROL, value)
+            
+        def led_drive_get(self):
+            return self.outer.register_read(REG_CONTROL) & 0b11000000
+            
+        def led_drive_set(self, ldrive):
+            """
+            Use LDRIVE_ values.
+            """
+            value = self.outer.register_read(REG_CONTROL)
+            value = value & 0b11000000
+            value = value | ldrive
+            self.outer.register_write(REG_CONTROL, value)
+            
+        def led_boost_get(self):
+            return self.outer.register_read(REG_CONFIG2) & 0b00110000
+            
+        def led_boost_set(self, led_boost):
+            """
+            Use LED_BOOST_ values.
+            """
+            value = self.outer.register_read(REG_CONFIG2)
+            value = value & 0b00110000
+            value = value | led_boost | 0b00000001
+            self.outer.register_write(REG_CONFIG2, value)
 
-# Proximity Pulse Count Register (0x8E)
-    
+    # Proximity Pulse Count Register (0x8E)
         
-    def proximity_sensor_valid_check(self):
-        return (self.register_read(REG_STATUS) & 0b00000010) >> 1
-    
-    def proximity_sensor_read(self):
-        value = self.register_read(REG_PDATA)
-        return value
+            
+        def valid_check(self):
+            return (self.outer.register_read(REG_STATUS) & 0b00000010) >> 1
+        
+        def read(self):
+            value = self.outer.register_read(REG_PDATA)
+            return value
 
 ### GESTURE SENSOR ###
     
@@ -477,35 +484,33 @@ class APDS9960():
             print(f"{buffer[i]:02X}", end="\n" if i % 16 == 15 else " ")
 
 
-
-
+# RP2040
 if __name__ == "__main__":
     import mem_used
-    import neopixel
     
     def proximity_data_print(source):
-        valid  = dut.proximity_sensor_valid_check()
-        result = dut.proximity_sensor_read()
+        valid  = dut.prox.valid_check()
+        result = dut.prox.read()
         print(f"Proximity: {result:3d}, valid: {valid}")
-        
-#     def proximity_irq():
-#         value = dut.proximity_sensor_read()
-#         low_threshold  = dut.proximity_sensor_irq_low_threshold_get()
-#         high_threshold = dut.proximity_sensor_irq_high_threshold_get()
-#         if value >= high_threshold:
-#             ledr(1)
-#             ledy(0)
-#             ledg(0)
-#         elif value <= low_threshold:
-#             ledr(0)
-#             ledy(0)
-#             ledg(1)
-#         else:
-#             ledr(0)
-#             ledy(1)
-#             ledg(0)
-#             
-#         dut.proximity_sensor_irq_flag_clear()
+    
+    def proximity_irq():
+        value = dut.prox.read()
+        low_threshold  = dut.prox.irq_low_threshold_get()
+        high_threshold = dut.prox.irq_high_threshold_get()
+        if value >= high_threshold:
+            ledr(1)
+            ledy(0)
+            ledg(0)
+        elif value <= low_threshold:
+            ledr(0)
+            ledy(0)
+            ledg(1)
+        else:
+            ledr(0)
+            ledy(1)
+            ledg(0)
+            
+        dut.prox.irq_flag_clear()
         
     i2c  = machine.I2C(0) # use default pinout and clock frequency
     irq  = machine.Pin(16)
@@ -514,18 +519,72 @@ if __name__ == "__main__":
     ledg = machine.Pin(20, machine.Pin.OUT)
     dut  = APDS9960(i2c, irq)
     tim  = machine.Timer(mode=machine.Timer.PERIODIC, period=1000, callback=proximity_data_print)
-
+    
     dut.everything_disable()
     dut.irq_clear_all_flags()
 
-    dut.proximity_sensor_gain_set(PGAIN_8X)
-    dut.proximity_sensor_led_drive_set(LDRIVE__100_MA)
-    dut.proximity_sensor_led_boost_set(LED_BOOST_300_P)
-    dut.proximity_sensor_irq_low_threshold_set(100)
-    dut.proximity_sensor_irq_high_threshold_set(200)
-    dut.proximity_sensor_irq_persistance_set(PPERS_15_CYCLE)
-#     dut.proximity_sensor_irq_callback_set(proximity_irq)
-#     dut.proximity_sensor_irq_enable()
-    dut.proximity_sensor_enable()
+    dut.prox.gain_set(PGAIN_8X)
+    dut.prox.led_drive_set(LDRIVE__100_MA)
+    dut.prox.led_boost_set(LED_BOOST_300_P)
+    dut.prox.irq_low_threshold_set(100)
+    dut.prox.irq_high_threshold_set(200)
+    dut.prox.irq_persistance_set(PPERS_15_CYCLE)
+    dut.prox.irq_callback_set(proximity_irq)
+#     dut.prox.irq_enable()
+    dut.prox.enable()
+    dut.prox.enable()
 
     mem_used.print_ram_used()
+
+
+"""
+# ESP32-S3
+if __name__ == "__main__":
+    import mem_used
+    import neopixel
+    
+    def proximity_data_print(source):
+#         dut.irq_read()
+        valid  = dut.prox.valid_check()
+        result = dut.prox.read()
+        print(f"Proximity: {result:3d}, valid: {valid}")
+        
+    def proximity_irq():
+        value = dut.prox.read()
+        low_threshold  = dut.prox.irq_low_threshold_get()
+        high_threshold = dut.prox.irq_high_threshold_get()
+        if value >= high_threshold:
+            led[0] = (10, 0, 0)
+        elif value <= low_threshold:
+            led[0] = (0, 10, 0)
+        else:
+            led[0] = (0, 0, 10)
+            
+        led.write()
+        dut.prox.irq_flag_clear()
+        
+    i2c = machine.I2C(0) # use default pinout and clock frequency
+    irq = machine.Pin(16)
+    dut = APDS9960(i2c, irq)
+    led = neopixel.NeoPixel(machine.Pin(48, machine.Pin.OUT), 1)
+    tim = machine.Timer(0, mode=machine.Timer.PERIODIC, period=1000, callback=proximity_data_print)
+
+    print(dut)
+    
+    ut.everything_disable()
+    dut.irq_clear_all_flags()
+
+    dut.prox.gain_set(PGAIN_8X)
+    dut.prox.led_drive_set(LDRIVE__100_MA)
+    dut.prox.led_boost_set(LED_BOOST_300_P)
+    dut.prox.irq_low_threshold_set(100)
+    dut.prox.irq_high_threshold_set(200)
+    dut.prox.irq_persistance_set(PPERS_15_CYCLE)
+    dut.prox.irq_callback_set(proximity_irq)
+#     dut.prox.irq_enable()
+    dut.prox.enable()
+
+    print(f"Enable register: {dut.register_read(0x80):08b}")
+
+    mem_used.print_ram_used()
+"""
