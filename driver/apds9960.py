@@ -178,6 +178,7 @@ class APDS9960():
     def irq_read(self):
         value = self.register_read(REG_STATUS)
         print(f"Proximity INT: {(value & 0b00100000) >> 5}")
+        print(f"Proximity SAT: {(value & 0b01000000) >> 6}")
         print(f"Light INT:     {(value & 0b00010000) >> 4}")
         print(f"Gesture INT:   {(value & 0b00000100) >> 2}")
         print(f"INT GPIO:      {self.int_gpio.value()}")
@@ -439,3 +440,33 @@ class APDS9960():
             if i % 16 == 0:
                 print(f"{i:02X}: ", end = "")
             print(f"{buffer[i]:02X}", end="\n" if i % 16 == 15 else " ")
+
+
+
+
+if __name__ == "__main__":
+    import mem_used
+    
+    def proximity_data_print(source):
+        dut.irq_read()
+        result = dut.proximity_sensor_read()
+        print(f"Proximity: {result:3d}")
+        
+    i2c = machine.I2C(0) # use default pinout and clock frequency
+    irq = machine.Pin(16)
+    dut = APDS9960(i2c, irq)
+    tim = machine.Timer(0, mode=machine.Timer.PERIODIC, period=1000, callback=proximity_data_print)
+
+    print(dut)
+    
+    dut.register_write(REG_ENABLE, 0x00)
+    print(f"Enable register: {dut.register_read(0x80)}")
+
+    dut.irq_clear_all_flags()
+
+    dut.proximity_sensor_gain_set(PGAIN_8X)
+    dut.proximity_sensor_enable()
+
+    print(f"Enable register: {dut.register_read(0x80)}")
+
+    mem_used.print_ram_used()
