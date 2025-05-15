@@ -160,6 +160,11 @@ class APDS9960():
         buffer = bytes([value & 0x00FF, (value & 0xFF00) >> 8])
         self.i2c.writeto_mem(I2C_ADDRESS, register, buffer, addrsize=8)
 
+### COMMON ###
+    
+    def everything_disable(self):
+        self.register_write(REG_ENABLE, 0x00)
+
 ### INTERRUPTS ###
 
     def irq_callback(self, source):

@@ -4,8 +4,9 @@ import machine
 import neopixel
 
 def light_data_print(source):
+    valid  = dut.light_sensor_valid_check()
     result = dut.light_sensor_read()
-    print(f"C: {result[0]:5d}, R: {result[1]:5d}, G: {result[2]:5d}, B: {result[3]:5d}")
+    print(f"C: {result[0]:5d}, R: {result[1]:5d}, G: {result[2]:5d}, B: {result[3]:5d}, Valid: {valid}")
 
 def light_irq():
     value = dut.light_sensor_read()[0]
