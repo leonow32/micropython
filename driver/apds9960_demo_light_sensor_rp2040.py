@@ -1,16 +1,16 @@
-import apds9960
+import apds9960_inner as apds9960
 import mem_used
 import machine
 
 def light_data_print(source):
-    valid  = dut.light_sensor_valid_check()
-    result = dut.light_sensor_read()
+    valid  = dut.als.valid_check()
+    result = dut.als.read()
     print(f"C: {result[0]:5d}, R: {result[1]:5d}, G: {result[2]:5d}, B: {result[3]:5d}, Valid: {valid}")
 
 def light_irq():
-    value = dut.light_sensor_read()[0]
-    low_threshold  = dut.light_sensor_irq_low_threshold_get()
-    high_threshold = dut.light_sensor_irq_high_threshold_get()
+    value = dut.als.read()[0]
+    low_threshold  = dut.als.irq_low_threshold_get()
+    high_threshold = dut.als.irq_high_threshold_get()
     if value >= high_threshold:
         ledr(1)
         ledy(0)
@@ -37,14 +37,14 @@ print(dut)
 dut.everything_disable()
 dut.irq_clear_all_flags()
 
-dut.light_sensor_gain_set(apds9960.AGAIN_64X)
-dut.light_sensor_integration_time_set(100)
-dut.light_sensor_irq_low_threshold_set(1000)
-dut.light_sensor_irq_high_threshold_set(5000)
-dut.light_sensor_irq_persistance_set(apds9960.APERS_3_CYCLE)
-dut.light_sensor_irq_callback_set(light_irq)
-# dut.light_sensor_irq_enable()
-dut.light_sensor_enable()
+dut.als.gain_set(apds9960.AGAIN_64X)
+dut.als.integration_time_set(100)
+dut.als.irq_low_threshold_set(1000)
+dut.als.irq_high_threshold_set(5000)
+dut.als.irq_persistance_set(apds9960.APERS_3_CYCLE)
+dut.als.irq_callback_set(light_irq)
+dut.als.irq_enable()
+dut.als.enable()
 
 mem_used.print_ram_used()
 
