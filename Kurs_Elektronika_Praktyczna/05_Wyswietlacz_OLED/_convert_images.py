@@ -30,6 +30,9 @@ def convert(name):
     return result
 
 if __name__ == "__main__":
+    if not os.path.exists("image"):
+    os.makedirs("image")
+    
     image_files = os.listdir("image_source")
     print(image_files)
     for image_file in image_files:
