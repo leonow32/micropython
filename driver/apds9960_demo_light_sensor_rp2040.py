@@ -4,8 +4,12 @@ import machine
 
 def light_data_print(source):
     valid  = dut.als.valid_check()
+    saturation = dut.als.saturation_check()
     result = dut.als.read()
-    print(f"C: {result[0]:5d}, R: {result[1]:5d}, G: {result[2]:5d}, B: {result[3]:5d}, Valid: {valid}")
+    print(f"C: {result[0]:5d}, R: {result[1]:5d}, G: {result[2]:5d}, B: {result[3]:5d}, Valid: {valid}, Saturation: {saturation}")
+
+def light_saturation_irq():
+    print("Light sensor saturation IRQ")
 
 def light_irq():
     value = dut.als.read()[0]
@@ -42,6 +46,8 @@ dut.als.integration_time_set(100)
 dut.als.irq_low_threshold_set(1000)
 dut.als.irq_high_threshold_set(5000)
 dut.als.irq_persistance_set(apds9960.APERS_3_CYCLE)
+dut.als.irq_saturation_callback_set(light_saturation_irq)
+dut.als.irq_saturation_enable()
 dut.als.irq_callback_set(light_irq)
 dut.als.irq_enable()
 dut.als.enable()

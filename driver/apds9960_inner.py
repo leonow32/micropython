@@ -136,8 +136,10 @@ class APDS9960:
         self.int_gpio = int_gpio
         self.int_gpio.init(mode=machine.Pin.IN, pull=machine.Pin.PULL_UP)
         self.int_gpio.irq(self.irq_callback, machine.Pin.IRQ_FALLING | machine.Pin.IRQ_RISING)
-        self.light_sensor_irq_callback = None
-        self.proximity_sensor_irq_callback = None
+        self.als_irq_callback = None
+        self.als_saturation_irq_callback = None
+        self.prox_sensor_irq_callback = None
+        self.prox_saturation_irq_callback = None
         self.gesture_sensor_irq_callback = None
         
         self.als  = self.ALS(self)
@@ -173,15 +175,23 @@ class APDS9960:
     def irq_callback(self, source):
         value = self.register_read(REG_STATUS)
         
-        if self.light_sensor_irq_callback and (value & 0b00010000) >> 4:
-            self.light_sensor_irq_callback()
-            self.register_write(REG_CICLEAR, 0xFF)
+        if self.als_irq_callback and value & 0b00010000:
+            self.als_irq_callback()
+        
+        if self.als_saturation_irq_callback and value & 0b10000000:
+            self.als_saturation_irq_callback()
             
-        if self.proximity_sensor_irq_callback and (value & 0b00100000) >> 5:
-            self.proximity_sensor_irq_callback()
-            self.register_write(REG_PICLEAR, 0xFF)
+        self.register_write(REG_CICLEAR, 0xFF)
+        
+        if self.prox_sensor_irq_callback and value & 0b00100000:
+            self.prox_sensor_irq_callback()
+        
+        if self.prox_saturation_irq_callback and value & 0b01000000:
+            self.prox_saturation_irq_callback()
+        
+        self.register_write(REG_PICLEAR, 0xFF)
             
-        if self.gesture_sensor_irq_callback and (value & 0b00000100) >> 2:
+        if self.gesture_sensor_irq_callback and value & 0b00000100:
             self.gesture_sensor_irq_callback()
             # TODO czy to tu powinno byc?
             self.register_write(REG_AICLEAR, 0xFF)
@@ -240,10 +250,16 @@ class APDS9960:
             self.outer.register_write(REG_AICLEAR, 0xFF)
             
         def irq_callback_get(self):
-            return self.outer.light_sensor_irq_callback
+            return self.outer.als_irq_callback
             
         def irq_callback_set(self, callback):
-            self.outer.light_sensor_irq_callback = callback
+            self.outer.als_irq_callback = callback
+            
+        def irq_saturation_callback_get(self):
+            return self.outer.als_saturation_irq_callback
+            
+        def irq_saturation_callback_set(self, callback):
+            self.outer.als_saturation_irq_callback = callback
             
         def irq_low_threshold_get(self):
             return self.outer.register16_read(REG_AILTL)
@@ -268,6 +284,16 @@ class APDS9960:
             var = var & 0b11110000
             var = var | value
             self.outer.register_write(REG_PERS, var)
+            
+        def irq_saturation_enable(self):
+            value = self.outer.register_read(REG_CONFIG2)
+            value = value | 0b01000000
+            self.outer.register_write(REG_CONFIG2, value)
+            
+        def irq_saturation_disable(self):
+            value = self.outer.register_read(REG_CONFIG2)
+            value = value & 0b10111111
+            self.outer.register_write(REG_CONFIG2, value)
             
         def gain_get(self):
             value = self.outer.register_read(REG_CONTROL) & 0b00000011
@@ -298,6 +324,9 @@ class APDS9960:
             
         def valid_check(self):
             return self.outer.register_read(REG_STATUS) & 0b00000001
+        
+        def saturation_check(self):
+            return (self.outer.register_read(REG_STATUS) & 0b10000000) >> 7
             
         def read(self):
             c = self.outer.register16_read(REG_CDATAL)
@@ -343,10 +372,26 @@ class APDS9960:
             self.outer.register_write(REG_PICLEAR, 0xFF)
             
         def irq_callback_get(self):
-            return self.outer.proximity_sensor_irq_callback
+            return self.outer.prox_sensor_irq_callback
             
         def irq_callback_set(self, callback):
-            self.outer.proximity_sensor_irq_callback = callback
+            self.outer.prox_sensor_irq_callback = callback
+            
+        def irq_saturation_callback_get(self):
+            return self.outer.prox_saturation_irq_callback
+            
+        def irq_saturation_callback_set(self, callback):
+            self.outer.prox_saturation_irq_callback = callback
+            
+        def irq_saturation_enable(self):
+            value = self.outer.register_read(REG_CONFIG2)
+            value = value | 0b10000000
+            self.outer.register_write(REG_CONFIG2, value)
+            
+        def irq_saturation_disable(self):
+            value = self.outer.register_read(REG_CONFIG2)
+            value = value & 0b01111111
+            self.outer.register_write(REG_CONFIG2, value)
             
         def irq_low_threshold_get(self):
             return self.outer.register_read(REG_PILT)
@@ -419,6 +464,9 @@ class APDS9960:
             
         def valid_check(self):
             return (self.outer.register_read(REG_STATUS) & 0b00000010) >> 1
+        
+        def saturation_check(self):
+            return (self.outer.register_read(REG_STATUS) & 0b01000000) >> 6
         
         def read(self):
             value = self.outer.register_read(REG_PDATA)
