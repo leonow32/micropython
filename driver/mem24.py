@@ -137,9 +137,10 @@ if __name__ == "__main__":
     
     start_time = time.ticks_us()
     
-    i2c = machine.I2C(0) # use default pinout and clock frequency
+    i2c = machine.I2C(0, freq=100000) # use default pinout and clock frequency
     print(i2c)   # print pinout and clock frequency
-    eeprom = Mem24(i2c, device_address=0x50, memory_size=4096, page_size=32, addr_size=16)   # AT24C32
+#   eeprom = Mem24(i2c, device_address=0x50, memory_size=4096, page_size=32, addr_size=16)   # AT24C32
+    eeprom = Mem24(i2c, device_address=0x57, memory_size=4096, page_size=32, addr_size=16)   # AT24C32
 #   eeprom = Mem24(i2c, device_address=0x50, memory_size=65536, page_size=128, addr_size=16) # AT24C512
     print(eeprom)
     

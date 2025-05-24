@@ -1,4 +1,4 @@
-import apds9960_inner as apds9960
+import apds9960
 import mem_used
 import machine
 
