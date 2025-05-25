@@ -9,7 +9,6 @@ def proximity_data_print(source):
     result     = dut.prox.read()
     print(f"Proximity: {result:3d}, Valid: {valid}, Saturation: {saturation}")
     
-
 def proximity_saturation_irq():
     print("Proximity sensor saturation IRQ")
     
@@ -30,8 +29,6 @@ def proximity_irq():
         ledy(1)
         ledg(0)
     
-#     dut.prox.irq_flag_clear()
-
     led[0] = (value, value, value)
     led.write()
 
@@ -62,6 +59,3 @@ dut.prox.irq_enable()
 dut.prox.enable()
 
 mem_used.print_ram_used()
-
-
-
