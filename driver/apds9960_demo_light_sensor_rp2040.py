@@ -1,6 +1,7 @@
 import apds9960
-import mem_used
 import machine
+import mem_used
+import neopixel
 
 def light_data_print(source):
     valid  = dut.als.valid_check()
@@ -27,9 +28,19 @@ def light_irq():
         ledr(0)
         ledy(1)
         ledg(0)
+        
+    if value >= high_threshold:
+        led[0] = (10, 0, 0)
+    elif value <= low_threshold:
+        led[0] = (0, 10, 0)
+    else:
+        led[0] = (0, 0, 10)
+        
+    led.write()
     
 i2c  = machine.I2C(0) # use default pinout and clock frequency
 irq  = machine.Pin(16)
+led  = neopixel.NeoPixel(machine.Pin(0, machine.Pin.OUT), 1)
 ledr = machine.Pin(18, machine.Pin.OUT)
 ledy = machine.Pin(19, machine.Pin.OUT)
 ledg = machine.Pin(20, machine.Pin.OUT)

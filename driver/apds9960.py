@@ -175,26 +175,20 @@ class APDS9960:
     def irq_callback(self, source):
         value = self.register_read(REG_STATUS)
         
-        if self.als_irq_callback and value & 0b00010000:
-            self.als_irq_callback()
-        
-        if self.als_saturation_irq_callback and value & 0b10000000:
+        if value & 0b10000000 and self.als_saturation_irq_callback:
             self.als_saturation_irq_callback()
-            
-        self.register_write(REG_CICLEAR, 0xFF)
         
-        if self.prox_sensor_irq_callback and value & 0b00100000:
+        if value & 0b01000000 and self.prox_saturation_irq_callback:
+            self.prox_saturation_irq_callback()
+            
+        if value & 0b00100000 and self.prox_sensor_irq_callback:
             self.prox_sensor_irq_callback()
         
-        if self.prox_saturation_irq_callback and value & 0b01000000:
-            self.prox_saturation_irq_callback()
+        if value & 0b00010000 and self.als_irq_callback:
+            self.als_irq_callback()
         
-        self.register_write(REG_PICLEAR, 0xFF)
-            
-        if self.gesture_sensor_irq_callback and value & 0b00000100:
+        if value & 0b00000100 and self.gesture_sensor_irq_callback:
             self.gesture_sensor_irq_callback()
-            # TODO czy to tu powinno byc?
-            self.register_write(REG_AICLEAR, 0xFF)
         
         self.irq_clear_all_flags()
         

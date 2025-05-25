@@ -1,12 +1,14 @@
 import apds9960
-import mem_used
 import machine
+import mem_used
+import neopixel
 
 def proximity_data_print(source):
     valid      = dut.prox.valid_check()
     saturation = dut.prox.saturation_check()
     result     = dut.prox.read()
     print(f"Proximity: {result:3d}, Valid: {valid}, Saturation: {saturation}")
+    
 
 def proximity_saturation_irq():
     print("Proximity sensor saturation IRQ")
@@ -30,8 +32,12 @@ def proximity_irq():
     
 #     dut.prox.irq_flag_clear()
 
+    led[0] = (value, value, value)
+    led.write()
+
 i2c  = machine.I2C(0) # use default pinout and clock frequency
 irq  = machine.Pin(16)
+led  = neopixel.NeoPixel(machine.Pin(0, machine.Pin.OUT), 1)
 ledr = machine.Pin(18, machine.Pin.OUT)
 ledy = machine.Pin(19, machine.Pin.OUT)
 ledg = machine.Pin(20, machine.Pin.OUT)

@@ -1,6 +1,6 @@
 import apds9960
-import mem_used
 import machine
+import mem_used
 import neopixel
 
 def light_data_print(source):

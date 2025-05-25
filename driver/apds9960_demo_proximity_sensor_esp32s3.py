@@ -14,15 +14,11 @@ tim = machine.Timer(0, mode=machine.Timer.PERIODIC, period=1000, callback=proxim
 
 print(dut)
 
-print(f"Enable register: {dut.register_read(0x80)}")
-
 dut.everything_disable()
 dut.irq_clear_all_flags()
 
 dut.proximity_sensor_gain_set(apds9960.PGAIN_8X)
 dut.proximity_sensor_enable()
-
-print(f"Enable register: {dut.register_read(0x80)}")
 
 mem_used.print_ram_used()
 
