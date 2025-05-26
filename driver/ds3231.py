@@ -1,5 +1,6 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
 # v1.0.0 2025.03.17
+# v1.1.0 2025.05.25
 
 import time
 from machine import Pin, I2C, RTC
