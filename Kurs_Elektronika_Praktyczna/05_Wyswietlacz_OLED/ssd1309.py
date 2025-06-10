@@ -1,6 +1,5 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
 
-from machine import Pin, I2C
 import framebuf
 
 WIDTH   = const(128)
@@ -125,18 +124,3 @@ class SSD1309(framebuf.FrameBuffer):
             last_char_space = bitmap[2]
         
         return total - last_char_space
-
-if __name__ == "__main__":
-    import mem_used
-    i2c = I2C(0) # use default pinout and clock frequency
-    print(i2c)   # print pinout and clock frequency
-    display = SSD1309(i2c)
-
-    display.rect(0, 0, 128, 64, 1)
-    display.text('abcdefghijklm', 1, 2, 1)
-    display.text('nopqrstuvwxyz', 1, 10, 1)
-    display.refresh()
-
-    #display.simulate()
-    mem_used.print_ram_used()
-    
