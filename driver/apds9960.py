@@ -144,6 +144,7 @@ class APDS9960:
         
         self.als  = self.ALS(self)
         self.prox = self.Prox(self)
+        self.gest = self.Gest(self)
         
     def __str__(self):
         return f"APDS9960({self.i2c}, int_gpio={self.int_gpio})"
@@ -187,8 +188,8 @@ class APDS9960:
         if value & 0b00010000 and self.als_irq_callback:
             self.als_irq_callback()
         
-        if value & 0b00000100 and self.gesture_sensor_irq_callback:
-            self.gesture_sensor_irq_callback()
+        if value & 0b00000100 and self.gest_sensor_irq_callback:
+            self.gest_sensor_irq_callback()
         
         self.irq_clear_all_flags()
         
@@ -452,9 +453,6 @@ class APDS9960:
             value = value & 0b00110000
             value = value | led_boost | 0b00000001
             self.outer.register_write(REG_CONFIG2, value)
-
-    # Proximity Pulse Count Register (0x8E)
-        
             
         def valid_check(self):
             return (self.outer.register_read(REG_STATUS) & 0b00000010) >> 1
@@ -467,17 +465,51 @@ class APDS9960:
             return value
 
 ### GESTURE SENSOR ###
+        
+    class Gest:
+        
+        def __init__(self, outer):
+            self.outer = outer
     
-    def gesture_sensor_enable(self):
-        value = self.outer.register_read(REG_ENABLE)
-        value = value | 0b01000001
-        self.outer.register_write(REG_ENABLE, value)
-    
-    def gesture_sensor_disable(self):
-        value = self.outer.register_read(REG_ENABLE)
-        value = value & 0b10111111
-        self.outer.register_write(REG_ENABLE, value)
-        pass
+        def enable(self):
+            value = self.outer.register_read(REG_ENABLE)
+            value = value | 0b01000001
+            self.outer.register_write(REG_ENABLE, value)
+        
+        def disable(self):
+            value = self.outer.register_read(REG_ENABLE)
+            value = value & 0b10111111
+            self.outer.register_write(REG_ENABLE, value)
+        
+        def enabled_check(self):
+            return (self.outer.register_read(REG_ENABLE) & 0b01000000) >> 6
+        
+        def irq_enable(self):
+            value = self.outer.register_read(REG_GCONF4)
+            value = value | 0b00000010
+            self.outer.register_write(REG_GCONF4, value)
+        
+        def irq_disable(self):
+            value = self.outer.register_read(REG_GCONF4)
+            value = value & 0b11111101
+            self.outer.register_write(REG_GCONF4, value)
+        
+        def irq_flag_clear(self):
+            # czy to jest potrzebne?
+            pass
+        
+        def irq_callback_get(self):
+            return self.outer.gest_sensor_irq_callback
+            
+        def irq_callback_set(self, callback):
+            self.outer.gest_sensor_irq_callback = callback
+        
+        
+        
+        
+        def valid_check(self):
+            return (self.outer.register_read(REG_GSTATUS) & 0b00000001) >> 0
+
 
 ###############
 # OTHER
@@ -536,6 +568,20 @@ class APDS9960:
 if __name__ == "__main__":
     import mem_used
     
+    i2c  = machine.I2C(0) # use default pinout and clock frequency
+    irq  = machine.Pin(16)
+#     ledr = machine.Pin(18, machine.Pin.OUT)
+#     ledy = machine.Pin(19, machine.Pin.OUT)
+#     ledg = machine.Pin(20, machine.Pin.OUT)
+    dut  = APDS9960(i2c, irq)
+#     tim  = machine.Timer(mode=machine.Timer.PERIODIC, period=1000, callback=proximity_data_print)
+    
+    dut.everything_disable()
+    dut.irq_clear_all_flags()
+    
+    dut.gest.enable()
+    
+"""
     def proximity_data_print(source):
         valid  = dut.prox.valid_check()
         result = dut.prox.read()
@@ -583,7 +629,7 @@ if __name__ == "__main__":
     dut.prox.enable()
 
     mem_used.print_ram_used()
-
+"""
 
 """
 # ESP32-S3
