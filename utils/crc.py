@@ -86,19 +86,28 @@ def crc32(data, poly, init, xor_out, reflect_in, reflect_out):
 
     return result ^ xor_out;
 
-data   = bytes([0x11, 0x22, 0x44, 0x88])
+if __name__ == "__main__":
+#     data   = bytes([0x11, 0x22, 0x44, 0x88])
+    data   = bytes([])
+    
+    
+    """
+    result = crc8(data, 0x31, 0x00, 0x00, True, True)                # CRC-8/MAXIM-DOW
+    result = crc8(data, 0x2F, 0xFF, 0xFF, False, False)                # CRC-8/AUTOSAR
+    result = crc8(data, 0x1D, 0xC7, 0x00, False, False)                # CRC-8/MIFARE-MAD
+    print(f"Result = {result:02X}")
 
-# result = crc8(data, 0x31, 0x00, 0x00, True, True)                # CRC-8/MAXIM-DOW
-# result = crc8(data, 0x2F, 0xFF, 0xFF, False, False)                # CRC-8/AUTOSAR
-# result = crc8(data, 0x1D, 0xC7, 0x00, False, False)                # CRC-8/MIFARE-MAD
-# print(f"Result = {result:02X}")
+    result = crc16(data, 0x0589, 0x0000, 0x0000, False, False)     # CRC-16/DECT-X
+    result = crc16(data, 0x8005, 0x0000, 0xFFFF, True, True)         # CRC-16/MAXIM-DOW
+    result = crc16(data, 0x1021, 0xC6C6, 0x0000, True, True)       # CRC-16/ISO-IEC-14443-3-A
+    result = crc16(data, 0x1DCF, 0xFFFF, 0xFFFF, False, False)     # CRC-16/PROFIBUS
+    print(f"Result = {result:04X}")
 
-# result = crc16(data, 0x0589, 0x0000, 0x0000, False, False)     # CRC-16/DECT-X
-# result = crc16(data, 0x8005, 0x0000, 0xFFFF, True, True)         # CRC-16/MAXIM-DOW
-# result = crc16(data, 0x1021, 0xC6C6, 0x0000, True, True)       # CRC-16/ISO-IEC-14443-3-A
-# result = crc16(data, 0x1DCF, 0xFFFF, 0xFFFF, False, False)     # CRC-16/PROFIBUS
-# print(f"Result = {result:04X}")
-
-# result = crc32(data, 0x814141AB, 0x00000000, 0x00000000, False, False)     # CRC-16/AIXM
-result = crc32(data, 0xF4ACFB13, 0xFFFFFFFF, 0xFFFFFFFF, True, True)     # CRC-16/AUTOSAR
-print(f"Result = {result:08X}")
+    result = crc32(data, 0x814141AB, 0x00000000, 0x00000000, False, False)     # CRC-16/AIXM
+    """
+    result = crc32(data, 0xF4ACFB13, 0xFFFFFFFF, 0xFFFFFFFF, True, True)     # CRC-16/AUTOSAR
+    print(f"Result = {result:08X}")
+    
+    
+    assert crc32(data, 0xF4ACFB13, 0xFFFFFFFF, 0xFFFFFFFF, True, True) == 0x749DC2A3
+    print("OK")
