@@ -34,8 +34,8 @@ display.blit(light_32x32,    64, 32)
 display.blit(up_32x32,       96,  0)
 display.blit(down_32x32,     96, 32)
 
-# display.blit(world_128x64, 0, 0)
-# display.blit(world_128x64, 0, 0, 0)  # tło przezroczyste
+# display.blit(world_128x64, 0, 12)
+# display.blit(world_128x64, 0, 12, 0)  # tło przezroczyste
 
 # display.blit(ep_logo_128x40, 0, 0)
 

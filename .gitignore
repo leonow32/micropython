@@ -1,0 +1,22 @@
+# ESP-IDF
+build/
+sdkconfig.old
+
+# Release folders
+log.txt
+
+# Component folder
+components/*
+!components/readme.txt
+managed_components/*
+!managed_components/readme.txt
+
+# Python cache
+*.pyc
+*__pychache__
+
+# Microsoft Office temporary file
+*~$*
+
+# Release
+firmware.zip
