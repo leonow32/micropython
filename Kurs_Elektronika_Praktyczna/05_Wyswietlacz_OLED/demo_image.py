@@ -16,7 +16,6 @@ from image.light_32x32 import *
 from image.ok_32x32 import *
 from image.settings_32x32 import *
 from image.square_8x16 import *
-from image.test_16x16 import *
 from image.up_32x32 import *
 from image.world_128x64 import *
 
@@ -34,10 +33,10 @@ display.blit(light_32x32,    64, 32)
 display.blit(up_32x32,       96,  0)
 display.blit(down_32x32,     96, 32)
 
-# display.blit(world_128x64, 0, 12)
+# display.blit(world_128x64, 0, 0)
 # display.blit(world_128x64, 0, 12, 0)  # tło przezroczyste
 
-# display.blit(ep_logo_128x40, 0, 0)
+# display.blit(ep_logo_128x40, 0, 12)
 
 end_time = time.ticks_us()
 
