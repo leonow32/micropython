@@ -18,10 +18,10 @@ from font.sans24B import *
 from font.squared16_unicode import *
 from font.squared16B_unicode import *
       
-cs  = Pin(17, Pin.OUT, value=1)
-dc  = Pin(15, Pin.OUT, value=1)
-rst = Pin(16, Pin.OUT, value=1)
-spi = SPI(2, baudrate=80_000_000, polarity=0, phase=0, sck=Pin(6), mosi=Pin(7), miso=None)
+cs  = Pin(4,  Pin.OUT, value=1)
+dc  = Pin(6, Pin.OUT, value=1)
+rst = Pin(5, Pin.OUT, value=1)
+spi = SPI(2, baudrate=80_000_000, polarity=0, phase=0, sck=Pin(15), mosi=Pin(7), miso=None)
 display = st7796.ST7796(spi, cs, dc, rst)
 
 start_time = time.ticks_us()
