@@ -94,6 +94,7 @@ if __name__ == "__main__":
     dc  = Pin(6, Pin.OUT, value=1)
     rst = Pin(5, Pin.OUT, value=1)
     spi = SPI(2, baudrate=80_000_000, polarity=0, phase=0, sck=Pin(15), mosi=Pin(7), miso=None)
+    #spi = SPI(1, baudrate=80_000_000, polarity=0, phase=0)
     print(spi)
     display = ST7796(spi, cs, dc, rst)
     
