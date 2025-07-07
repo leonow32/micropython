@@ -89,6 +89,57 @@ class ST7796(framebuf.FrameBuffer):
         red    = red & 0xF8
         green1 = (green & 0xE0) >> 5
         green2 = (green & 0x1C) << 11
-        blue   = (blue & 0xF8) << 5
+        blue   = (blue  & 0xF8) << 5
         color  = red | green1 | green2 | blue
-        return color   
+        return color
+    
+    def print_char(self, font, char, x, y, color):
+        try:
+            bitmap = font[ord(char)]
+        except:
+            bitmap = font[0]
+            print(f"Char {char} doesn't exist in font")
+        
+        width    = bitmap[0]
+        height   = bitmap[1]
+        space    = bitmap[2]
+        offset_x = 0
+        offset_y = 0
+        
+        for byte in bitmap[3:]:
+            for bit in range(8):
+                if byte & (1<<bit):
+                    self.pixel(offset_x+x, offset_y+y+bit, color)
+            
+            offset_x += 1
+            if offset_x == width:
+                offset_x = 0
+                offset_y += 8
+            
+        return width + space     
+
+    def print_text(self, font, text, x, y, align="L", color=1):
+        width = self.get_text_width(font, text)
+        
+        if   align == "R":
+            x = WIDTH - width
+        elif align == "C":
+            x = WIDTH//2 - width//2
+        elif align == "r":
+            x = x - width + 1
+        elif align == "c":
+            x = x - width//2
+        
+        for char in text:
+            x += self.print_char(font, char, x, y, color)
+    
+    def get_text_width(self, font, text):
+        total = 0
+        last_char_space = 0
+        for char in text:
+            bitmap = font.get(ord(char), font[0])
+            total += bitmap[0]
+            total += bitmap[2]
+            last_char_space = bitmap[2]
+        
+        return total - last_char_space
