@@ -1,4 +1,4 @@
-from machine import Pin, SPI
+import machine
 import framebuf
 import time
 
@@ -21,6 +21,10 @@ class ST7796(framebuf.FrameBuffer):
         self.cs  = cs
         self.dc  = dc
         self.rst = rst
+        self.cs.init(mode=machine.Pin.OUT, value=1)
+        self.dc.init(mode=machine.Pin.OUT, value=1)
+        self.rst.init(mode=machine.Pin.OUT, value=1)
+        
         self.array = bytearray(WIDTH * HEIGHT * 2)
         super().__init__(self.array, WIDTH, HEIGHT, framebuf.RGB565)
         
@@ -88,23 +92,3 @@ class ST7796(framebuf.FrameBuffer):
         blue   = (blue & 0xF8) << 5
         color  = red | green1 | green2 | blue
         return color
-
-if __name__ == "__main__":
-    cs  = Pin(4,  Pin.OUT, value=1)
-    dc  = Pin(6, Pin.OUT, value=1)
-    rst = Pin(5, Pin.OUT, value=1)
-    spi = SPI(2, baudrate=80_000_000, polarity=0, phase=0, sck=Pin(15), mosi=Pin(7), miso=None)
-    #spi = SPI(1, baudrate=80_000_000, polarity=0, phase=0)
-    print(spi)
-    display = ST7796(spi, cs, dc, rst)
-    
-    display.rect(0, 0, 128, 64, WHITE)
-    display.text('abcdefghijklm', 1, 2, RED)
-    display.text('nopqrstuvwxyz', 1, 10, YELLOW)
-    display.text('ABCDEFGHIJKLM', 1, 18, GREEN)
-    display.text('NOPQRSTUVWXYZ', 1, 26, CYAN)
-    display.text('0123456789+-*/', 1, 34, BLUE)
-    display.text('!@#$%^&*(),.<>?', 1, 42, MAGENTA)
-    display.refresh()
-    
-
