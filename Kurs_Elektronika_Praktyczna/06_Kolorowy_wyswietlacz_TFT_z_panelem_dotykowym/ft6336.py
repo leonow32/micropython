@@ -1,7 +1,6 @@
 from machine import Pin, I2C
 import _thread
 import time
-import mem_used
 
 ADDRESS = const(0x38)
 
@@ -32,16 +31,3 @@ class FT6336():
                 prev = False
                 callback(result)
             time.sleep_ms(period)
-
-if __name__ == "__main__":
-    def debug(result_tuple):
-        x, y, pressed = result_tuple
-        print(f"{x:3d} {y:3d} {pressed}")
-    
-    i2c = I2C(0) # use default pinout and clock frequency
-    print(i2c)   # print pinout and clock frequency
-    
-    #ft6336 = FT6336(i2c)
-    ft6336 = FT6336(i2c, 100, debug)
-    
-    mem_used.print_ram_used()
