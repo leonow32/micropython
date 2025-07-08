@@ -2,8 +2,8 @@
 
 from machine import Pin, SPI
 import mem_used
-from st7796_horizontal import *
-# from st7796_vertical import *
+import st7796_horizontal as st7796
+# import st7796_vertical as st7796
 import time
 
 from image.marble_red_48x48 import *
@@ -11,7 +11,7 @@ from image.marble_green_48x48 import *
 from image.marble_blue_48x48 import *
 
 spi = SPI(2, baudrate=80_000_000, polarity=0, phase=0, sck=Pin(15), mosi=Pin(7), miso=None)
-display = ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5))
+display = st7796.ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5))
 
 start_time = time.ticks_us()
 display.blit(marble_red_48x48,        0,  0)
