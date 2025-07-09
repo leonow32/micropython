@@ -1,7 +1,7 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
 
 from machine import Pin, SPI, I2C
-import ft6336
+import ft6336_polling as ft6336
 import st7796_vertical as st7796
 import mem_used
 
@@ -19,5 +19,8 @@ display = st7796.ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5))
 
 i2c = I2C(0)
 touch = ft6336.FT6336(i2c, 10, draw_point)
+
+display.fill(st7796.BLACK)
+display.refresh()
 
 mem_used.print_ram_used()

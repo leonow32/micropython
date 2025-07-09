@@ -1,4 +1,3 @@
-from machine import Pin, I2C
 import _thread
 import time
 
