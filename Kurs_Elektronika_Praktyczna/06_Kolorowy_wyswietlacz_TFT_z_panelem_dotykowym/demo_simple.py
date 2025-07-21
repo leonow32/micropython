@@ -1,8 +1,6 @@
 from machine import Pin, SPI
 import st7796_horizontal as st7796
 # import st7796_vertical as st7796
-import framebuf
-import time
 
 spi = SPI(2, baudrate=80_000_000, polarity=0, phase=0, sck=Pin(15), mosi=Pin(7), miso=None)
 display = st7796.ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5))

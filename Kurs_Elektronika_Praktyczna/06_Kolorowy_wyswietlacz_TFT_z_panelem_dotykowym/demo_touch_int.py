@@ -58,7 +58,6 @@ spi = SPI(2, baudrate=80_000_000, polarity=0, phase=0, sck=Pin(15), mosi=Pin(7),
 display = st7796.ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5))
 
 i2c = I2C(0)
-print(i2c)
 touch = ft6336.FT6336(i2c, int_gpio=Pin(16), int_cb=irq_handler)
 
 display.fill(st7796.BLACK)
