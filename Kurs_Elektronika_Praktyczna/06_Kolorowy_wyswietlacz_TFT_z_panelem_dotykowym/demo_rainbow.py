@@ -51,5 +51,5 @@ for i in range(st7796.HEIGHT // 5):
     row += 1
 
 work_time = (time.ticks_us() - start_time) / 1000    
-display.text(f"Czas: {work_time}ms", 10, 10, st7796.BLACK) 
+display.text(f"Work time: {work_time} ms", 10, 10, st7796.BLACK) 
 display.refresh()
