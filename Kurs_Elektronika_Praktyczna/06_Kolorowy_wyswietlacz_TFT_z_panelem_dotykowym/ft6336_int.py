@@ -12,13 +12,14 @@ class FT6336():
     def __init__(self, i2c, int_gpio, int_cb):
         self.i2c = i2c
         self.int_cb = int_cb
+        self.buffer = bytearray(4)
         int_gpio.init(mode=machine.Pin.IN, pull=machine.Pin.PULL_UP)
         int_gpio.irq(self.irq_callback, machine.Pin.IRQ_FALLING)
         
     def irq_callback(self, source):
-        buffer = self.i2c.readfrom_mem(ADDRESS, 0x03, 4)
-        x = ((buffer[0] & 0x0F) << 8) | buffer[1]
-        y = ((buffer[2] & 0x0F) << 8) | buffer[3]
-        event = buffer[0] & 0b11000000
+        self.i2c.readfrom_mem_into(ADDRESS, 0x03, self.buffer)
+        x = ((self.buffer[0] & 0x0F) << 8) | self.buffer[1]
+        y = ((self.buffer[2] & 0x0F) << 8) | self.buffer[3]
+        event = self.buffer[0] & 0b11000000
         
         self.int_cb(x, y, event)
