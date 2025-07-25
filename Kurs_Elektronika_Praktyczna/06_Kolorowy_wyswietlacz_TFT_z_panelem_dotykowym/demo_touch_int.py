@@ -3,7 +3,6 @@
 from machine import Pin, SPI, I2C
 import ft6336_int as ft6336
 import st7796_vertical as st7796
-import random
 
 event_str = {
     ft6336.EVENT_PRESS:   "Press",
