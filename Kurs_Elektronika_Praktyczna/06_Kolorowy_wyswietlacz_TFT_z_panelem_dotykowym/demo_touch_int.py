@@ -31,3 +31,4 @@ touch = ft6336.FT6336(i2c, int_gpio=Pin(16), callback=draw_point)
 
 display.fill(st7796.BLACK)
 display.refresh()
+
