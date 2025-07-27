@@ -119,11 +119,11 @@ StatusBar.grid(row=3, column=0, columnspan=3, sticky=tk.W+tk.E)
 Frame1 = tk.LabelFrame(Root, text="Radio Buttony 1")
 Frame1.grid(row=0, column=3, sticky=tk.N)
 
-tk.Radiobutton(Frame1, text="Foto 1", value=0, variable=RadioButtonVar, command=lambda: ChangeImage(RadioButtonVar.get())).pack(anchor=tk.W)
-tk.Radiobutton(Frame1, text="Foto 2", value=1, variable=RadioButtonVar, command=lambda: ChangeImage(RadioButtonVar.get())).pack(anchor=tk.W)
-tk.Radiobutton(Frame1, text="Foto 3", value=2, variable=RadioButtonVar, command=lambda: ChangeImage(RadioButtonVar.get())).pack(anchor=tk.W)
-tk.Radiobutton(Frame1, text="Foto 4", value=3, variable=RadioButtonVar, command=lambda: ChangeImage(RadioButtonVar.get())).pack(anchor=tk.W)
-tk.Radiobutton(Frame1, text="Foto 5", value=4, variable=RadioButtonVar, command=lambda: ChangeImage(RadioButtonVar.get())).pack(anchor=tk.W)
+tk.Radiobutton(Frame1, text="Foto 0", value=0, variable=RadioButtonVar, command=lambda: ChangeImage(RadioButtonVar.get())).pack(anchor=tk.W)
+tk.Radiobutton(Frame1, text="Foto 1", value=1, variable=RadioButtonVar, command=lambda: ChangeImage(RadioButtonVar.get())).pack(anchor=tk.W)
+tk.Radiobutton(Frame1, text="Foto 2", value=2, variable=RadioButtonVar, command=lambda: ChangeImage(RadioButtonVar.get())).pack(anchor=tk.W)
+tk.Radiobutton(Frame1, text="Foto 3", value=3, variable=RadioButtonVar, command=lambda: ChangeImage(RadioButtonVar.get())).pack(anchor=tk.W)
+tk.Radiobutton(Frame1, text="Foto 4", value=4, variable=RadioButtonVar, command=lambda: ChangeImage(RadioButtonVar.get())).pack(anchor=tk.W)
 TestLabel1 = tk.Label(Frame1, textvariable=RadioButtonVar).pack()
 
 # Ramka 2 - radiobuttony dodawane poprzez listę
