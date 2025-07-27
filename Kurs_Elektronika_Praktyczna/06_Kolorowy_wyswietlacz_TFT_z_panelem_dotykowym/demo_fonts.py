@@ -18,11 +18,8 @@ from font.sans24B import *
 from font.squared16_unicode import *
 from font.squared16B_unicode import *
       
-cs  = Pin(17, Pin.OUT, value=1)
-dc  = Pin(15, Pin.OUT, value=1)
-rst = Pin(16, Pin.OUT, value=1)
-spi = SPI(2, baudrate=80_000_000, polarity=0, phase=0, sck=Pin(6), mosi=Pin(7), miso=None)
-display = st7796.ST7796(spi, cs, dc, rst)
+spi = SPI(2, baudrate=80_000_000, polarity=0, phase=0, sck=Pin(15), mosi=Pin(7), miso=None)
+display = st7796.ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5))
 
 start_time = time.ticks_us()
 display.print_text(squared16B_unicode, "Testy czcionek na wyświetlaczu TFT", 0, 0, "C", st7796.WHITE)
@@ -58,7 +55,7 @@ display.print_text(sans24,             "ABCDEFGHIJKLMNOPQRSTUVWXYZ  ", 0, 176, "
 display.print_text(sans24,             "abcdefghijklmnopqrstuvwxyz 0123456789", 0, 200, "R", st7796.YELLOW)
 
 display.print_text(squared16B_unicode, "Sans24B", 0, 224, "L", st7796.GREEN)
-display.print_text(sans24B,            "ABCDEFGHIJKLMNOPQRSTUVWXYZ  ", 0, 224, "R", st7796.YELLOW)
+display.print_text(sans24B,            "ABCDEFGHIJKLMNOPQRSTUVWXYZ  ", 0, 224, "R",st7796.YELLOW)
 display.print_text(sans24B,            "abcdefghijklmnopqrstuvwxyz 0123456789", 0, 248, "R", st7796.YELLOW)
 
 display.print_text(squared16B_unicode, "Galaxy16", 0, 272, "L", st7796.GREEN)

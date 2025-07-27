@@ -1,17 +1,14 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
 
 from machine import Pin, SPI
-import st7796_vertical as st7796
-# import st7796_horizontal as st7796
+import st7796_horizontal as st7796
+# import st7796_vertical as st7796
 import mem_used
 import random
 import time
 
-cs  = Pin(17, Pin.OUT, value=1)
-dc  = Pin(15, Pin.OUT, value=1)
-rst = Pin(16, Pin.OUT, value=1)
-spi = SPI(2, baudrate=80_000_000, polarity=0, phase=0, sck=Pin(6), mosi=Pin(7), miso=Pin(15))
-display = st7796.ST7796(spi, cs, dc, rst)
+spi = SPI(2, baudrate=80_000_000, polarity=0, phase=0, sck=Pin(15), mosi=Pin(7), miso=None)
+display = st7796.ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5))
 
 start_time = time.ticks_us()
     
@@ -54,5 +51,5 @@ for i in range(st7796.HEIGHT // 5):
     row += 1
 
 work_time = (time.ticks_us() - start_time) / 1000    
-display.text(f"Czas: {work_time}ms", 10, 10, st7796.BLACK) 
+display.text(f"Work time: {work_time} ms", 10, 10, st7796.BLACK) 
 display.refresh()

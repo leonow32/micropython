@@ -1,4 +1,4 @@
-from machine import Pin, SPI
+import machine
 import framebuf
 import time
 
@@ -21,6 +21,10 @@ class ST7796(framebuf.FrameBuffer):
         self.cs  = cs
         self.dc  = dc
         self.rst = rst
+        self.cs.init(mode=machine.Pin.OUT, value=1)
+        self.dc.init(mode=machine.Pin.OUT, value=1)
+        self.rst.init(mode=machine.Pin.OUT, value=1)
+        
         self.array = bytearray(WIDTH * HEIGHT * 2)
         super().__init__(self.array, WIDTH, HEIGHT, framebuf.RGB565)
         
@@ -85,23 +89,57 @@ class ST7796(framebuf.FrameBuffer):
         red    = red & 0xF8
         green1 = (green & 0xE0) >> 5
         green2 = (green & 0x1C) << 11
-        blue   = (blue & 0xF8) << 5
+        blue   = (blue  & 0xF8) << 5
         color  = red | green1 | green2 | blue
         return color
+    
+    def print_char(self, font, char, x, y, color):
+        try:
+            bitmap = font[ord(char)]
+        except:
+            bitmap = font[0]
+            print(f"Char {char} doesn't exist in font")
+        
+        width    = bitmap[0]
+        height   = bitmap[1]
+        space    = bitmap[2]
+        offset_x = 0
+        offset_y = 0
+        
+        for byte in bitmap[3:]:
+            for bit in range(8):
+                if byte & (1<<bit):
+                    self.pixel(offset_x+x, offset_y+y+bit, color)
+            
+            offset_x += 1
+            if offset_x == width:
+                offset_x = 0
+                offset_y += 8
+            
+        return width + space     
 
-if __name__ == "__main__":
-    cs  = Pin(17, Pin.OUT, value=1)
-    dc  = Pin(15, Pin.OUT, value=1)
-    rst = Pin(16, Pin.OUT, value=1)
-    spi = SPI(2, baudrate=80_000_000, polarity=0, phase=0, sck=Pin(6), mosi=Pin(7), miso=None)
-    display = ST7796(spi, cs, dc, rst)
+    def print_text(self, font, text, x, y, align="L", color=1):
+        width = self.get_text_width(font, text)
+        
+        if   align == "R":
+            x = WIDTH - width
+        elif align == "C":
+            x = WIDTH//2 - width//2
+        elif align == "r":
+            x = x - width + 1
+        elif align == "c":
+            x = x - width//2
+        
+        for char in text:
+            x += self.print_char(font, char, x, y, color)
     
-    display.rect(0, 0, 128, 64, WHITE)
-    display.text('abcdefghijklm', 1, 2, RED)
-    display.text('nopqrstuvwxyz', 1, 10, YELLOW)
-    display.text('ABCDEFGHIJKLM', 1, 18, GREEN)
-    display.text('NOPQRSTUVWXYZ', 1, 26, CYAN)
-    display.text('0123456789+-*/', 1, 34, BLUE)
-    display.text('!@#$%^&*(),.<>?', 1, 42, MAGENTA)
-    display.refresh()
-    
+    def get_text_width(self, font, text):
+        total = 0
+        last_char_space = 0
+        for char in text:
+            bitmap = font.get(ord(char), font[0])
+            total += bitmap[0]
+            total += bitmap[2]
+            last_char_space = bitmap[2]
+        
+        return total - last_char_space
