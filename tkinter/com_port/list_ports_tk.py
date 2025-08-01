@@ -4,6 +4,7 @@ from tkinter import messagebox
 from PIL import Image
 from PIL import ImageTk
 import serial.tools.list_ports as list_ports
+import serial
 
 _padx = 10
 _pady = 5
@@ -31,8 +32,11 @@ class MainWindow(tk.Tk):
         self.image_frame = ttk.LabelFrame(self, text="Obraz")
         self.image_frame.pack(side=tk.TOP, padx=_padx, pady=_pady, fill=tk.BOTH, expand=True)
         
-        self.test_label = ttk.Label(self.image_frame, text="Jeszcze nie gotowe")
-        self.test_label.pack(side=tk.LEFT, padx=_padx, pady=_pady)
+        self.send = ttk.Button(self.image_frame, text="Send", command=self.send_button_cb)
+        self.send.pack(side=tk.LEFT, padx=_padx, pady=_pady)
+        
+        self.read = ttk.Button(self.image_frame, text="Read", command=self.read_button_cb)
+        self.read.pack(side=tk.LEFT, padx=_padx, pady=_pady)
         
     def scan_button_cb(self):
         print("scan_button_cb")
@@ -47,6 +51,19 @@ class MainWindow(tk.Tk):
             messagebox.showerror("Błąd", "Nie wybrałeś żadnego portu")
         else:
             messagebox.showinfo("Informacja", f"Wybrałeś port {port}")
+            
+        self.port = serial.Serial("COM1", 115200, timeout=0)
+        
+    def send_button_cb(self):
+        self.port.write(b'print("Hello world")\r\n')
+    
+    def read_button_cb(self):
+        while True:
+            buf = self.port.read()
+            if buf == b'':
+                break
+            buf = buf.decode("utf-8")
+            print(buf, end="")
 
 main_window = MainWindow()
 main_window.mainloop()
