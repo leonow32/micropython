@@ -3,14 +3,14 @@
 import network
 import ntptime
 import time
-from config import ssid, password
+import wifi_config
 
 def wifi_connect():
     station = network.WLAN(network.STA_IF)
     station.active(True)
     if not station.isconnected():
         print("Łączenie z siecią", end="")
-        station.connect(ssid, password)
+        station.connect(wifi_config.ssid, wifi_config.password)
         while not station.isconnected():
             print(".", end="")
             time.sleep_ms(250)
@@ -18,25 +18,14 @@ def wifi_connect():
     
     print(f"Adres IP: {station.ifconfig()[0]}")
     
-def download_time():
-    ntptime.settime()
-
 def print_system_time():
-    time_tuple = time.localtime()
-    year    = time_tuple[0]
-    month   = time_tuple[1]
-    day     = time_tuple[2]
-    hours   = time_tuple[3]
-    minutes = time_tuple[4]
-    seconds = time_tuple[5]
-    weekday = time_tuple[6]
+    Y, M, D, h, m, s, w, _ = time.localtime()
     days = ["Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobota", "Niedziela"]
-    print(f"{year}.{month:02}.{day:02} {hours:02}:{minutes:02}:{seconds:02} {days[weekday]}")
-        
-if __name__ == "__main__":    
-    print("Czas przed synchronizacją: ", end="")
-    print_system_time()
-    wifi_connect()
-    download_time()
-    print("Czas po synchronizacji:    ", end="")
-    print_system_time()
+    print(f"{Y}.{M:02}.{D:02} {h:02}:{m:02}:{s:02} {days[w]}")
+  
+print("Czas przed synchronizacją: ", end="")
+print_system_time()
+wifi_connect()
+ntptime.settime()
+print("Czas po synchronizacji:    ", end="")
+print_system_time()
