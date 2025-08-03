@@ -13,6 +13,7 @@ class MainWindow(tk.Tk):
 
     def __init__(self):
         self.com_port_list = []
+        self.com_port_opened = False
         
         super().__init__()
         self.title("Skaner portów COM")
@@ -38,21 +39,42 @@ class MainWindow(tk.Tk):
         self.read = ttk.Button(self.image_frame, text="Read", command=self.read_button_cb)
         self.read.pack(side=tk.LEFT, padx=_padx, pady=_pady)
         
+        self.scan_button_cb()
+        
     def scan_button_cb(self):
         print("scan_button_cb")
         self.com_port_list.clear()
         self.com_port_list = list(list_ports.comports())
         self.listbox.configure(values=self.com_port_list)
         
+        if len(self.com_port_list) > 0:
+            self.listbox.set(self.com_port_list[0])
+        else:
+            self.listbox.set("")
+        
     def open_close_button_cb(self):
         print("open_close_button_cb")
-        port  = self.listbox.get()
-        if port == "":
-            messagebox.showerror("Błąd", "Nie wybrałeś żadnego portu")
-        else:
-            messagebox.showinfo("Informacja", f"Wybrałeś port {port}")
+        
+        if self.com_port_opened == False:
+            port  = self.listbox.get()
             
-        self.port = serial.Serial("COM1", 115200, timeout=0)
+            if port == "":
+                messagebox.showerror("Błąd", "Nie wybrałeś żadnego portu")
+            else:
+                port = port[0:port.find(" ")]
+                self.port = serial.Serial(port, 115200, timeout=0)
+                
+                self.open_close_button.configure(text="Zamknij")
+                self.com_port_opened = True
+                
+#                 messagebox.showinfo("Informacja", f"Wybrałeś port {port}")
+            
+        else:
+            print("Nie gotowe")
+            self.port.close()
+            self.open_close_button.configure(text="Otwórz")
+            self.com_port_opened = False
+        
         
     def send_button_cb(self):
         self.port.write(b'print("Hello world")\r\n')
