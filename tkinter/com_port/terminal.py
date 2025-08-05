@@ -95,12 +95,15 @@ class MainWindow(tk.Tk):
             if port_name == "":
                 messagebox.showerror("Błąd", "Nie wybrałeś żadnego portu")
             else:
-                port_name = port_name[0:port_name.find(" ")]
-                self.port = serial.Serial(port_name, 115200, timeout=0)
+                try:
+                    port_name = port_name[0:port_name.find(" ")]
+                    self.port = serial.Serial(port_name, 115200, timeout=0)
                 
-                self.open_close_button.configure(text="Zamknij")
-                self.make_buttons_active()
-                self.com_port_opened = True
+                    self.open_close_button.configure(text="Zamknij")
+                    self.make_buttons_active()
+                    self.com_port_opened = True
+                except Exception as e:
+                    messagebox.showerror("Błąd", f"{e}")
             
         else:
             print("Port close")
@@ -133,15 +136,21 @@ class MainWindow(tk.Tk):
         self.read_button.configure(state="!disabled")
         self.terminal_entry.configure(state="!disabled")
         self.monitor.configure(state="normal")
+        
+        self.scan_button.configure(state="disabled")
+        self.listbox.configure(state="disabled")
     
     def make_buttons_inactive(self):
         self.send_button.configure(state="disabled")
         self.read_button.configure(state="disabled")
         self.terminal_entry.configure(state="disabled")
         self.monitor.configure(state="disabled")
+        
+        self.scan_button.configure(state="!disabled")
+        self.listbox.configure(state="!disabled")
 
 main_window = MainWindow()
 main_window.mainloop()
 
-del main_window
+# del main_window
 print("Program closed")
