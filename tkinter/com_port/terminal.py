@@ -26,8 +26,8 @@ class MainWindow(tk.Tk):
         self.scan_button = ttk.Button(self.port_frame, text="Skanuj", command=self.scan_button_cb)
         self.scan_button.pack(side=tk.LEFT, padx=_padx, pady=_pady)
         
-        self.listbox = ttk.Combobox(self.port_frame, values=self.com_port_list, width=50)
-        self.listbox.pack(side=tk.LEFT, padx=_padx, pady=_pady, fill=tk.X, expand=True)
+        self.combo = ttk.Combobox(self.port_frame, values=self.com_port_list, width=50)
+        self.combo.pack(side=tk.LEFT, padx=_padx, pady=_pady, fill=tk.X, expand=True)
         
         self.open_close_button = ttk.Button(self.port_frame, text="Otwórz", command=self.open_close_button_cb)
         self.open_close_button.pack(side=tk.LEFT, padx=_padx, pady=_pady)
@@ -65,11 +65,18 @@ class MainWindow(tk.Tk):
         self.image_frame = ttk.LabelFrame(self, text="Obraz")
         self.image_frame.pack(side=tk.TOP, padx=_padx, pady=_pady, fill=tk.X, expand=True)
         
-        self.send = ttk.Button(self.image_frame, text="Wyślij", command=self.send_button_cb)
-        self.send.pack(side=tk.LEFT, padx=_padx, pady=_pady)
+        self.zoom_label = ttk.Label(self.image_frame, text="Zoom:")
+        self.zoom_label.pack(side=tk.LEFT, padx=_padx, pady=_pady)
         
-        self.read = ttk.Button(self.image_frame, text="Odbierz", command=self.read_button_cb)
-        self.read.pack(side=tk.LEFT, padx=_padx, pady=_pady)
+        self.zoom_combo = ttk.Combobox(self.image_frame, values=["1x", "2x", "3x", "4x"])
+        self.zoom_combo.bind("<<ComboboxSelected>>", self.zoom_combo_cb)
+        self.zoom_combo.pack(side=tk.LEFT, padx=_padx, pady=_pady)
+        
+        self.download_button = ttk.Button(self.image_frame, text="Pobierz")
+        self.download_button.pack(side=tk.LEFT, padx=_padx, pady=_pady)
+        
+        self.save_button = ttk.Button(self.image_frame, text="Zapisz")
+        self.save_button.pack(side=tk.LEFT, padx=_padx, pady=_pady)
         
         self.scan_button_cb()
         
@@ -80,17 +87,17 @@ class MainWindow(tk.Tk):
         print("scan_button_cb")
         self.com_port_list.clear()
         self.com_port_list = list(list_ports.comports())
-        self.listbox.configure(values=self.com_port_list)
+        self.combo.configure(values=self.com_port_list)
         
         if len(self.com_port_list) > 0:
-            self.listbox.set(self.com_port_list[0])
+            self.combo.set(self.com_port_list[0])
         else:
-            self.listbox.set("")
+            self.combo.set("")
         
     def open_close_button_cb(self):
         if self.com_port_opened == False:
             print("Port open")
-            port_name  = self.listbox.get()
+            port_name  = self.combo.get()
             
             if port_name == "":
                 messagebox.showerror("Błąd", "Nie wybrałeś żadnego portu")
@@ -130,6 +137,11 @@ class MainWindow(tk.Tk):
     
     def clear_button_cb(self):
         self.monitor.delete("1.0", tk.END)
+        
+    def zoom_combo_cb(self, arg):
+        print(f"zoom_combo_cb({arg})")
+        value = self.zoom_combo.get()
+        print(f"{value}")
             
     def make_buttons_active(self):
         self.send_button.configure(state="!disabled")
@@ -138,7 +150,7 @@ class MainWindow(tk.Tk):
         self.monitor.configure(state="normal")
         
         self.scan_button.configure(state="disabled")
-        self.listbox.configure(state="disabled")
+        self.combo.configure(state="disabled")
     
     def make_buttons_inactive(self):
         self.send_button.configure(state="disabled")
@@ -147,7 +159,7 @@ class MainWindow(tk.Tk):
         self.monitor.configure(state="disabled")
         
         self.scan_button.configure(state="!disabled")
-        self.listbox.configure(state="!disabled")
+        self.combo.configure(state="!disabled")
 
 main_window = MainWindow()
 main_window.mainloop()
