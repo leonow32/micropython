@@ -22,6 +22,7 @@ sensor_p.config(bmp280.OSRT_T_X16, bmp280.OSRT_P_X16, bmp280.MODE_NORMAL, bmp280
 print(i2c)
 
 def increment_counter():
+    print("increment_counter")
     data = {}
         
     try:
@@ -64,11 +65,11 @@ def print_sensors():
         
         temp = round(th['temp'], 1)
         humi = round(th['humi'], 1)
-        pres = round(p['pres'], 0)
+        pres = int(p['pres'])
         
-        print(f"Temperature: {temp} 'C")
-        print(f"Humidity:    {humi} %")
-        print(f"Pressure: {pres} hPa")
+#         print(f"Temperature: {temp} 'C")
+#         print(f"Humidity:    {humi} %")
+#         print(f"Pressure: {pres} hPa")
         
         display.fill(0)
         display.print_text(galaxy16_digits, f"{humi} %",   0,  0, "C")
@@ -83,13 +84,14 @@ if button():
         
         increment_counter()
         
-        print_sensors()
-        time.sleep_ms(10)
-        machine.lightsleep(20_000)
-        
-        print_time()
-        time.sleep_ms(10)
-        machine.lightsleep(40_000)
+        for i in range(6):
+            print_sensors()
+            time.sleep_ms(10)
+            machine.lightsleep(10_000)
+            
+            print_time()
+            time.sleep_ms(10)
+            machine.lightsleep(10_000)
         
         #mem_used.print_ram_used()
         #time.sleep(60)
