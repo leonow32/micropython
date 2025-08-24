@@ -65,18 +65,33 @@ class MainWindow(tk.Tk):
         self.image_frame = ttk.LabelFrame(self, text="Obraz")
         self.image_frame.pack(side=tk.TOP, padx=_padx, pady=_pady, fill=tk.X, expand=True)
         
-        self.zoom_label = ttk.Label(self.image_frame, text="Zoom:")
+        self.image_frame_row1 = ttk.Frame(self.image_frame)
+        self.image_frame_row1.pack(side=tk.TOP, padx=_padx, pady=_pady, fill=tk.BOTH, expand=True)
+        
+        self.zoom_label = ttk.Label(self.image_frame_row1, text="Zoom:")
         self.zoom_label.pack(side=tk.LEFT, padx=_padx, pady=_pady)
         
-        self.zoom_combo = ttk.Combobox(self.image_frame, values=["1x", "2x", "3x", "4x"])
+        self.zoom_combo = ttk.Combobox(self.image_frame_row1, values=["1x", "2x", "3x", "4x"])
         self.zoom_combo.bind("<<ComboboxSelected>>", self.zoom_combo_cb)
+        self.zoom_combo.set("1x")
         self.zoom_combo.pack(side=tk.LEFT, padx=_padx, pady=_pady)
         
-        self.download_button = ttk.Button(self.image_frame, text="Pobierz")
+        self.download_button = ttk.Button(self.image_frame_row1, text="Pobierz")
         self.download_button.pack(side=tk.LEFT, padx=_padx, pady=_pady)
         
-        self.save_button = ttk.Button(self.image_frame, text="Zapisz")
+        self.save_button = ttk.Button(self.image_frame_row1, text="Zapisz")
         self.save_button.pack(side=tk.LEFT, padx=_padx, pady=_pady)
+        
+        self.image_frame_row2 = ttk.Frame(self.image_frame)
+        self.image_frame_row2.pack(side=tk.TOP, padx=_padx, pady=_pady, fill=tk.BOTH, expand=True)
+        
+#         self.my_image = ImageTk.PhotoImage(Image.open("yellow.png"))
+        self.image_obj = Image.open("yellow.png")
+        self.image_obj[0] = 0
+        print(self.image_obj)
+        self.my_image = ImageTk.PhotoImage(self.image_obj)
+        self.image_label = tk.Label(self.image_frame_row2, image=self.my_image)
+        self.image_label.pack(side=tk.LEFT, padx=_padx, pady=_pady)
         
         self.scan_button_cb()
         
