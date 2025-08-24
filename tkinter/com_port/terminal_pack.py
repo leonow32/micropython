@@ -4,6 +4,7 @@ from tkinter import messagebox
 from tkinter import scrolledtext
 from PIL import Image
 from PIL import ImageTk
+import numpy
 import serial.tools.list_ports as list_ports
 import serial
 
