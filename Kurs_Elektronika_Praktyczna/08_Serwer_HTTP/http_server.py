@@ -8,12 +8,8 @@ import network
 import socket
 import sys
 import time
+import wifi_config
 from machine import Pin
-from config import ssid, password
-
-led = neopixel.NeoPixel(Pin(38, Pin.OUT), 1)
-led[0] = (0, 0, 0)
-led.write()
 
 def led_task(gpio_num, delay_ms):
     led = Pin(gpio_num, Pin.OUT)
@@ -28,7 +24,7 @@ def wifi_connect():
     station.active(True)
     if not station.isconnected():
         print("Łączenie z siecią", end="")
-        station.connect(ssid, password)
+        station.connect(wifi_config.ssid, wifi_config.password)
         while not station.isconnected():
             print(".", end="")
             time.sleep_ms(250)
@@ -39,15 +35,10 @@ def wifi_connect():
     print(f"Adres IP: {ip}")
 
 def index_html():
-    #print("-- index.html")
     gc.collect()
     content = ""
-    #content = "HTTP/1.1 200 OK\r\nContent-Type: text/HTML\r\nConnection: close\r\n\r\n"
     with open("index.html", encoding="utf-8") as file:
-        content += file.read()  
-    
-    content = content.replace("AA", str(esp32.mcu_temperature()))
-    content = content.replace("BBB", str(station.status("rssi")))
+        content += file.read()
     
     if led[0] == (0x10, 0x00, 0x00):
         color = "Czerwony"
@@ -66,39 +57,26 @@ def index_html():
     else:
         color = "Czarny"
     
+    content = content.replace("AA", str(esp32.mcu_temperature()))
+    content = content.replace("BBB", str(station.status("rssi")))
     content = content.replace("CCCCCCCCC", color)
     
     return content
 
 def task():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    #sock = socket.socket()
-    #sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.bind(("", 80))
-#     try:
-#         sock.bind(("", 80))
-#     except:
-#         pass
     sock.listen()
-    #sock.listen(5)
-    #sock.setblocking(False)
-    #sock.setblocking(True)
     
     while True:
         try:
-            #gc.collect()
+            gc.collect()
             
             # Pause here and wait for any request
             conn, addr = sock.accept()
-            
-            #conn.settimeout(3.0)
-            #conn.settimeout(0)
-            #conn.settimeout(None)
             request = conn.recv(1024)
-            #conn.settimeout(None)
             
-            
-            
+            # Response for empty request
             if request == b"":
                 conn.send("HTTP/1.1 400 Bad Request\r\n")
                 conn.send("Connection: close\r\n")
@@ -108,23 +86,16 @@ def task():
             
             # Save only the first line of the request
             request = request.splitlines()[0]
-            #print(request)
             print(f"HTTP Request from {addr[0]}: {request}")
             
             # Prepare response
-            #print("-- HTTP Response: ", end="")
-            
             if (b"GET / HTTP" in request):
                 conn.send(f"HTTP/1.1 307 Temporary Redirect\r\n")
                 conn.send(f"Location: http://{ip}/index.html\r\n")
                 conn.send("Connection: close\r\n")
                 conn.sendall("\r\n")
-                #response = index_html()
-                #conn.send("HTTP/1.1 404 Not Found\n")
                 
-            
             elif b"index.html " in request:
-                #response = index_html()
                 conn.send("HTTP/1.1 200 OK\r\n")
                 conn.send("Content-Type: text/html\r\n")
                 conn.send("Connection: close\r\n")
@@ -149,8 +120,6 @@ def task():
                 else:
                     led[0] = (0x00, 0x00, 0x00)
                     
-                
-                #response = index_html()   
                 conn.send("HTTP/1.1 200 OK\r\n")
                 conn.send("Content-Type: text/html\r\n")
                 conn.send("Connection: close\r\n")
@@ -164,24 +133,19 @@ def task():
                 print("Unknown request")
                 conn.send("HTTP/1.1 404 Not Found\r\n")
                 conn.sendall("\r\n")
-                #response = f"HTTP/1.1 307 Temporary Redirect\r\nLocation: http://{ip}/index.html\r\n\r\n"
-                #conn.send("Connection: close\n\n")
-                #response = ""
             
-            #conn.send(response)
             conn.close()
             
         except Exception as e:
-            sys.print_exception(e)
+            sys.print_exception(e)   
 
-def init():
-    _thread.start_new_thread(task, ())
+led = neopixel.NeoPixel(Pin(38, Pin.OUT), 1)
+led[0] = (0, 0, 0)
+led.write()
+wifi_connect()
 
-if __name__ == "__main__":
-    _thread.start_new_thread(led_task, [21, 1000])
-    _thread.start_new_thread(led_task, [47, 500])
-    _thread.start_new_thread(led_task, [48, 250])
-    _thread.start_new_thread(led_task, [45, 100])
-    wifi_connect()
-    init()
-
+_thread.start_new_thread(led_task, [21, 1000])
+_thread.start_new_thread(led_task, [47, 500])
+_thread.start_new_thread(led_task, [48, 250])
+_thread.start_new_thread(led_task, [45, 100])
+_thread.start_new_thread(task, ())
