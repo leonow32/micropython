@@ -1,6 +1,7 @@
 import machine
 
 STATE_INIT = const(0)
+STATE_IDLE = const(1)
 
 class I2C_Observer():
     
@@ -9,10 +10,15 @@ class I2C_Observer():
         self.scl = scl_pin
         self.state = STATE_INIT
         
+        
         self.sda.init(mode=machine.Pin.IN, pull=machine.Pin.PULL_UP)
         self.scl.init(mode=machine.Pin.IN, pull=machine.Pin.PULL_UP)
         
         # Tutaj trzeba sprawdzic czy w chwili inicjalizacji linia SDA i SCL sa w stanie wysokim
+#         if sda() == 0:
+            
+        # W tym momencie SDA i SCL są w stanie wysokim
+        self.state = STATE_IDLE
         self.sda.irq(self.sda_falling, machine.Pin.IRQ_FALLING)
         
     def sda_falling(self, source):
