@@ -89,7 +89,7 @@ def task():
             print(f"HTTP Request from {addr[0]}: {request}")
             
             # Prepare response
-            if (b"GET / HTTP" in request):
+            if b"GET / HTTP" in request:
                 conn.send(f"HTTP/1.1 307 Temporary Redirect\r\n")
                 conn.send(f"Location: http://{ip}/index.html\r\n")
                 conn.send("Connection: close\r\n")
