@@ -10,6 +10,17 @@ import time
 from font.galaxy16_digits import *
 from font.galaxy24_digits import *
 
+from image.back_32x32 import *
+from image.book_32x32 import *
+from image.cancel_32x32 import *
+from image.clock_32x32 import *
+from image.down_32x32 import *
+from image.hand_32x32 import *
+from image.light_32x32 import *
+from image.ok_32x32 import *
+from image.settings_32x32 import *
+from image.up_32x32 import *
+
 button    = machine.Pin(0, machine.Pin.IN)
 i2c       = machine.I2C(0, freq=100000)
 display   = ssd1309.SSD1309(i2c)
@@ -79,19 +90,34 @@ def print_sensors():
     except:
         pass
 
+def print_images():
+    display.fill(0)
+    display.blit(ok_32x32,        0,  0)
+    display.blit(back_32x32,      0, 32)
+    display.blit(clock_32x32,    32,  0)
+    display.blit(settings_32x32, 32, 32)
+    display.blit(book_32x32,     64,  0)
+    display.blit(light_32x32,    64, 32)
+    display.blit(up_32x32,       96,  0)
+    display.blit(down_32x32,     96, 32)
+    display.refresh()
+
 if button():
     while True:
         
         increment_counter()
         
-        for i in range(6):
+        for i in range(4):
             print_sensors()
-            time.sleep_ms(10)
-            machine.lightsleep(10_000)
+            time.sleep_ms(5000)
             
             print_time()
-            time.sleep_ms(10)
-            machine.lightsleep(10_000)
+            time.sleep_ms(5000)
+            
+            print_images()
+            time.sleep_ms(4625)
+            
+            #machine.lightsleep(10_000)
         
         #mem_used.print_ram_used()
         #time.sleep(60)
