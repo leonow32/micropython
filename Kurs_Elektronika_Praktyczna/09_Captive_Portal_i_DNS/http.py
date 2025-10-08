@@ -9,18 +9,7 @@ import sys
 import time
 import wifi_ap
 from machine import Pin
-#from wifi_ap import local_ip
 
-led = neopixel.NeoPixel(Pin(38, Pin.OUT), 1)
-led[0] = (0, 0, 0)
-led.write()
-
-def led_task(gpio_num, delay_ms):
-    led = Pin(gpio_num, Pin.OUT)
-    
-    while True:  
-        led(not led())
-        time.sleep_ms(delay_ms)
 
 def index_html():
     #gc.collect()
@@ -156,11 +145,9 @@ def task():
             time.sleep_ms(100)
 
 def init():
-    _thread.start_new_thread(led_task, [21, 1000])
-    _thread.start_new_thread(led_task, [47, 500])
-    _thread.start_new_thread(led_task, [48, 250])
-    _thread.start_new_thread(led_task, [45, 100])
+    global led
+    led = neopixel.NeoPixel(Pin(38, Pin.OUT), 1)
+    led[0] = (0, 0, 0)
+    led.write()
+    
     _thread.start_new_thread(task, [])
-
-if __name__ == "__main__":
-    init()

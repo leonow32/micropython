@@ -8,12 +8,9 @@ def get_ip():
     return local_ip
 
 def init(ssid):
-    global ap
+    #global ap
     ap = network.WLAN(network.WLAN.IF_AP)
     ap.active(True)
-    
-    # IP address, netmask, gateway, DNS
-    #ap.ifconfig((local_ip, "255.255.255.0", local_ip, local_ip))
     ap.config(essid=ssid, authmode=network.AUTH_OPEN)
     
     global local_ip
