@@ -12,13 +12,10 @@ from machine import Pin
 
 
 def index_html():
-    #gc.collect()
-    
+    gc.collect()
+    content = ""
     with open("index.html", encoding="utf-8") as file:
-        content = file.read()  
-    
-    content = content.replace("AA", str(esp32.mcu_temperature()))
-    #content = content.replace("BBB", str(ap.status("rssi")))
+        content += file.read()
     
     if led[0] == (0x10, 0x00, 0x00):
         color = "Czerwony"
@@ -36,45 +33,36 @@ def index_html():
         color = "Biały"
     else:
         color = "Czarny"
-    
+        
+    content = content.replace("AA", str(esp32.mcu_temperature()))
+    #content = content.replace("BBB", str(ap.status("rssi")))
     content = content.replace("CCCCCCCCC", color)
     
     return content
 
 def task():
-    #sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock = socket.socket()
-    
-#     try:
-#         sock.bind(('', 80))
-#     except:
-#         pass
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.bind(("", 80))
-    
-    #sock.listen(5)
     sock.listen()
-    
-    #sock.setblocking(False)
     
     while True:
         try:
             gc.collect()
             
+            # Pause here and wait for any request
             conn, addr = sock.accept()
-            #conn.settimeout(3.0)
-            
             request = conn.recv(1024)
-            #conn.settimeout(None)
             
+            # Response for empty request
             if request == b"":
                 print(f"HTTP - from {addr[0]} EMPTY request")
                 conn.send("HTTP/1.1 400 Bad Request\r\n")
                 conn.send("Connection: close\r\n")
-                conn.send("\r\n")
+                conn.sendall("\r\n")
                 conn.close()
                 continue
             
-            # Zapisz tylko pierwszą linię zapytania, a resztę odrzuć
+            # Save only the first line of the request
             request = request.splitlines()[0]
             print(f"HTTP - from {addr[0]} request {request}")
             
@@ -85,7 +73,7 @@ def task():
                 conn.send("HTTP/1.1 307 Temporary Redirect\r\n")
                 conn.send(f"Location: http://{wifi_ap.get_ip()}/index.html\r\n")
                 conn.send("Connection: close\r\n")
-                conn.send("\r\n")
+                conn.sendall("\r\n")
                 
             elif b"index.html " in request:
                 print("index.html")
@@ -93,12 +81,12 @@ def task():
                 conn.send("Content-Type: text/html\r\n")
                 conn.send("Connection: close\r\n")
                 conn.send("\r\n")
-                conn.send(index_html())
+                conn.sendall(index_html())
 
             elif b'favicon.ico' in request:
                 print("favicon.ico - ignoring")
                 conn.send("HTTP/1.1 404 Not Found\r\n")
-                conn.send("\r\n")
+                conn.sendall("\r\n")
               
             elif b"color" in request:
                 print("color")
@@ -123,26 +111,25 @@ def task():
                 conn.send("Content-Type: text/html\r\n")
                 conn.send("Connection: close\r\n")
                 conn.send("\r\n")
-                conn.send(index_html())
+                conn.sendall(index_html())
                 
                 led.write()
                 
             elif b'connectivitycheck' in request:
                 print("Connectivity check")
                 conn.send("HTTP/1.1 204 No Content\r\n")
-                conn.send("\r\n")
+                conn.sendall("\r\n")
                 
             else:
                 print("Unknown request")
                 conn.send("HTTP/1.1 307 Temporary Redirect\r\n")
                 conn.send(f"Location: http://{wifi_ap.get_ip()}/index.html\r\n")
-                conn.send("\r\n")
+                conn.sendall("\r\n")
             
             conn.close()
-                       
+        
         except Exception as e:
-            #sys.print_exception(e)
-            time.sleep_ms(100)
+            sys.print_exception(e)
 
 def init():
     global led
