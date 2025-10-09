@@ -10,7 +10,6 @@ import time
 import wifi_ap
 from machine import Pin
 
-
 def index_html():
     gc.collect()
     content = ""
@@ -69,7 +68,7 @@ def task():
             # Prepare response
             print("HTTP - response: ", end="")
             
-            if (b"GET / HTTP" in request):
+            if b"GET / HTTP" in request:
                 conn.send("HTTP/1.1 307 Temporary Redirect\r\n")
                 conn.send(f"Location: http://{wifi_ap.get_ip()}/index.html\r\n")
                 conn.send("Connection: close\r\n")
@@ -83,7 +82,7 @@ def task():
                 conn.send("\r\n")
                 conn.sendall(index_html())
 
-            elif b'favicon.ico' in request:
+            elif b"favicon.ico" in request:
                 print("favicon.ico - ignoring")
                 conn.send("HTTP/1.1 404 Not Found\r\n")
                 conn.sendall("\r\n")
@@ -111,11 +110,12 @@ def task():
                 conn.send("Content-Type: text/html\r\n")
                 conn.send("Connection: close\r\n")
                 conn.send("\r\n")
-                conn.sendall(index_html())
+                response = index_html()
+                conn.sendall(response)
                 
                 led.write()
                 
-            elif b'connectivitycheck' in request:
+            elif b"connectivitycheck" in request:
                 print("Connectivity check")
                 conn.send("HTTP/1.1 204 No Content\r\n")
                 conn.sendall("\r\n")
@@ -124,6 +124,7 @@ def task():
                 print("Unknown request")
                 conn.send("HTTP/1.1 307 Temporary Redirect\r\n")
                 conn.send(f"Location: http://{wifi_ap.get_ip()}/index.html\r\n")
+                conn.send("Connection: close\r\n")
                 conn.sendall("\r\n")
             
             conn.close()
@@ -137,4 +138,4 @@ def init():
     led[0] = (0, 0, 0)
     led.write()
     
-    _thread.start_new_thread(task, [])
+    _thread.start_new_thread(task, ())
