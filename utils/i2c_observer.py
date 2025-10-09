@@ -1,5 +1,7 @@
 import machine
 
+#test
+
 STATE_INIT = const(0)
 STATE_IDLE = const(1)
 
