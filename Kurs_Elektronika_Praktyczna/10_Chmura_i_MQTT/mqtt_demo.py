@@ -3,7 +3,7 @@
 import _thread
 import network
 import time
-from config import ssid, password
+import wifi_config
 from umqtt.robust import MQTTClient
 
 def wifi_connect():
@@ -11,7 +11,7 @@ def wifi_connect():
     station.active(True)
     if not station.isconnected():
         print("Łączenie z siecią", end="")
-        station.connect(ssid, password)
+        station.connect(wifi_config.ssid, wifi_config.password)
         while not station.isconnected():
             print(".", end="")
             time.sleep_ms(250)
@@ -31,7 +31,7 @@ def send_demo():
     client.publish("0000test", "To jest test wysylania wiadomosci z ESP32")
  
 wifi_connect()
-client = MQTTClient(client_id = "My-ESP32-S3", server = "test.mosquitto.org")  
+client = MQTTClient(client_id="My-ESP32-S3", server="test.mosquitto.org")  
 client.set_callback(mqtt_callback)  
 client.connect()  
 client.subscribe("0000test")
