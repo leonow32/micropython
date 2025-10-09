@@ -24,9 +24,9 @@ class SpyI2C():
         # W tym momencie SDA i SCL są w stanie wysokim
         self.state = STATE_IDLE
 #         self.sda.irq(self.sda_irq, machine.Pin.IRQ_FALLING | machine.Pin.IRQ_RISING)
-#         self.scl.irq(self.scl_irq, machine.Pin.IRQ_FALLING | machine.Pin.IRQ_RISING)
-        self.sda.irq(self.sda_irq, machine.Pin.IRQ_FALLING)
-        self.scl.irq(self.scl_irq, machine.Pin.IRQ_FALLING)
+        self.scl.irq(self.scl_irq, machine.Pin.IRQ_FALLING | machine.Pin.IRQ_RISING)
+#         self.sda.irq(self.sda_irq, machine.Pin.IRQ_FALLING)
+#         self.scl.irq(self.scl_irq, machine.Pin.IRQ_FALLING)
         self.scl_edge = 0
         
     def sda_irq(self, source):
@@ -34,30 +34,19 @@ class SpyI2C():
             self.sda_rise_cnt += 1
         else:
             self.sda_fall_cnt += 1
-#         pass
-#         print(source)
-#         self.sda_fall_cnt += 1
-#         print("D-", end="")
-    
-    def sda_rising(self, source):
-        self.sda_rise_cnt += 1
-#         print("D+", end="")
     
     def scl_irq(self, source):
         # Przerwanie od zbocza rosnącego
         if(self.scl_edge):
+            self.scl_edge = 0
             self.scl_rise_cnt += 1
             self.scl.irq(self.scl_irq, machine.Pin.IRQ_FALLING)
         
         # Przerwanie od zbocza opadającego
         else:
+            self.scl_edge = 1
             self.scl_fall_cnt += 1
             self.scl.irq(self.scl_irq, machine.Pin.IRQ_RISING)
-
-    
-    def scl_rising(self, source):
-        self.scl_rise_cnt += 1
-#         print("C+", end="")
         
     def debug_print(self):
         print(f"SDA rise {self.sda_rise_cnt:2d}, fall {self.sda_fall_cnt:2d}")
@@ -75,30 +64,34 @@ class SpyI2C():
 
 def test():
     spy.debug_clear()
-    data = i2c.readfrom(0x50, 1)
-    
-    for byte in data:
-        print(f"{byte:02X} ", end="")
-    print()
-    
+    i2c.writeto(0x3C, b"\xFF")
+
+    time.sleep_ms(100)
     spy.debug_print()
 
 if __name__ == "__main__":
     import mem_used
     import sys
     
-    if sys.implementation._machine == "Raspberry Pi Pico W with RP2040":
-        print(sys.implementation._machine)
+    print(sys.implementation._machine)
+    print(sys.platform)
+    
+    if "rp2" == sys.platform:
         spy_sda = machine.Pin(14)
         spy_scl = machine.Pin(15)
-        
         i2c = machine.I2C(0, freq=1000)
-        print(i2c)
+    elif "ESP32S3" in sys.implementation._machine:
+        raise Exception("Not ready")
+    elif "ESP32" in sys.implementation._machine:
+        spy_sda = machine.Pin(25)
+        spy_scl = machine.Pin(26)
+        i2c = machine.I2C(0, sda=machine.Pin(19), scl=machine.Pin(18), freq=5_000)
     else:
-        print("Not supported microcontroller")
-        spy_sda = machine.Pin(1)
-        spy_scl = machine.Pin(2)
+        raise Exception("Microcontroller not supported")
+    
+    print(i2c)
     
     spy = SpyI2C(spy_sda, spy_scl)
+    test()
 
     mem_used.print_ram_used()
