@@ -24,7 +24,7 @@ display.print_text(mini8,              "abcdefghijklmnopqrstuvwxyz01234", 0, 8, 
 display.print_text(squared16_unicode,  "ąęłćśńóźż", 0, 16, "L")
 display.print_text(squared16B_unicode, "ąęłćśńóźż", 0, 16, "R")
 display.print_text(dos8,               "abcdefghijklmnop", 0, 32, "C")
-display.print_text(dos8,               "qrstuvwxyz123345", 0, 40, "C", 0)
+display.print_text(dos8,               "qrstuvwxyz123456", 0, 40, "C", 0)
 display.print_text(galaxy16_digits,    "0123456789", 0, 49, "C")
 end_time = time.ticks_us()
 
