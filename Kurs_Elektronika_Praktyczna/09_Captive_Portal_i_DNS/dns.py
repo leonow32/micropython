@@ -47,10 +47,8 @@ def decode_request(request):
     return packet, domain
 
 def task():
-    #global local_ip
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind(("", 53))
-    #sock.setblocking(False)
     
     while True:
         try:
@@ -60,11 +58,7 @@ def task():
             sock.sendto(response, addr)
             print(f"DNS  - from {addr[0]} request {domain}, response is {wifi_ap.get_ip()}")
         except Exception as e:
-            #sys.print_exception(e)
-            time.sleep_ms(100)
+            sys.print_exception(e)
 
 def init():
     _thread.start_new_thread(task, ())
-
-if __name__ == "__main__":
-    init()
