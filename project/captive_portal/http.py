@@ -3,9 +3,11 @@
 import _thread
 import esp32
 import gc
+import led
 import neopixel
 import socket
 import sys
+import temperature
 import time
 import wifi_ap
 from machine import Pin
@@ -16,24 +18,26 @@ def index_html():
     with open("index.html", encoding="utf-8") as file:
         content += file.read()
     
-    if led[0] == (0x10, 0x00, 0x00):
+    ws2812_color = led.read()
+    
+    if ws2812_color == (0x10, 0x00, 0x00):
         color = "Czerwony"
-    elif led[0] == (0x10, 0x10, 0x00):
+    elif ws2812_color == (0x10, 0x10, 0x00):
         color = "Żółty"
-    elif led[0] == (0x00, 0x10, 0x00):
+    elif ws2812_color == (0x00, 0x10, 0x00):
         color = "Zielony"
-    elif led[0] == (0x00, 0x10, 0x10):
+    elif ws2812_color == (0x00, 0x10, 0x10):
         color = "Błękitny"
-    elif led[0] == (0x00, 0x00, 0x10):
+    elif ws2812_color == (0x00, 0x00, 0x10):
         color = "Niebieski"
-    elif led[0] == (0x10, 0x00, 0x10):
+    elif ws2812_color == (0x10, 0x00, 0x10):
         color = "Fioletowy"
-    elif led[0] == (0x10, 0x10, 0x10):
+    elif ws2812_color == (0x10, 0x10, 0x10):
         color = "Biały"
     else:
         color = "Czarny"
         
-    content = content.replace("AA", str(esp32.mcu_temperature()))
+    content = content.replace("AA", str(temperature.temperature_get()))
     #content = content.replace("BBB", str(ap.status("rssi")))
     content = content.replace("CCCCCCCCC", color)
     
@@ -90,21 +94,21 @@ def task():
             elif b"color" in request:
                 print("color")
                 if b"red" in request:
-                    led[0] = (0x10, 0x00, 0x00)
+                    led.write(0x10, 0x00, 0x00)
                 elif b"yellow" in request:
-                    led[0] = (0x10, 0x10, 0x00)
+                    led.write(0x10, 0x10, 0x00)
                 elif b"green" in request:
-                    led[0] = (0x00, 0x10, 0x00)
+                    led.write(0x00, 0x10, 0x00)
                 elif b"cyan" in request:
-                    led[0] = (0x00, 0x10, 0x10)
+                    led.write (0x00, 0x10, 0x10)
                 elif b"blue" in request:
-                    led[0] = (0x00, 0x00, 0x10)
+                    led.write(0x00, 0x00, 0x10)
                 elif b"magenta" in request:
-                    led[0] = (0x10, 0x00, 0x10)
+                    led.write(0x10, 0x00, 0x10)
                 elif b"white" in request:
-                    led[0] = (0x10, 0x10, 0x10)
+                    led.write(0x10, 0x10, 0x10)
                 else:
-                    led[0] = (0x00, 0x00, 0x00)
+                    led.write(0x00, 0x00, 0x00)
                 
                 conn.send("HTTP/1.1 200 OK\r\n")
                 conn.send("Content-Type: text/html\r\n")
@@ -112,8 +116,6 @@ def task():
                 conn.send("\r\n")
                 response = index_html()
                 conn.sendall(response)
-                
-                led.write()
                 
             elif b"connectivitycheck" in request:
                 print("Connectivity check")
@@ -133,9 +135,4 @@ def task():
             sys.print_exception(e)
 
 def init():
-    global led
-    led = neopixel.NeoPixel(Pin(38, Pin.OUT), 1)
-    led[0] = (0, 0, 0)
-    led.write()
-    
     _thread.start_new_thread(task, ())

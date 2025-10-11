@@ -1,7 +1,7 @@
 import neopixel
 import sys
 import time
-from machine import Pin, Timer
+from machine import Pin
 
 if "ESP32 " in sys.implementation._machine:
     led = neopixel.NeoPixel(Pin(21, Pin.OUT), 1)
