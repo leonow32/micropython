@@ -7,6 +7,6 @@ import temperature
 import wifi_ap
 
 led.init()
-wifi_ap.init("ESP32_HotSpot")
-dns.init()
+wifi_ap.init("Captive Portal Hot Spot")
+#dns.init()
 http.init()
