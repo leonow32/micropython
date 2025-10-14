@@ -3,7 +3,7 @@
 from machine import Pin, I2C
 
 # i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=100000)
-i2c = I2C(0)
+i2c = I2C(0, freq=100_000)
 print(i2c)
 devices = i2c.scan()
 
