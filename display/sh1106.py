@@ -78,26 +78,31 @@ class SH1106(framebuf.FrameBuffer):
         self.write_cmd(0x81)
         self.write_cmd(value)
     
-    @micropython.viper
+    #@micropython.viper
     def refresh(self):
         
         for page in range(8):
+            print(f"page {page}, ", end="") 
             header = bytes([
                 0x80, 0xB0 | page,          # Set page number
-                0x80, 0x02, # Set x cursor, low nibble
+                0x80, self.offset_x, # Set x cursor, low nibble
                 0x80, 0x10                  # Set x cursor, high nibble
             ])
             
+            for byte in header:
+                print(f"{byte:02X} ", end="")
+            print()
+            
             self.i2c.writeto(self.address, header)
-            fragment = self.array[0:132]
+#             fragment = self.array[0:132]
 #             self.i2c.writevto(self.address, fragment)
-#             self.i2c.writevto(self.address, (b"\x40", self.array[page*WIDTH:(page+1)*WIDTH-1]))
+            self.i2c.writevto(self.address, (b"\x40", self.array[page*WIDTH:(page+1)*WIDTH-1]))
         
     @micropython.viper
     def simulate(self):
         for y in range(HEIGHT):
             print(f"{y}\t", end="")
-            for x in range(WIDTH):
+            for x in range(WIDTH-4):
                 bit  = 1 << (y % 8)
                 byte = int(self.array[(y // 8) * WIDTH + x])
                 pixel = "#" if byte & bit else "."
@@ -160,16 +165,17 @@ class SH1106(framebuf.FrameBuffer):
 if __name__ == "__main__":
     from machine import Pin, I2C
     import mem_used
-#     import ssd1309
+#     import sh1106
 
     i2c = I2C(0) # use default pinout and clock frequency
     print(i2c)   # print pinout and clock frequency
 
     display = SH1106(i2c, address=0x3D, offset_x=2)
     display.rect(0, 0, 128, 64, 1)
-#     display.text('abcdefghijklm', 1, 2, 1)
-#     display.text('nopqrstuvwxyz', 1, 10, 1)
+    display.line(2, 2, 125, 61, 1)
+    display.text('abcdefghijklm', 1, 2, 1)
+    display.text('nopqrstuvwxyz', 1, 10, 1)
     display.refresh()
-#     display.simulate()
+    display.simulate()
 
     mem_used.print_ram_used()
