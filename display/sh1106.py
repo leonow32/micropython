@@ -11,8 +11,12 @@ class SH1106(framebuf.FrameBuffer):
     
     @micropython.native
     def __init__(self, i2c, rotate=False, address=0x3C, offset_x=2):
+        """
+        - offset_x - max 15px
+        """
         self.i2c = i2c
         self.address = address
+        self.offset_x = offset_x
         self.array = bytearray(WIDTH * HEIGHT // 8)
         super().__init__(self.array, WIDTH, HEIGHT, framebuf.MONO_VLSB)
         
@@ -23,7 +27,19 @@ class SH1106(framebuf.FrameBuffer):
             0xB0,                     # Set Page = 0
             0x40,                     # Set Start Line = 0
             0xA0 | 1,                 # Set Remap = 1
-            
+            0xDA, 0x12,               # Com pins
+            0xD3, 0x00,               # Display offset
+            0xC0,                     # Scan direction
+            0xC8,                     # Undocummented
+            0xA6,                     # Positive image
+            0xA4,                     # Entrie display on
+            0x81, 0xFF,               # Contrast = full
+            0xA8, 0x3F,               # Multiplex ratio = 1/64 duty
+            0xD5, 0x80,               # Display clock divider
+            0xD9, 0xF1,               # Charge period
+            0xDB, 0x40,               # VCOM select
+            0x8D, 0x14,               # Charge pump
+            0xAF,                     # Display on
             
 #             0x20, 0x00,               # Set memory addressing mode to horizontal addressing mode
 #             0x40,                     # Set display start line to 0
@@ -39,7 +55,7 @@ class SH1106(framebuf.FrameBuffer):
 #             0xA4,                     # Use image in GDDRAM memory
 #             0xA6,                     # Display not inverted
 #             0x8D, 0x14,               # SSD1306 only - charge pump enable
-            0xAF,                     # Display on
+#             0xAF,                     # Display on
         )
         
         for cmd in config:
@@ -64,11 +80,18 @@ class SH1106(framebuf.FrameBuffer):
     
     @micropython.viper
     def refresh(self):
-        # Set column address range from 0x00 to 0x7F, set page address range from 0x00 to 0x07
-        for cmd in (0x21, 0x00, 0x7F, 0x22, 0x00, 0x07):
-            self.write_cmd(cmd)
         
-        self.i2c.writevto(self.address, (b"\x40", self.array))
+        for page in range(8):
+            header = bytes([
+                0x80, 0xB0 | page,          # Set page number
+                0x80, 0x02, # Set x cursor, low nibble
+                0x80, 0x10                  # Set x cursor, high nibble
+            ])
+            
+            self.i2c.writeto(self.address, header)
+            fragment = self.array[0:132]
+#             self.i2c.writevto(self.address, fragment)
+#             self.i2c.writevto(self.address, (b"\x40", self.array[page*WIDTH:(page+1)*WIDTH-1]))
         
     @micropython.viper
     def simulate(self):
@@ -142,11 +165,11 @@ if __name__ == "__main__":
     i2c = I2C(0) # use default pinout and clock frequency
     print(i2c)   # print pinout and clock frequency
 
-    display = SH1106(i2c, address=0x3D)
+    display = SH1106(i2c, address=0x3D, offset_x=2)
     display.rect(0, 0, 128, 64, 1)
-    display.text('abcdefghijklm', 1, 2, 1)
-    display.text('nopqrstuvwxyz', 1, 10, 1)
+#     display.text('abcdefghijklm', 1, 2, 1)
+#     display.text('nopqrstuvwxyz', 1, 10, 1)
     display.refresh()
-    display.simulate()
+#     display.simulate()
 
     mem_used.print_ram_used()
