@@ -11,7 +11,7 @@ HEIGHT  = const(64)
 class SH1106(framebuf.FrameBuffer):
     
     @micropython.native
-    def __init__(self, i2c, rotate=False, address=0x3C, offset_x=2):
+    def __init__(self, i2c, address=0x3C, flip_x=False, flip_y=False, offset_x=2):
         """
         - offset_x - max 15px
         """
@@ -27,11 +27,10 @@ class SH1106(framebuf.FrameBuffer):
             0x10,                     # Column High Nibble = 0
             0xB0,                     # Set Page = 0
             0x40,                     # Set Start Line = 0
-            0xA0 | 1,                 # Set Remap = 1
+            0xA1 if flip_x else 0xA0, # Set Remap (flip x)
             0xDA, 0x12,               # Com pins
             0xD3, 0x00,               # Display offset
-            0xC0,                     # Scan direction
-            0xC8,                     # Undocummented
+            0xC8 if flip_y else 0xC0, # Scan direction (flip y)
             0xA6,                     # Positive image
             0xA4,                     # Entrie display on
             0x81, 0xFF,               # Contrast = full
@@ -67,11 +66,11 @@ class SH1106(framebuf.FrameBuffer):
         self.i2c.writeto(self.address, bytes([0x80, cmd]))
     
     @micropython.viper
-    def display_on(self):
+    def enable(self):
         self.write_cmd(0xAF)
         
     @micropython.viper
-    def display_off(self):
+    def disable(self):
         self.write_cmd(0xAE)
     
     @micropython.viper
@@ -163,7 +162,7 @@ if __name__ == "__main__":
     i2c = I2C(0) # use default pinout and clock frequency
     print(i2c)   # print pinout and clock frequency
 
-    display = SH1106(i2c, address=0x3D, offset_x=2)
+    display = SH1106(i2c, address=0x3D, offset_x=2, flip_x=True, flip_y=True)
     display.rect(0, 0, 128, 64, 1)
     display.line(2, 2, 125, 61, 1)
     display.text('abcdefghijklm', 1, 2, 1)

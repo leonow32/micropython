@@ -10,7 +10,7 @@ HEIGHT  = const(64)
 class SSD1309(framebuf.FrameBuffer):
     
     @micropython.native
-    def __init__(self, i2c, rotate=False, address=0x3C):
+    def __init__(self, i2c, address=0x3C, flip_x=False, flip_y=False):
         self.i2c = i2c
         self.address = address
         self.array = bytearray(WIDTH * HEIGHT // 8)
@@ -20,9 +20,9 @@ class SSD1309(framebuf.FrameBuffer):
             0xAE,                     # Display off
             0x20, 0x00,               # Set memory addressing mode to horizontal addressing mode
             0x40,                     # Set display start line to 0
-            0xA0 if rotate else 0xA1, # Set segment remap
+            0xA0 if flip_x else 0xA1, # Set segment remap
             0xA8, 0x3F,               # Set multiplex ratio to 63
-            0xC0 if rotate else 0xC8, # Set COM scan direction
+            0xC0 if flip_y else 0xC8, # Set COM scan direction
             0xD3, 0x00,               # Set display offset to 0
             0xDA, 0x12,               # Set COM pins hardware config to enable COM left/right remap, sequential COM pin config
             0xD5, 0x80,               # Set clock and oscillator frequency to freq=8, clock=0
@@ -43,11 +43,11 @@ class SSD1309(framebuf.FrameBuffer):
         self.i2c.writeto(self.address, bytes([0x80, cmd]))
     
     @micropython.viper
-    def display_on(self):
+    def enable(self):
         self.write_cmd(0xAF)
         
     @micropython.viper
-    def display_off(self):
+    def disable(self):
         self.write_cmd(0xAE)
     
     @micropython.viper
@@ -126,3 +126,20 @@ class SSD1309(framebuf.FrameBuffer):
             last_char_space = bitmap[2]
         
         return total - last_char_space
+
+if __name__ == "__main__":
+    from machine import Pin, I2C
+    import mem_used
+
+    i2c = I2C(0) # use default pinout and clock frequency
+    print(i2c)   # print pinout and clock frequency
+
+    display = SSD1309(i2c, address=0x3C, flip_x=False, flip_y=False)
+    display.rect(0, 0, 128, 64, 1)
+    display.line(2, 2, 125, 61, 1)
+    display.text('abcdefghijklm', 1, 2, 1)
+    display.text('nopqrstuvwxyz', 1, 10, 1)
+    display.refresh()
+#     display.simulate()
+
+    mem_used.print_ram_used()
