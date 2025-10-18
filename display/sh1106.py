@@ -16,10 +16,10 @@ class SH1106(framebuf.FrameBuffer):
         self.flip_x   = flip_x
         self.flip_y   = flip_y
         self.offset_x = offset_x
-        self.self.width    = 128
+        self.width    = 128
         self.height   = 64
-        self.array    = bytearray((self.self.width+4) * self.height // 8)
-        super().__init__(self.array, (self.self.width+4), self.height, framebuf.MONO_VLSB)
+        self.array    = bytearray((self.width+4) * self.height // 8)
+        super().__init__(self.array, (self.width+4), self.height, framebuf.MONO_VLSB)
         
         config = (
             0xAE,                     # Display off
@@ -76,15 +76,15 @@ class SH1106(framebuf.FrameBuffer):
                 0x40                        # The following bytes are graphic data
             ])
             
-            self.i2c.writevto(self.address, (header, self.array[page*(self.self.width+4):(page+1)*(self.self.width+4)-1]))
+            self.i2c.writevto(self.address, (header, self.array[page*(self.width+4):(page+1)*(self.width+4)-1]))
         
     @micropython.native
     def simulate(self):
         for y in range(self.height):
             print(f"{y}\t", end="")
-            for x in range(self.self.width):
+            for x in range(self.width):
                 bit  = 1 << (y % 8)
-                byte = int(self.array[(y // 8) * (self.self.width+4) + x])
+                byte = int(self.array[(y // 8) * (self.width+4) + x])
                 pixel = "#" if byte & bit else "."
                 print(pixel, end="")
             print("")
