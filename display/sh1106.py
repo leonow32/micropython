@@ -45,6 +45,7 @@ class SH1106(framebuf.FrameBuffer):
         for cmd in config:
             self.write_cmd(cmd)
     
+    @micropython.viper
     def __str__(self):
         return f"SH1106(i2c={self.i2c}, address=0x{self.address:02X}, flip_x={self.flip_x}, flip_y={self.flip_y}, offset_x={self.offset_x})"
     
@@ -91,7 +92,6 @@ class SH1106(framebuf.FrameBuffer):
 if __name__ == "__main__":
     from machine import Pin, I2C
     import mem_used
-#     import sh1106
 
     i2c = I2C(0) # use default pinout and clock frequency
     print(i2c)   # print pinout and clock frequency

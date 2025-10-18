@@ -10,6 +10,7 @@ class DisplayHAL:
     def __init__(self, display):
         self.display = display
         
+    @micropython.viper
     def __str__(self):
         return f"DisplayHAL(display={self.display})"
     
@@ -33,35 +34,65 @@ class DisplayHAL:
     def simulate(self):
         self.display.simulate()
         
+    @micropython.viper
     def pixel(self, x, y, color):
         self.display.pixel(x, y, color)
         
+    @micropython.viper
     def line(self, x1, y1, x2, y2, color):
         self.display.line(x1, y1, x2, y2, color)
         
+    @micropython.viper
     def hline(self, x, y, width, color):
         self.display.hline(x, y, width, color)
         
+    @micropython.viper
     def vline(self, x, y, height, color):
         self.display.vline(x, y, h, color)
         
+    @micropython.viper
     def rect(self, x, y, width, height, color):
         self.display.rect(x, y, width, height, color)
         
+    @micropython.viper
     def fill_rect(self, x, y, width, height, color):
         self.display.fill_rect(x, y, width, height, color)
         
+    @micropython.viper
     def fill(self, color):
         self.display.fill(color)
         
-    def text(self, text, x, y, color):
-        self.display.text(text, x, y, color)
+    @micropython.native
+    def circle(self, x, y, radius, color, fill=False):
+        self.display.ellipse(x, y, radius, radius, color, fill)
         
+    @micropython.native
+    def text(self, text, x, y, color, font=None, align="left"):
+        if font:
+            if   align == "RIGHT":
+                width = self.text_width(text, font)
+                x = self.display.width - width
+            elif align == "CENTER":
+                width = self.text_width(text, font)
+                x = self.display.width//2 - width//2
+            elif align == "right":
+                width = self.text_width(text, font)
+                x = x - width + 1
+            elif align == "center":
+                width = self.text_width(text, font)
+                x = x - width//2
+            
+            for char in text:
+                x += self.char(font, char, x, y, color)
+        else:
+            self.display.text(text, x, y, color)
+        
+    @micropython.native
     def image(self, bitmap, x, y, transparent_color=-1):
         self.display.blit(bitmap, x, y, transparent_color)
     
     @micropython.native
-    def print_char(self, font, char, x, y, color=1):
+    def char(self, font, char, x, y, color=1):
         try:
             bitmap = font[ord(char)]
         except:
@@ -86,23 +117,7 @@ class DisplayHAL:
         return width + space  
     
     @micropython.native
-    def print_text(self, font, text, x, y, align="L", color=1):
-        width = self.get_text_width(font, text)
-        
-        if   align == "R":
-            x = self.display.width - width
-        elif align == "C":
-            x = self.display.width//2 - width//2
-        elif align == "r":
-            x = x - width + 1
-        elif align == "c":
-            x = x - width//2
-        
-        for char in text:
-            x += self.print_char(font, char, x, y, color)
-    
-    @micropython.native
-    def get_text_width(self, font, text):
+    def text_width(self, text, font):
         total = 0
         last_char_space = 0
         for char in text:
@@ -133,12 +148,14 @@ if __name__ == "__main__":
     
     hal.rect(0, 0, 128, 64, 1)
     hal.line(2, 2, 125, 61, 1)
-    hal.text('abcdefghijklm', 1, 2, 1)
+    hal.circle(64, 32, 30, 1)
+    hal.text('abcdefghijklm', 1,  2, 1)
     hal.text('nopqrstuvwxyz', 1, 10, 1)
+    hal.text("abcdefghijkl", 50, 20, 1, squared16_unicode,  "center")
+    hal.text("abcdefghijkl", 50, 40, 0, squared16B_unicode, "center")
     hal.image(up_32x32,       96,  0, 0)
     hal.image(down_32x32,     96, 32, 0)
-    hal.print_text(squared16_unicode,  "abcdefghijkl", 50, 20, "c")
-    hal.print_text(squared16B_unicode, "abcdefghijkl", 50, 40, "c", 0)
+   
     
     hal.refresh()
 #     hal.simulate()

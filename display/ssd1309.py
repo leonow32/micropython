@@ -39,6 +39,7 @@ class SSD1309(framebuf.FrameBuffer):
         for cmd in config:
             self.write_cmd(cmd)
     
+    @micropython.viper
     def __str__(self):
         return f"SSD1309(i2c={self.i2c}, address=0x{self.address:02X}, flip_x={self.flip_x}, flip_y={self.flip_y})"
     
