@@ -33,67 +33,66 @@ class DisplayHAL:
     def simulate(self):
         self.display.simulate()
         
-    def pixel(self, x, y, c):
-        self.display.pixel(x, y, c)
+    def pixel(self, x, y, color):
+        self.display.pixel(x, y, color)
         
-    def line(self, x1, y1, x2, y2, c):
-        self.display.line(x1, y1, x2, y2, c)
+    def line(self, x1, y1, x2, y2, color):
+        self.display.line(x1, y1, x2, y2, color)
         
-    def hline(self, x, y, w, c):
-        self.display.hline(x, y, w, c)
+    def hline(self, x, y, width, color):
+        self.display.hline(x, y, width, color)
         
-    def vline(self, x, y, h, c):
-        self.display.vline(x, y, h, c)
+    def vline(self, x, y, height, color):
+        self.display.vline(x, y, h, color)
         
-    def rect(self, x, y, w, h, c):
-        self.display.rect(x, y, w, h, c)
+    def rect(self, x, y, width, height, color):
+        self.display.rect(x, y, width, height, color)
         
-    def fill_rect(self, x, y, w, h, c):
-        self.display.fill_rect(x, y, w, h, c)
+    def fill_rect(self, x, y, width, height, color):
+        self.display.fill_rect(x, y, width, height, color)
         
-    def fill(self, c):
-        self.display.fill(c)
+    def fill(self, color):
+        self.display.fill(color)
         
-    def text(self, text, x, y, c):
-        self.display.text(text, x, y, c)
+    def text(self, text, x, y, color):
+        self.display.text(text, x, y, color)
         
     def image(self, bitmap, x, y, transparent_color=-1):
         self.display.blit(bitmap, x, y, transparent_color)
     
     @micropython.native
     def print_char(self, font, char, x, y, color=1):
-        pass
-#         try:
-#             bitmap = font[ord(char)]
-#         except:
-#             bitmap = font[0]
-#             print(f"Char {char} doesn't exist in font")
-#         
-#         width  = bitmap[0]
-#         height = bitmap[1]
-#         space  = bitmap[2]
-#         
-#         if color:
-#             buffer = framebuf.FrameBuffer(bitmap[3:], width, height, 0)
-#         else:
-#             negative_bitmap = bitmap[:]
-#             for i in range(3, len(bitmap)):
-#                 negative_bitmap[i] = ~negative_bitmap[i]
-#             buffer = framebuf.FrameBuffer(negative_bitmap[3:], width, height, 0)
-#             self.rect(x-space, y, space, height, 1, True)
-#             self.rect(x+width, y, space, height, 1, True)
-#         
-#         self.blit(buffer, x, y)
-#         return width + space     
-
+        try:
+            bitmap = font[ord(char)]
+        except:
+            bitmap = font[0]
+            print(f"Char {char} doesn't exist in font")
+        
+        width  = bitmap[0]
+        height = bitmap[1]
+        space  = bitmap[2]
+        
+        if color:
+            buffer = framebuf.FrameBuffer(bitmap[3:], width, height, 0)
+        else:
+            negative_bitmap = bitmap[:]
+            for i in range(3, len(bitmap)):
+                negative_bitmap[i] = ~negative_bitmap[i]
+            buffer = framebuf.FrameBuffer(negative_bitmap[3:], width, height, 0)
+            self.display.rect(x-space, y, space, height, 1, True)
+            self.display.rect(x+width, y, space, height, 1, True)
+        
+        self.display.blit(buffer, x, y)
+        return width + space  
+    
     @micropython.native
     def print_text(self, font, text, x, y, align="L", color=1):
         width = self.get_text_width(font, text)
         
         if   align == "R":
-            x = WIDTH - width
+            x = self.display.width - width
         elif align == "C":
-            x = WIDTH//2 - width//2
+            x = self.display.width//2 - width//2
         elif align == "r":
             x = x - width + 1
         elif align == "c":
@@ -112,7 +111,7 @@ class DisplayHAL:
             total += bitmap[2]
             last_char_space = bitmap[2]
         
-        return total - last_char_space
+        return total - last_char_space    
 
 if __name__ == "__main__":
     from machine import Pin, I2C
@@ -121,6 +120,8 @@ if __name__ == "__main__":
     import mem_used
     from image.down_32x32 import *
     from image.up_32x32 import *
+    from font.squared16_unicode import *
+    from font.squared16B_unicode import *
 
     i2c = I2C(0) # use default pinout and clock frequency
 
@@ -136,6 +137,8 @@ if __name__ == "__main__":
     hal.text('nopqrstuvwxyz', 1, 10, 1)
     hal.image(up_32x32,       96,  0, 0)
     hal.image(down_32x32,     96, 32, 0)
+    hal.print_text(squared16_unicode,  "abcdefghijkl", 50, 20, "c")
+    hal.print_text(squared16B_unicode, "abcdefghijkl", 50, 40, "c", 0)
     
     hal.refresh()
 #     hal.simulate()
