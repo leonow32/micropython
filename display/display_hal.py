@@ -56,6 +56,9 @@ class DisplayHAL:
         
     def text(self, text, x, y, c):
         self.display.text(text, x, y, c)
+        
+    def image(self, bitmap, x, y, transparent_color=-1):
+        self.display.blit(bitmap, x, y, transparent_color)
     
     @micropython.native
     def print_char(self, font, char, x, y, color=1):
@@ -116,13 +119,13 @@ if __name__ == "__main__":
     import sh1106
     import ssd1309
     import mem_used
+    from image.down_32x32 import *
+    from image.up_32x32 import *
 
     i2c = I2C(0) # use default pinout and clock frequency
-    print(i2c)   # print pinout and clock frequency
 
 #     display = sh1106.SH1106(i2c, address=0x3D, flip_x=True,  flip_y=True, offset_x=2)
     display = ssd1309.SSD1309(i2c, address=0x3C, flip_x=False, flip_y=False)
-    print(display)
     
     hal = DisplayHAL(display)
     print(hal)
@@ -131,6 +134,9 @@ if __name__ == "__main__":
     hal.line(2, 2, 125, 61, 1)
     hal.text('abcdefghijklm', 1, 2, 1)
     hal.text('nopqrstuvwxyz', 1, 10, 1)
+    hal.image(up_32x32,       96,  0, 0)
+    hal.image(down_32x32,     96, 32, 0)
+    
     hal.refresh()
 #     hal.simulate()
 
