@@ -40,22 +40,6 @@ class SH1106(framebuf.FrameBuffer):
             0xDB, 0x40,               # VCOM select
             0x8D, 0x14,               # Charge pump
             0xAF,                     # Display on
-            
-#             0x20, 0x00,               # Set memory addressing mode to horizontal addressing mode
-#             0x40,                     # Set display start line to 0
-#             0xA0 if rotate else 0xA1, # Set segment remap
-#             0xA8, 0x3F,               # Set multiplex ratio to 63
-#             0xC0 if rotate else 0xC8, # Set COM scan direction
-#             0xD3, 0x00,               # Set display offset to 0
-#             0xDA, 0x12,               # Set COM pins hardware config to enable COM left/right remap, sequential COM pin config
-#             0xD5, 0x80,               # Set clock and oscillator frequency to freq=8, clock=0
-#             0xD9, 0xF1,               # Set pre-charge period to phase_2=F, phase_1=1
-#             0xDB, 0x3C,               # Set VCOMH to max
-#             0x81, 0xFF,               # Set contrast to 255 (max)
-#             0xA4,                     # Use image in GDDRAM memory
-#             0xA6,                     # Display not inverted
-#             0x8D, 0x14,               # SSD1306 only - charge pump enable
-#             0xAF,                     # Display on
         )
         
         for cmd in config:
