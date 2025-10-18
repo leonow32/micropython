@@ -69,7 +69,7 @@ class DisplayHAL:
     @micropython.native
     def text(self, text, x, y, color, font=None, align="left"):
         if font:
-            if   align == "RIGHT":
+            if align == "RIGHT":
                 width = self.text_width(text, font)
                 x = self.display.width - width
             elif align == "CENTER":
@@ -135,13 +135,13 @@ if __name__ == "__main__":
     import mem_used
     from image.down_32x32 import *
     from image.up_32x32 import *
-    from font.squared16_unicode import *
-    from font.squared16B_unicode import *
+    from font.extronic16_unicode import *
+    from font.extronic16B_unicode import *
 
     i2c = I2C(0) # use default pinout and clock frequency
 
-#     display = sh1106.SH1106(i2c, address=0x3D, flip_x=True,  flip_y=True, offset_x=2)
-    display = ssd1309.SSD1309(i2c, address=0x3C, flip_x=False, flip_y=False)
+    display = sh1106.SH1106(i2c, address=0x3D, flip_x=True,  flip_y=True, offset_x=2)
+#     display = ssd1309.SSD1309(i2c, address=0x3C, flip_x=False, flip_y=False)
     
     hal = DisplayHAL(display)
     print(hal)
@@ -149,10 +149,10 @@ if __name__ == "__main__":
     hal.rect(0, 0, 128, 64, 1)
     hal.line(2, 2, 125, 61, 1)
     hal.circle(64, 32, 30, 1)
-    hal.text('abcdefghijklm', 1,  2, 1)
-    hal.text('nopqrstuvwxyz', 1, 10, 1)
-    hal.text("abcdefghijkl", 50, 20, 1, squared16_unicode,  "center")
-    hal.text("abcdefghijkl", 50, 40, 0, squared16B_unicode, "center")
+    hal.text('abcdefghijklm',  1,  2, 1)
+    hal.text('nopqrstuvwxyz',  1, 10, 1)
+    hal.text("abcdefghijkl",  50, 20, 1,  extronic16_unicode, "center")
+    hal.text("abcdefghijkl",  50, 40, 0, extronic16B_unicode, "center")
     hal.image(up_32x32,       96,  0, 0)
     hal.image(down_32x32,     96, 32, 0)
    

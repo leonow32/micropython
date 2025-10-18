@@ -1,4 +1,4 @@
-squared16_unicode = {
+extronic16_unicode = {
 32: bytearray(b'\x02\x10\x01\x00\x00\x00\x00'),
 33: bytearray(b'\x01\x10\x01\xf8\x17'),
 34: bytearray(b'\x03\x10\x01\x18\x00\x18\x00\x00\x00'),
