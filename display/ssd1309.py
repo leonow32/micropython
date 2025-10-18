@@ -13,6 +13,8 @@ class SSD1309(framebuf.FrameBuffer):
     def __init__(self, i2c, address=0x3C, flip_x=False, flip_y=False):
         self.i2c = i2c
         self.address = address
+        self.flip_x = flip_x
+        self.flip_y = flip_y
         self.array = bytearray(WIDTH * HEIGHT // 8)
         super().__init__(self.array, WIDTH, HEIGHT, framebuf.MONO_VLSB)
         
@@ -37,7 +39,10 @@ class SSD1309(framebuf.FrameBuffer):
         
         for cmd in config:
             self.write_cmd(cmd)
-            
+    
+    def __str__(self):
+        return f"SSD1309(i2c={self.i2c}, address=0x{self.address:02X}, flip_x={self.flip_x}, flip_y={self.flip_y})"
+    
     @micropython.viper
     def write_cmd(self, cmd: int):
         self.i2c.writeto(self.address, bytes([0x80, cmd]))

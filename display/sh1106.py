@@ -17,6 +17,8 @@ class SH1106(framebuf.FrameBuffer):
         """
         self.i2c = i2c
         self.address = address
+        self.flip_x = flip_x
+        self.flip_y = flip_y
         self.offset_x = offset_x
         self.array = bytearray(WIDTHR * HEIGHT // 8)
         super().__init__(self.array, WIDTHR, HEIGHT, framebuf.MONO_VLSB)
@@ -44,7 +46,10 @@ class SH1106(framebuf.FrameBuffer):
         
         for cmd in config:
             self.write_cmd(cmd)
-            
+    
+    def __str__(self):
+        return f"SH1106(i2c={self.i2c}, address=0x{self.address:02X}, flip_x={self.flip_x}, flip_y={self.flip_y}, offset_x={self.offset_x})"
+    
     @micropython.viper
     def write_cmd(self, cmd: int):
         self.i2c.writeto(self.address, bytes([0x80, cmd]))
