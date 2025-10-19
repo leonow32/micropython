@@ -130,8 +130,8 @@ class DisplayHAL:
 
 if __name__ == "__main__":
     from machine import Pin, I2C
-    import sh1106
-    import ssd1309
+    from sh1106 import *
+    from ssd1309 import *
     import mem_used
     from image.down_32x32 import *
     from image.up_32x32 import *
@@ -140,8 +140,8 @@ if __name__ == "__main__":
 
     i2c = I2C(0) # use default pinout and clock frequency
 
-#     display = sh1106.SH1106(i2c, address=0x3D, flip_x=True,  flip_y=True, offset_x=2)
-    display = ssd1309.SSD1309(i2c, address=0x3C, flip_x=False, flip_y=False)
+    display = SH1106(i2c, address=0x3D, flip_x=True,  flip_y=True, offset_x=2)
+#     display = SSD1309(i2c, address=0x3C, flip_x=False, flip_y=False)
     
     hal = DisplayHAL(display)
     print(hal)
