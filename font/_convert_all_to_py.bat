@@ -1,6 +1,8 @@
 python _convert_to_py.py console7
 python _convert_to_py.py dos16
 python _convert_to_py.py dos8
+python _convert_to_py.py extronic16_unicode
+python _convert_to_py.py extronic16B_unicode
 python _convert_to_py.py galaxy16_digits
 python _convert_to_py.py galaxy24_digits
 python _convert_to_py.py micro8
@@ -10,5 +12,3 @@ python _convert_to_py.py sans16_unicode
 python _convert_to_py.py sans16B_unicode
 python _convert_to_py.py sans24
 python _convert_to_py.py sans24B
-python _convert_to_py.py squared16_unicode
-python _convert_to_py.py squared16B_unicode

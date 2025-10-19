@@ -4,17 +4,18 @@ from machine import Pin, I2C
 import framebuf
 import mem_used
 
-WIDTH   = const(128)
-HEIGHT  = const(64)
-
 class SSD1309(framebuf.FrameBuffer):
     
     @micropython.native
     def __init__(self, i2c, address=0x3C, flip_x=False, flip_y=False):
-        self.i2c = i2c
+        self.i2c     = i2c
         self.address = address
-        self.array = bytearray(WIDTH * HEIGHT // 8)
-        super().__init__(self.array, WIDTH, HEIGHT, framebuf.MONO_VLSB)
+        self.flip_x  = flip_x
+        self.flip_y  = flip_y
+        self.width   = 128
+        self.height  = 64
+        self.array   = bytearray(self.width * self.height // 8)
+        super().__init__(self.array, self.width, self.height, framebuf.MONO_VLSB)
         
         config = (
             0xAE,                     # Display off
@@ -37,7 +38,11 @@ class SSD1309(framebuf.FrameBuffer):
         
         for cmd in config:
             self.write_cmd(cmd)
-            
+    
+    @micropython.viper
+    def __str__(self):
+        return f"SSD1309(i2c={self.i2c}, address=0x{self.address:02X}, flip_x={self.flip_x}, flip_y={self.flip_y})"
+    
     @micropython.viper
     def write_cmd(self, cmd: int):
         self.i2c.writeto(self.address, bytes([0x80, cmd]))
@@ -63,69 +68,16 @@ class SSD1309(framebuf.FrameBuffer):
         
         self.i2c.writevto(self.address, (b"\x40", self.array))
         
-    @micropython.viper
+    @micropython.native
     def simulate(self):
-        for y in range(HEIGHT):
+        for y in range(self.height):
             print(f"{y}\t", end="")
-            for x in range(WIDTH):
+            for x in range(self.width):
                 bit  = 1 << (y % 8)
-                byte = int(self.array[(y // 8) * WIDTH + x])
+                byte = int(self.array[(y // 8) * self.width + x])
                 pixel = "#" if byte & bit else "."
                 print(pixel, end="")
             print("")
-    
-    @micropython.native
-    def print_char(self, font, char, x, y, color=1):
-        try:
-            bitmap = font[ord(char)]
-        except:
-            bitmap = font[0]
-            print(f"Char {char} doesn't exist in font")
-        
-        width  = bitmap[0]
-        height = bitmap[1]
-        space  = bitmap[2]
-        
-        if color:
-            buffer = framebuf.FrameBuffer(bitmap[3:], width, height, 0)
-        else:
-            negative_bitmap = bitmap[:]
-            for i in range(3, len(bitmap)):
-                negative_bitmap[i] = ~negative_bitmap[i]
-            buffer = framebuf.FrameBuffer(negative_bitmap[3:], width, height, 0)
-            self.rect(x-space, y, space, height, 1, True)
-            self.rect(x+width, y, space, height, 1, True)
-        
-        self.blit(buffer, x, y)
-        return width + space     
-
-    @micropython.native
-    def print_text(self, font, text, x, y, align="L", color=1):
-        width = self.get_text_width(font, text)
-        
-        if   align == "R":
-            x = WIDTH - width
-        elif align == "C":
-            x = WIDTH//2 - width//2
-        elif align == "r":
-            x = x - width + 1
-        elif align == "c":
-            x = x - width//2
-        
-        for char in text:
-            x += self.print_char(font, char, x, y, color)
-    
-    @micropython.native
-    def get_text_width(self, font, text):
-        total = 0
-        last_char_space = 0
-        for char in text:
-            bitmap = font.get(ord(char), font[0])
-            total += bitmap[0]
-            total += bitmap[2]
-            last_char_space = bitmap[2]
-        
-        return total - last_char_space
 
 if __name__ == "__main__":
     from machine import Pin, I2C

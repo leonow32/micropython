@@ -9,5 +9,5 @@ mpy-cross.exe -v font/micro8.py -o mpy/micro8.mpy
 mpy-cross.exe -v font/mini8.py -o mpy/mini8.mpy
 mpy-cross.exe -v font/sans24.py -o mpy/sans24.mpy
 mpy-cross.exe -v font/sans24B.py -o mpy/sans24B.mpy
-mpy-cross.exe -v font/squared16_unicode.py -o mpy/squared16_unicode.mpy
-mpy-cross.exe -v font/squared16B_unicode.py -o mpy/squared16B_unicode.mpy
+mpy-cross.exe -v font/extronic16_unicode.py -o mpy/extronic16_unicode.mpy
+mpy-cross.exe -v font/extronic16B_unicode.py -o mpy/extronic16B_unicode.mpy

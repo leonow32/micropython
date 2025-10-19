@@ -63,7 +63,4 @@ with open(f"font/{file}.py", "w", encoding="utf-8") as result:
                     
                 y += 1
                     
-                
-    result.write("}\n")     
-        
-        
+    result.write("}\n")
