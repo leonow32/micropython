@@ -1,4 +1,5 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+# Works also with SSD1306 128x64
 
 from machine import Pin, I2C
 import framebuf
@@ -78,20 +79,3 @@ class SSD1309(framebuf.FrameBuffer):
                 pixel = "#" if byte & bit else "."
                 print(pixel, end="")
             print("")
-
-if __name__ == "__main__":
-    from machine import Pin, I2C
-    import mem_used
-
-    i2c = I2C(0) # use default pinout and clock frequency
-    print(i2c)   # print pinout and clock frequency
-
-    display = SSD1309(i2c, address=0x3C, flip_x=False, flip_y=False)
-    display.rect(0, 0, 128, 64, 1)
-    display.line(2, 2, 125, 61, 1)
-    display.text('abcdefghijklm', 1, 2, 1)
-    display.text('nopqrstuvwxyz', 1, 10, 1)
-    display.refresh()
-#     display.simulate()
-
-    mem_used.print_ram_used()
