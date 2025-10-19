@@ -150,7 +150,7 @@ class SSD1351(framebuf.FrameBuffer):
         self.data(0x00)
 
         self.cmd(SSD1351_SET_PRECHARGE_VOLTAGE)
-        self.data(0x17,)
+        self.data(0x17)
 
         self.cmd(SSD1351_SET_SECOND_PRECHARGE)
         self.data(0x01)
@@ -160,7 +160,7 @@ class SSD1351(framebuf.FrameBuffer):
 
         self.cmd(SSD1351_SET_DISPLAY_MODE_RESET)
 
-        self.cmd(SSD1351_SLEEP_MODE_OFF) #,				// Display on
+        self.cmd(SSD1351_SLEEP_MODE_OFF) # Display on
 
 #         config = (
 #             0xAE,                     # Display off
@@ -221,13 +221,6 @@ class SSD1351(framebuf.FrameBuffer):
         self.dc(1)
         self.spi.write(self.array)
         self.cs(0)
-        
-        
-        # Set column address range from 0x00 to 0x7F, set page address range from 0x00 to 0x07
-#         for cmd in (0x21, 0x00, 0x7F, 0x22, 0x00, 0x07):
-#             self.write_cmd(cmd)
-#         
-#         self.i2c.writevto(self.address, (b"\x40", self.array))
         
     @micropython.native
     def simulate(self):
