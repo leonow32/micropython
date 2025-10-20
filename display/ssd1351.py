@@ -42,23 +42,6 @@ SSD1351_HORIZONTAL_SCROLL = const( 0x96 )
 SSD1351_STOP_MOVING = const( 0x9E )
 SSD1351_START_MOVING = const( 0x9F )
 
-# BLACK = const(0b0000000000000000)
-# RED = const(0b1111100000000000)
-# GREEN = const(0b0000011111100000)
-# YELLOW = const(0b1111111111100000)
-# BLUE = const(0b0000000000011111)
-# MAGENTA = const(0b1111100000011111)
-# CYAN = const(0b0000011111111111)
-# WHITE = const(0b1111111111111111)
-# GRAY = const(0b1000010000010000)
-# LIGHTRED = const(0b1111110000010000)
-# LIGHTGREEN = const(0b1000011111110000)
-# LIGHTYELLOW = const(0b1111111111110000)
-# LIGHTBLUE = const(0b1000010000011111)
-# LIGHTMAGENTA = const(0b1111110000011111)
-# LIGHTCYAN = const(0b1000011111111111)
-# LIGHTGRAY = const(0b1100011000011000)
-
 RED     = const(0b000_00000_11111_000)
 YELLOW  = const(0b111_00000_11111_111)
 GREEN   = const(0b111_00000_00000_111)
@@ -72,6 +55,8 @@ class SSD1351(framebuf.FrameBuffer):
     
     @micropython.native
     def __init__(self, spi, cs, dc, flip_x=False, flip_y=False):
+        print("Init begin")
+        
         self.spi     = spi
         self.cs      = cs
         self.dc      = dc
@@ -85,32 +70,32 @@ class SSD1351(framebuf.FrameBuffer):
         self.array   = bytearray(self.width * self.height * 2)
         super().__init__(self.array, self.width, self.height, framebuf.RGB565)
         
-        self.cmd(SSD1351_SET_LOCK_COMMAND)
-        self.data(0x12)
+        self.cmd_write(SSD1351_SET_LOCK_COMMAND) # Set lock command
+        self.data_write(0x12)
 
-        self.cmd(SSD1351_SET_LOCK_COMMAND)  # Command lock
-        self.data(0xB1)                     # Command A2,B1,B3,BB,BE,C1 accessible if in unlock state
+        self.cmd_write(SSD1351_SET_LOCK_COMMAND)  # Set lock command
+        self.data_write(0xB1)                     # Command A2,B1,B3,BB,BE,C1 accessible if in unlock state
 
-        self.cmd(SSD1351_SLEEP_MODE_ON)     # Display off
+        self.cmd_write(SSD1351_SLEEP_MODE_ON)     # Display disable
 
-        self.cmd(SSD1351_SET_DISPLAY_MODE_OFF) # Normal Display mode
+        self.cmd_write(SSD1351_SET_DISPLAY_MODE_OFF) # Normal Display mode
 
-        self.cmd(SSD1351_COLUMN_RANGE)      # Set column address
-        self.data(0x00) # Column address start value
-        self.data(0x7F) # Column address end value
+        self.cmd_write(SSD1351_COLUMN_RANGE)      # Set column address
+        self.data_write(0x00) # Column address start value
+        self.data_write(0x7F) # Column address end value
 
-        self.cmd(SSD1351_ROW_RANGE) # Set row address
-        self.data(0x00)             # Row address start value
-        self.data(0x7F)             # Row address end value
+        self.cmd_write(SSD1351_ROW_RANGE) # Set row address
+        self.data_write(0x00)             # Row address start value
+        self.data_write(0x7F)             # Row address end value
 
-        self.cmd(SSD1351_CLOCK_DIVIDER_OSC_FREQ)
-        self.data(0xF1)
+        self.cmd_write(SSD1351_CLOCK_DIVIDER_OSC_FREQ)
+        self.data_write(0xF1)
 
-        self.cmd(SSD1351_SET_MUX_RATIO)
-        self.data(0x7F)
+        self.cmd_write(SSD1351_SET_MUX_RATIO)
+        self.data_write(0x7F)
 
-        self.cmd(SSD1351_REMAP_COLOR_DEPTH) # Set re-map & data format
-        self.data(0b01110101)               # Vertical address increment 0b01110101
+        self.cmd_write(SSD1351_REMAP_COLOR_DEPTH) # Set re-map & data format
+        self.data_write(0b01110101)               # Vertical address increment 0b01110101
                                             #// bit 0 - 1: kursor od lewej do prawej, 1 od góry do dołu
                                             #    // bit 1 - lustrzane odbicie Y
                                             #    // bit 2 - zamiana kolorów
@@ -119,48 +104,53 @@ class SSD1351(framebuf.FrameBuffer):
                                             #    // bit 5 - naprzemienne linie (nie używać)
                                             #    // bit 67 - format koloru
 
-        self.cmd(SSD1351_SET_DISPLAY_START_LINE) # Set display start line
-        self.data(0x00)
+        self.cmd_write(SSD1351_SET_DISPLAY_START_LINE) # Set display start line
+        self.data_write(0x00)
 
-        self.cmd(SSD1351_SET_DISPLAY_OFFSET) # Set display offset
-        self.data(0x00)
+        self.cmd_write(SSD1351_SET_DISPLAY_OFFSET) # Set display offset
+        self.data_write(0x00)
 
-        self.cmd(SSD1351_FUNCTION_SELECTION)
-        self.data(0x01)
+        self.cmd_write(SSD1351_FUNCTION_SELECTION)
+        self.data_write(0x01)
 
-        self.cmd(SSD1351_SET_SEGMENT_LOW_VOLTAGE)
-        self.data(0xA0)
-        self.data(0xB5)
-        self.data(0x55)
+        self.cmd_write(SSD1351_SET_SEGMENT_LOW_VOLTAGE)
+        self.data_write(0xA0)
+        self.data_write(0xB5)
+        self.data_write(0x55)
 
-        self.cmd(SSD1351_SET_CONTRAST)
-        self.data(255)
-        self.data(255)
-        self.data(255)
+        self.cmd_write(SSD1351_SET_CONTRAST)
+        self.data_write(255)
+        self.data_write(255)
+        self.data_write(255)
 
-        self.cmd(SSD1351_MASTER_CONTRAST_CURRENT)
-        self.data(0x0F)
+        self.cmd_write(SSD1351_MASTER_CONTRAST_CURRENT)
+        self.data_write(0x0F)
 
-        self.cmd(SSD1351_SET_RESET_PRECHARGE)
-        self.data(0x32)
+        self.cmd_write(SSD1351_SET_RESET_PRECHARGE)
+        self.data_write(0x32)
 
-        self.cmd(SSD1351_DISPLAY_ENHANCEMENT)
-        self.data(0xA4)
-        self.data(0x00)
-        self.data(0x00)
+        self.cmd_write(SSD1351_DISPLAY_ENHANCEMENT)
+        self.data_write(0xA4)
+        self.data_write(0x00)
+        self.data_write(0x00)
 
-        self.cmd(SSD1351_SET_PRECHARGE_VOLTAGE)
-        self.data(0x17)
+        self.cmd_write(SSD1351_SET_PRECHARGE_VOLTAGE)
+        self.data_write(0x17)
 
-        self.cmd(SSD1351_SET_SECOND_PRECHARGE)
-        self.data(0x01)
+        self.cmd_write(SSD1351_SET_SECOND_PRECHARGE)
+        self.data_write(0x01)
 
-        self.cmd(SSD1351_SET_VCOMH_VOLTAGE)
-        self.data(0x05)
+        self.cmd_write(SSD1351_SET_VCOMH_VOLTAGE)
+        self.data_write(0x05)
 
-        self.cmd(SSD1351_SET_DISPLAY_MODE_RESET)
+        self.cmd_write(SSD1351_SET_DISPLAY_MODE_RESET)
 
-        self.cmd(SSD1351_SLEEP_MODE_OFF) # Display on
+        self.cmd_write(SSD1351_SLEEP_MODE_OFF) # Display on
+        
+        self.cmd_write(0x5C) # RAM Write
+        self.dc(1)
+        
+        print("Init end")
 
 #         config = (
 #             0xAE,                     # Display off
@@ -182,19 +172,19 @@ class SSD1351(framebuf.FrameBuffer):
 #         )
 #         
 #         for cmd in config:
-#             self.write_cmd(cmd)
+#             self.write_cmd_write(cmd)
     
     @micropython.viper
     def __str__(self):
         return f"SSD1351(spi={self.spi}, cs={self.cs}, dc={self.dc}, flip_x={self.flip_x}, flip_y={self.flip_y})"
 
-    def data(self, data):
+    def data_write(self, data):
         self.dc(1)
         self.cs(0)
         self.spi.write(bytes([data]))
         self.cs(1)
         
-    def cmd(self, cmd):
+    def cmd_write(self, cmd):
         self.dc(0)
         self.cs(0)
         self.spi.write(bytes([cmd]))
@@ -202,29 +192,42 @@ class SSD1351(framebuf.FrameBuffer):
     
     @micropython.viper
     def enable(self):
-        self.write_cmd(0xAF)
+        self.cmd_write(0xAF)
         
     @micropython.viper
     def disable(self):
-        self.write_cmd(0xAE)
+        self.cmd_write(0xAE)
     
     @micropython.viper
-    def contrast(self, value):
-        self.write_cmd(0x81)
-        self.write_cmd(value)
+    def contrast_set(self, value):
+        self.cmd_write(0xC1)
+        self.data_write(value)
+        self.data_write(value)
+        self.data_write(value)
+        self.cmd_write(0x5C) # RAM Write
+        self.dc(1)
     
     @micropython.viper
     def refresh(self):
         self.cs(0)
-        self.dc(0)
-        self.spi.write(bytes([SSD1351_RAM_WRITE]))
-        self.dc(1)
+#         self.dc(0)
+#         self.spi.write(bytes([SSD1351_RAM_WRITE]))
+#         self.dc(1)
         self.spi.write(self.array)
         self.cs(0)
         
-    @micropython.native
+    @micropython.viper
     def simulate(self):
         print("Not implemented")
+        
+    @micropython.viper
+    def color(self, r: int, g: int, b: int) -> int:
+        r = r & 0xF8
+        b = (b & 0xF8) << 5
+        gh = (g & 0xE0) << 8
+        gl = (g & 0x1C) >> 3
+        result = gh | b | r | gl
+        return result
 
 if __name__ == "__main__":
     from machine import Pin, SPI
@@ -244,35 +247,17 @@ if __name__ == "__main__":
     
 
     display = SSD1351(spi, cs, dc, flip_x=True, flip_y=True)
+    
+    print("----")
 
-    display.fill_rect( 0,   0, 40, 20, RED)
-    display.fill_rect( 0,  20, 40, 20, YELLOW)
-    display.fill_rect( 0,  40, 40, 20, GREEN)
-    display.fill_rect( 0,  60, 40, 20, CYAN)
-    display.fill_rect( 0,  80, 40, 20, BLUE)
-    display.fill_rect( 0, 100, 40, 20, MAGENTA)
+    display.fill_rect( 0,   0, 40, 20, display.color(0xFF, 0x00, 0x00))
+    display.fill_rect( 0,  20, 40, 20, display.color(0xFF, 0xFF, 0x00))
+    display.fill_rect( 0,  40, 40, 20, display.color(0x00, 0xFF, 0x00))
+    display.fill_rect( 0,  60, 40, 20, display.color(0x00, 0xFF, 0xFF))
+    display.fill_rect( 0,  80, 40, 20, display.color(0x00, 0x00, 0xFF))
+    display.fill_rect( 0, 100, 40, 20, display.color(0xFF, 0x00, 0xFF))
     
-#     display.fill_rect( 0,   0, 40, 20, 0b10000_000000_00000)
-#     display.fill_rect( 0,  20, 40, 20, 0b01000_000000_00000)
-#     display.fill_rect( 0,  40, 40, 20, 0b00100_000000_00000)
-#     display.fill_rect( 0,  60, 40, 20, 0b00010_000000_00000)
-#     display.fill_rect( 0,  80, 40, 20, 0b00001_000000_00000)
-    
-#     display.fill_rect(40,   0, 40, 20, 0b00000_100000_00000)
-#     display.fill_rect(40,  20, 40, 20, 0b00000_010000_00000)
-#     display.fill_rect(40,  40, 40, 20, 0b00000_001000_00000)
-#     display.fill_rect(40,  60, 40, 20, 0b00000_000100_00000)
-#     display.fill_rect(40,  80, 40, 20, 0b00000_000010_00000)
-#     display.fill_rect(40, 100, 40, 20, 0b00000_000001_00000)
-#     
-#     display.fill_rect(80,   0, 40, 20, 0b00000_000000_10000)
-#     display.fill_rect(80,  20, 40, 20, 0b00000_000000_01000)
-#     display.fill_rect(80,  40, 40, 20, 0b00000_000000_00100)
-#     display.fill_rect(80,  60, 40, 20, 0b00000_000000_00010)
-#     display.fill_rect(80,  80, 40, 20, 0b00000_000000_00001)
-    
-#     display.fill_rect(0, 20, 20, 20, 0b00000_111111_00000)
-#     display.fill_rect(0, 40, 20, 20, 0b00000_000000_11111)
+
     display.refresh()
     
     
