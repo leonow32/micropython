@@ -13,7 +13,7 @@ class SSD1363(framebuf.FrameBuffer):
         self.flip_y  = flip_y
         self.width   = 256
         self.height  = 128
-        self.array   = bytearray(self.width * self.height // 8)
+        self.array   = bytearray(self.width * self.height // 2)
         super().__init__(self.array, self.width, self.height, framebuf.MONO_VLSB)
         
         self.cmd_write(0xFD) # Command Lock
@@ -22,28 +22,32 @@ class SSD1363(framebuf.FrameBuffer):
         self.cmd_write(0xAE) # Set Display Off
         
         self.cmd_write(0xB3) # Set Display Clock Divide Ratio/Oscillator Frequency
-        self.data_write(0x90)
+        self.data_write(0x90) # Creatway
+#         self.data_write(0x30) # Midas
         
         self.cmd_write(0xCA) # Set Multiplex Ratio
         self.data_write(0x7F)
         
         self.cmd_write(0xA2) # Set Display Offset
-        self.data_write(0x00)
+        self.data_write(0x00) # Creatway
+#         self.data_write(0x20) # Midas
         
         self.cmd_write(0xA1) # Set Display Start Line
         self.data_write(0x00)
         
         self.cmd_write(0xA0) # Set Re-Map & Dual COM Line Mode
-        self.data_write(0x36)
-        self.data_write(0x01)
+        self.data_write(0x36) # Creatway
+        self.data_write(0x01) # Creatway
+#         self.data_write(0x32) # Midas
+#         self.data_write(0x00) # Midas
         
-        self.cmd_write(0xB5) # Set GPIO
+        self.cmd_write(0xB5) # Set GPIO - Creatway
         self.data_write(0x00)
         
-        self.cmd_write(0xAB) # Function Selection
+        self.cmd_write(0xAB) # Function Selection - Creatway
         self.data_write(0x01)
         
-        self.cmd_write(0xB4) # Set Segment Low Voltage
+        self.cmd_write(0xB4) # Set Segment Low Voltage - Creatway
         self.data_write(0xA0)
         self.data_write(0xDD)
         
@@ -62,13 +66,19 @@ class SSD1363(framebuf.FrameBuffer):
         self.data_write(0x82)
         self.data_write(0x20)
         
-        self.cmd_write(0x15) # Set Column Address
-        self.data_write(0x1C)
-        self.data_write(0x5B)
+        self.cmd_write(0x15)  # Set Column Address
+#         self.data_write(0x1C) # 28  - Creatway
+#         self.data_write(0x5B) # 133 - Creatway
+#         self.data_write(0x08) # 8  - Midas
+#         self.data_write(0x47) # 71 - Midas
         
-        self.cmd_write(0x75) # Set Row Address
-        self.data_write(0x00)
-        self.data_write(0x7F)
+        self.data_write(0x04) # moje prawa krawędź
+        self.data_write(0x23) # moje, lewa krawędź -> 32 kolumny
+        
+        self.cmd_write(0x75)  # Set Row Address
+        self.data_write(0x00) # 0
+        self.data_write(0x5F) # 95
+        # 5F to linia na samej górze wyświetlacza
         
         self.cmd_write(0xBB) # Set Pre-Charge Voltage
         self.data_write(0x1F)
@@ -79,7 +89,7 @@ class SSD1363(framebuf.FrameBuffer):
         self.cmd_write(0xBE) # Set VCOMH Deselect Level
         self.data_write(0x07)
         
-        self.cmd_write(0xA6) # Set Display Mode
+        self.cmd_write(0xA6) # Set Display Mode to not onverted
         
         self.cmd_write(0xAF) # Set Display On
     
@@ -111,10 +121,12 @@ class SSD1363(framebuf.FrameBuffer):
     @micropython.viper
     def refresh(self):
         # Set column address range from 0x00 to 0x7F, set page address range from 0x00 to 0x07
-        for cmd in (0x21, 0x00, 0x7F, 0x22, 0x00, 0x07):
-            self.cmd_write(cmd)
+#         for cmd in (0x21, 0x00, 0x7F, 0x22, 0x00, 0x07):
+#             self.cmd_write(cmd)
+
+#         self.cmd_write(0x5C)  # Set Column Address
         
-        self.i2c.writevto(self.address, (b"\x40", self.array))
+        self.i2c.writevto(self.address, (b"\x80\x5C\x40", self.array))
         
     @micropython.native
     def simulate(self):
