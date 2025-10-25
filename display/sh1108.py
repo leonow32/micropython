@@ -1,27 +1,24 @@
-# MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
-# Works also with SSD1306 128x64
+# MicroPython 1.24.1 ESP32 Pico
 
 from machine import Pin, SPI
-from micropython import const
 import framebuf
 
 class SH1108(framebuf.FrameBuffer):
     
     @micropython.native
-    def __init__(self, spi, cs, dc, flip_x=False, flip_y=False):
-        print("Init begin")
-        
-        self.spi     = spi
-        self.cs      = cs
-        self.dc      = dc
+    def __init__(self, spi, cs, dc, flip_x=False, flip_y=False, offset_x=16):
+        self.spi = spi
+        self.cs  = cs
+        self.dc  = dc
         self.cs.init(mode=Pin.OUT, value=1)
         self.dc.init(mode=Pin.OUT, value=1)
         
-        self.flip_x  = flip_x
-        self.flip_y  = flip_y
-        self.width   = 128
-        self.height  = 160
-        self.array   = bytearray(self.width * self.height // 8)
+        self.flip_x   = flip_x
+        self.flip_y   = flip_y
+        self.offset_x = offset_x
+        self.width    = 128
+        self.height   = 160
+        self.array    = bytearray(self.width * self.height // 8)
         super().__init__(self.array, self.width, self.height, framebuf.MONO_VLSB)
 
         config = (
@@ -52,12 +49,10 @@ class SH1108(framebuf.FrameBuffer):
 
         for cmd in config:
             self.cmd_write(cmd)
-            
-        print("Init end")
     
     @micropython.viper
     def __str__(self):
-        return f"SH1108(spi={self.spi}, cs={self.cs}, dc={self.dc}, flip_x={self.flip_x}, flip_y={self.flip_y})"
+        return f"SH1108(spi={self.spi}, cs={self.cs}, dc={self.dc}, flip_x={self.flip_x}, flip_y={self.flip_y}, offset_x={self.offset_x})"
 
     def data_write(self, data):
         self.dc(1)
@@ -81,12 +76,8 @@ class SH1108(framebuf.FrameBuffer):
     
     @micropython.viper
     def contrast_set(self, value):
-        self.cmd_write(0xC1)
-        self.data_write(value)
-        self.data_write(value)
-        self.data_write(value)
-        self.cmd_write(0x5C) # RAM Write
-        self.dc(1)
+        self.cmd_write(0x81)
+        self.cmd_write(value)
     
     @micropython.native
     def refresh(self):
@@ -94,33 +85,15 @@ class SH1108(framebuf.FrameBuffer):
 
         for page in range(20):
             header = bytes([
-                0xB0,          # Set page number
-                page,
-                0x00 | 0, # Set x cursor, low nibble
-                0x10 | 1,                 # Set x cursor, high nibble
+                0xB0, page,                    # Set page number
+                0x00 | (self.offset_x & 0x0F), # Set x cursor, low nibble
+                0x10 | (self.offset_x >> 4),   # Set x cursor, high nibble
             ])
             
             self.dc(0)
             self.spi.write(header)
             self.dc(1)
             self.spi.write(self.array[page*(self.width):(page+1)*(self.width)])
-            
-        self.cs(1)
-        
-    def refresh2(self):
-        self.cs(0)
-
-        header = bytes([
-            0xB0,          # Set page number
-            0,
-            0x00, # Set x cursor, low nibble
-            0x10,                 # Set x cursor, high nibble
-        ])
-        
-        self.dc(0)
-        self.spi.write(header)
-        self.dc(1)
-        self.spi.write(self.array)
             
         self.cs(1)
         
@@ -155,17 +128,17 @@ if __name__ == "__main__":
     dc = Pin(2)
     
     measure_time.begin()
-    display = SH1108(spi, cs, dc, flip_x=True, flip_y=True)
+    display = SH1108(spi, cs, dc, flip_x=True, flip_y=True, offset_x=16)
     measure_time.end("Init")
     
     print("----")
 
     display.fill_rect(40,  2, 10, 20, display.color(0, 0, 0))
-    
     display.text("Linia tekstu 1",   0,   0, 1)
     display.text("Linia tekstu 2",   0,   8, 1)
     display.text("Linia tekstu 3",   0,  16, 1)
     display.text("Bottom",           0, 160-8, 1)
+    display.ellipse(64, 80, 60, 60, 1, 0)
     display.rect(0, 0, 128, 160, 1)
     
 #     display.pixel(0, 127, 1)

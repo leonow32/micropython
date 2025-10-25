@@ -23,8 +23,8 @@ class DisplayHAL:
         self.display.disable()
     
     @micropython.viper
-    def contrast(self, value):
-        self.display.contrast(value)
+    def contrast_set(self, value):
+        self.display.contrast_set(value)
     
     @micropython.viper
     def refresh(self):
@@ -131,33 +131,40 @@ class DisplayHAL:
 if __name__ == "__main__":
     from machine import Pin, I2C
     from sh1106 import *
+    from sh1108 import *
     from ssd1309 import *
     import mem_used
+    import measure_time
     from image.down_32x32 import *
     from image.up_32x32 import *
     from font.extronic16_unicode import *
     from font.extronic16B_unicode import *
 
-    i2c = I2C(0) # use default pinout and clock frequency
-
-    display = SH1106(i2c, address=0x3D, flip_x=True,  flip_y=True, offset_x=2)
+#     i2c = I2C(0) # use default pinout and clock frequency
+#     display = SH1106(i2c, address=0x3D, flip_x=True,  flip_y=True, offset_x=2)
 #     display = SSD1309(i2c, address=0x3C, flip_x=False, flip_y=False)
+
+    spi = SPI(1, baudrate=10_000_000, polarity=0, phase=0)
+    display = SH1108(spi, cs=Pin(4), dc=Pin(2), flip_x=True, flip_y=True, offset_x=16)
     
     hal = DisplayHAL(display)
     print(hal)
     
-    hal.rect(0, 0, 128, 64, 1)
-    hal.line(2, 2, 125, 61, 1)
-    hal.circle(64, 32, 30, 1)
+    measure_time.begin()
+    hal.rect(0, 0, display.width, display.height, 1)
+    hal.line(2, 2, display.width-3, display.height-3, 1)
+    hal.circle(display.width//2, display.height//2, display.width//4, 1)
     hal.text('abcdefghijklm',  1,  2, 1)
     hal.text('nopqrstuvwxyz',  1, 10, 1)
-    hal.text("abcdefghijkl",  50, 20, 1,  extronic16_unicode, "center")
+    hal.text("abcdefghijkl",  50, 20, 1, extronic16_unicode,  "center")
     hal.text("abcdefghijkl",  50, 40, 0, extronic16B_unicode, "center")
     hal.image(up_32x32,       96,  0, 0)
     hal.image(down_32x32,     96, 32, 0)
-   
+    measure_time.end("Rendering time:")
     
+    measure_time.begin()
     hal.refresh()
+    measure_time.end("Refresh time:  ")
 #     hal.simulate()
 
     mem_used.print_ram_used()
