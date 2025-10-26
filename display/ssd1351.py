@@ -4,7 +4,6 @@
 from machine import Pin, SPI
 from micropython import const
 import framebuf
-import mem_used
 
 SSD1351_COLUMN_RANGE = const( 0x15 )
 SSD1351_ROW_RANGE = const( 0x75 )

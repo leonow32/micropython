@@ -2,7 +2,6 @@
 
 from machine import Pin, I2C
 import framebuf
-import mem_used
 
 class SH1106(framebuf.FrameBuffer):
     
