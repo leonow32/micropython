@@ -1,18 +1,17 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+# MicroPython 1.24.1 ESP32 Pico
 # Works also with SSD1306 128x64
 
 from machine import Pin, I2C
 import framebuf
-import mem_used
 
 class SSD1309(framebuf.FrameBuffer):
     
     @micropython.native
-    def __init__(self, i2c, address=0x3C, flip_x=False, flip_y=False):
+    def __init__(self, i2c, address=0x3C, rotate=0):
         self.i2c     = i2c
         self.address = address
-        self.flip_x  = flip_x
-        self.flip_y  = flip_y
+        self.rotate  = rotate
         self.width   = 128
         self.height  = 64
         self.array   = bytearray(self.width * self.height // 8)
@@ -22,9 +21,9 @@ class SSD1309(framebuf.FrameBuffer):
             0xAE,                     # Display off
             0x20, 0x00,               # Set memory addressing mode to horizontal addressing mode
             0x40,                     # Set display start line to 0
-            0xA0 if flip_x else 0xA1, # Set segment remap
+            0xA0 if rotate else 0xA1, # Set segment remap
             0xA8, 0x3F,               # Set multiplex ratio to 63
-            0xC0 if flip_y else 0xC8, # Set COM scan direction
+            0xC0 if rotate else 0xC8, # Set COM scan direction
             0xD3, 0x00,               # Set display offset to 0
             0xDA, 0x12,               # Set COM pins hardware config to enable COM left/right remap, sequential COM pin config
             0xD5, 0x80,               # Set clock and oscillator frequency to freq=8, clock=0
@@ -38,34 +37,42 @@ class SSD1309(framebuf.FrameBuffer):
         )
         
         for cmd in config:
-            self.write_cmd(cmd)
+            self.cmd_write(cmd)
     
     @micropython.viper
     def __str__(self):
-        return f"SSD1309(i2c={self.i2c}, address=0x{self.address:02X}, flip_x={self.flip_x}, flip_y={self.flip_y})"
+        return f"SSD1309(i2c={self.i2c}, address=0x{self.address:02X}, rotate={self.rotate})"
     
     @micropython.viper
-    def write_cmd(self, cmd: int):
+    def data_write(self, data: int):
+        self.i2c.writeto(self.address, bytes([0x40, cmd]))
+    
+    @micropython.viper
+    def cmd_write(self, cmd: int):
         self.i2c.writeto(self.address, bytes([0x80, cmd]))
     
     @micropython.viper
     def enable(self):
-        self.write_cmd(0xAF)
+        self.cmd_write(0xAF)
         
     @micropython.viper
     def disable(self):
-        self.write_cmd(0xAE)
+        self.cmd_write(0xAE)
     
     @micropython.viper
-    def contrast(self, value):
-        self.write_cmd(0x81)
-        self.write_cmd(value)
+    def contrast_set(self, value):
+        self.cmd_write(0x81)
+        self.cmd_write(value)
+    
+    @micropython.native
+    def color(self, r, g, b):
+        return 1 if r | g | b else 0
     
     @micropython.viper
     def refresh(self):
         # Set column address range from 0x00 to 0x7F, set page address range from 0x00 to 0x07
         for cmd in (0x21, 0x00, 0x7F, 0x22, 0x00, 0x07):
-            self.write_cmd(cmd)
+            self.cmd_write(cmd)
         
         self.i2c.writevto(self.address, (b"\x40", self.array))
         

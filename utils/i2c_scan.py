@@ -2,9 +2,11 @@
 
 from machine import Pin, I2C
 
-# i2c = I2C(0)
-# i2c = I2C(0, scl=Pin(1), sda=Pin(2), freq=100000)
-i2c = I2C(0, scl=Pin(2), sda=Pin(1), freq=100000)      # TT v3.4
+i2c = I2C(0)
+# i2c = I2C(0, scl=Pin(1),  sda=Pin(2),  freq=100000)
+# i2c = I2C(0, scl=Pin(25), sda=Pin(26), freq=100000)
+# i2c = I2C(0, scl=Pin(2),  sda=Pin(1),  freq=100000)      # TT v3.4
+
 print(i2c)
 
 devices = i2c.scan()
@@ -18,8 +20,8 @@ library = {
     0x32: "ZMOD4410",
     0x38: "AHT20 / FTxxxx / HY4613",
     0x39: "APDS9960 / VCNL4020",
-    0x3C: "SSD1306 / SSD1309 / SH1106",
-    0x3D: "SSD1306 / SSD1309 / SH1106",
+    0x3C: "SSD1306 / SSD1309 / SSD1363 / SH1106",
+    0x3D: "SSD1306 / SSD1309 / SSD1363 / SH1106",
     0x41: "ILI2130",
     0x43: "ENS210",
     0x4D: "MCP3x21",
