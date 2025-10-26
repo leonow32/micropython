@@ -21,29 +21,20 @@ class SH1108(framebuf.FrameBuffer):
         super().__init__(self.array, self.width, self.height, framebuf.MONO_VLSB)
 
         config = (
-            0xAE,       # Display OFF
-            
-            0x20,       # Set Memory addressing mode = page addressing mode
-#             0x21,       # Set Memory addressing mode = page addressing mode
-            
-            0x81, 0x0F, # Set contrast control
-            
-#             0xA0,       # Segment remap = down
-            0xA1 if rotate == 0 else 0xA0,       # Segment remap = up
-            
-            0xA6,       # Positive display (not inverted)
-            0xA9, 0x02, # Set Display Resolution
-            0xAD, 0x80, # Set DC-DC setting = disabled
-            
-#             0xC0,       # Set Common scan direction (no mirror)
-            0xC8 if rotate == 0 else 0xC0,       # Set Common scan direction (mirror)
-            
-            0xD5, 0xF1, # Divide Ratio/Oscillator Frequency Mode Set
-            0xD9, 0x1F, # Set Dis-charge/Pre-charge Period
-            0xDB, 0x2B, # Set Vcomh voltage
-            0xDC, 0x35, # Set VSEGM Deselect Level
-            0x30,       # Set Discharge VSL Level
-            0xAF,       # Display ON
+            0xAE,                     # Display OFF
+            0x20,                     # Set memory addressing mode
+            0x81, 0x0F,               # Set contrast
+            0xA0 if rotate else 0xA1, # Segment remap = up
+            0xA6,                     # Positive display (not inverted)
+            0xA9, 0x02,               # Set Display Resolution
+            0xAD, 0x80,               # Set DC-DC setting = disabled
+            0xC0 if rotate else 0xC8, # Set Common scan direction
+            0xD5, 0xF1,               # Divide Ratio/Oscillator Frequency Mode Set
+            0xD9, 0x1F,               # Set Dis-charge/Pre-charge Period
+            0xDB, 0x2B,               # Set Vcomh voltage
+            0xDC, 0x35,               # Set VSEGM Deselect Level
+            0x30,                     # Set Discharge VSL Level
+            0xAF,                     # Display ON
         )
 
         for cmd in config:
@@ -79,6 +70,10 @@ class SH1108(framebuf.FrameBuffer):
     def contrast_set(self, value):
         self.cmd_write(0x81)
         self.cmd_write(value)
+        
+    @micropython.native
+    def color(self, r, g, b):
+        return 1 if r | g | b else 0
     
     @micropython.native
     def refresh(self):
@@ -108,10 +103,6 @@ class SH1108(framebuf.FrameBuffer):
                 pixel = "#" if byte & bit else "."
                 print(pixel, end="")
             print("")
-        
-    @micropython.native
-    def color(self, r, g, b):
-        return 1 if r | g | b else 0
 
 if __name__ == "__main__":
     from machine import Pin, SPI
