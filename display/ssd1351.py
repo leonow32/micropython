@@ -53,7 +53,7 @@ BLACK   = const(0b000_00000_00000_000)
 class SSD1351(framebuf.FrameBuffer):
     
     @micropython.native
-    def __init__(self, spi, cs, dc, flip_x=False, flip_y=False):
+    def __init__(self, spi, cs, dc, rotate=0):
         print("Init begin")
         
         self.spi     = spi
@@ -62,10 +62,10 @@ class SSD1351(framebuf.FrameBuffer):
         self.cs.init(mode=Pin.OUT, value=1)
         self.dc.init(mode=Pin.OUT, value=1)
         
-        self.flip_x  = flip_x
-        self.flip_y  = flip_y
+        self.rotate  = rotate
         self.width   = 128
         self.height  = 128
+        self.mono    = False
         self.array   = bytearray(self.width * self.height * 2)
         super().__init__(self.array, self.width, self.height, framebuf.RGB565)
         
@@ -175,7 +175,7 @@ class SSD1351(framebuf.FrameBuffer):
     
     @micropython.viper
     def __str__(self):
-        return f"SSD1351(spi={self.spi}, cs={self.cs}, dc={self.dc}, flip_x={self.flip_x}, flip_y={self.flip_y})"
+        return f"SSD1351(spi={self.spi}, cs={self.cs}, dc={self.dc}, rotate={self.rotate})"
 
     def data_write(self, data):
         self.dc(1)
@@ -205,19 +205,6 @@ class SSD1351(framebuf.FrameBuffer):
         self.data_write(value)
         self.cmd_write(0x5C) # RAM Write
         self.dc(1)
-    
-    @micropython.viper
-    def refresh(self):
-        self.cs(0)
-#         self.dc(0)
-#         self.spi.write(bytes([SSD1351_RAM_WRITE]))
-#         self.dc(1)
-        self.spi.write(self.array)
-        self.cs(0)
-        
-    @micropython.viper
-    def simulate(self):
-        print("Not implemented")
         
     @micropython.viper
     def color(self, r: int, g: int, b: int) -> int:
@@ -227,54 +214,60 @@ class SSD1351(framebuf.FrameBuffer):
         gl = (g & 0x1C) >> 3
         result = gh | b | r | gl
         return result
+    
+    @micropython.viper
+    def refresh(self):
+        self.cs(0)
+        self.spi.write(self.array)
+        self.cs(1)
+        
+    @micropython.viper
+    def simulate(self):
+        print("Not implemented")
 
 if __name__ == "__main__":
     from machine import Pin, SPI
-#     from sh1106 import *
-#     from ssd1309 import *
     import mem_used
-#     from image.down_32x32 import *
-#     from image.up_32x32 import *
-#     from font.extronic16_unicode import *
-#     from font.extronic16B_unicode import *
+    import measure_time
+    import display_hal
+    from image.down_32x32 import *
+    from image.up_32x32 import *
+    from font.extronic16_unicode import *
+    from font.extronic16B_unicode import *
 
     spi = SPI(1, baudrate=10_000_000, polarity=0, phase=0) # use default pinout
-    print(spi)
-    
     cs = Pin(27)
     dc = Pin(15)
-    
 
-    display = SSD1351(spi, cs, dc, flip_x=True, flip_y=True)
+    display = SSD1351(spi, cs, dc, rotate=0)
     
     print("----")
 
-    display.fill_rect( 0,   0, 40, 20, display.color(0xFF, 0x00, 0x00))
-    display.fill_rect( 0,  20, 40, 20, display.color(0xFF, 0xFF, 0x00))
-    display.fill_rect( 0,  40, 40, 20, display.color(0x00, 0xFF, 0x00))
-    display.fill_rect( 0,  60, 40, 20, display.color(0x00, 0xFF, 0xFF))
-    display.fill_rect( 0,  80, 40, 20, display.color(0x00, 0x00, 0xFF))
-    display.fill_rect( 0, 100, 40, 20, display.color(0xFF, 0x00, 0xFF))
+#     display.fill_rect( 0,   0, 40, 20, display.color(0xFF, 0x00, 0x00))
+#     display.fill_rect( 0,  20, 40, 20, display.color(0xFF, 0xFF, 0x00))
+#     display.fill_rect( 0,  40, 40, 20, display.color(0x00, 0xFF, 0x00))
+#     display.fill_rect( 0,  60, 40, 20, display.color(0x00, 0xFF, 0xFF))
+#     display.fill_rect( 0,  80, 40, 20, display.color(0x00, 0x00, 0xFF))
+#     display.fill_rect( 0, 100, 40, 20, display.color(0xFF, 0x00, 0xFF))
+#     
+#     display.refresh()
     
-
-    display.refresh()
     
+    hal = display_hal.DisplayHAL(display)
+    print(hal)
     
-#     hal = DisplayHAL(display)
-#     print(hal)
-    
-#     hal.rect(0, 0, 128, 64, 1)
-#     hal.line(2, 2, 125, 61, 1)
-#     hal.circle(64, 32, 30, 1)
-#     hal.text('abcdefghijklm',  1,  2, 1)
-#     hal.text('nopqrstuvwxyz',  1, 10, 1)
-#     hal.text("abcdefghijkl",  50, 20, 1,  extronic16_unicode, "center")
+    hal.rect(0, 0, 128, 128, hal.color(0xFF, 0xFF, 0xFF))
+    hal.line(2, 2, 125, 125, hal.color(0xFF, 0x00, 0x00))
+    hal.circle(64, 64, 32, hal.color(0x00, 0xFF, 0x00))
+    hal.text('abcdefghijklm',  1,  2, hal.color(0x00, 0xFF, 0xFF))
+    hal.text('nopqrstuvwxyz',  1, 10, hal.color(0x00, 0x00, 0xFF))
+    hal.text("abcdefghijkl",  50, 20, hal.color(0xFF, 0x00, 0xFF),  extronic16_unicode, "center")
 #     hal.text("abcdefghijkl",  50, 40, 0, extronic16B_unicode, "center")
 #     hal.image(up_32x32,       96,  0, 0)
 #     hal.image(down_32x32,     96, 32, 0)
    
     
-#     hal.refresh()
+    hal.refresh()
 #     hal.simulate()
 
     mem_used.print_ram_used()
