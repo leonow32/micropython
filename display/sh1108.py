@@ -103,32 +103,3 @@ class SH1108(framebuf.FrameBuffer):
                 pixel = "#" if byte & bit else "."
                 print(pixel, end="")
             print("")
-
-if __name__ == "__main__":
-    from machine import Pin, SPI
-    import mem_used
-    import measure_time
-
-    spi = SPI(1, baudrate=10_000_000, polarity=0, phase=0) # use default pinout
-    print(spi)
-    
-    cs = Pin(4)
-    dc = Pin(2)
-    
-    measure_time.begin()
-    display = SH1108(spi, cs, dc, rotate=180, offset_x=16)
-    measure_time.end("Init")
-    
-    print("----")
-
-    display.fill_rect(64, 80, 30, 30, display.color(1, 0, 0))
-    display.text("Linia tekstu 1",   0,   0, 1)
-    display.text("Linia tekstu 2",   0,   8, 1)
-    display.text("Linia tekstu 3",   0,  16, 1)
-    display.text("Bottom",           0, 160-8, 1)
-    display.ellipse(64, 80, 60, 60, 1, 0)
-    display.rect(0, 0, 128, 160, 1)
-    
-    display.refresh()
-
-    mem_used.print_ram_used()
