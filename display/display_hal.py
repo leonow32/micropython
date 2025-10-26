@@ -25,6 +25,10 @@ class DisplayHAL:
     @micropython.viper
     def contrast_set(self, value):
         self.display.contrast_set(value)
+        
+    @micropython.viper
+    def color(self, r, g, b):
+        return self.display.color(r, g, b)
     
     @micropython.viper
     def refresh(self):
@@ -67,31 +71,6 @@ class DisplayHAL:
         self.display.ellipse(x, y, radius, radius, color, fill)
         
     @micropython.native
-    def text(self, text, x, y, color, font=None, align="left"):
-        if font:
-            if align == "RIGHT":
-                width = self.text_width(text, font)
-                x = self.display.width - width
-            elif align == "CENTER":
-                width = self.text_width(text, font)
-                x = self.display.width//2 - width//2
-            elif align == "right":
-                width = self.text_width(text, font)
-                x = x - width + 1
-            elif align == "center":
-                width = self.text_width(text, font)
-                x = x - width//2
-            
-            for char in text:
-                x += self.char(font, char, x, y, color)
-        else:
-            self.display.text(text, x, y, color)
-        
-    @micropython.native
-    def image(self, bitmap, x, y, transparent_color=-1):
-        self.display.blit(bitmap, x, y, transparent_color)
-    
-    @micropython.native
     def char(self, font, char, x, y, color=1):
         try:
             bitmap = font[ord(char)]
@@ -115,6 +94,27 @@ class DisplayHAL:
         
         self.display.blit(buffer, x, y)
         return width + space  
+        
+    @micropython.native
+    def text(self, text, x, y, color, font=None, align="left"):
+        if font:
+            if align == "RIGHT":
+                width = self.text_width(text, font)
+                x = self.display.width - width
+            elif align == "CENTER":
+                width = self.text_width(text, font)
+                x = self.display.width//2 - width//2
+            elif align == "right":
+                width = self.text_width(text, font)
+                x = x - width + 1
+            elif align == "center":
+                width = self.text_width(text, font)
+                x = x - width//2
+            
+            for char in text:
+                x += self.char(font, char, x, y, color)
+        else:
+            self.display.text(text, x, y, color)
     
     @micropython.native
     def text_width(self, text, font):
@@ -126,7 +126,11 @@ class DisplayHAL:
             total += bitmap[2]
             last_char_space = bitmap[2]
         
-        return total - last_char_space    
+        return total - last_char_space
+    
+    @micropython.native
+    def image(self, bitmap, x, y, transparent_color=-1):
+        self.display.blit(bitmap, x, y, transparent_color)
 
 if __name__ == "__main__":
     from machine import Pin, I2C
