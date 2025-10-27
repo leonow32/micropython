@@ -1,5 +1,4 @@
-# MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
-# Works also with SSD1306 128x64
+# MicroPython 1.24.1 ESP32 Pico
 
 from machine import Pin, SPI
 import framebuf
@@ -32,141 +31,62 @@ class SSD1351(framebuf.FrameBuffer):
         self.array   = bytearray(self.width * self.height * 2)
         super().__init__(self.array, self.width, self.height, framebuf.RGB565)
         
-        self.cmd_write(0xFD) # Set lock command
-        self.data_write(0x12)
+        self.cs(0)
+        self.dc(0)
 
-        self.cmd_write(0xFD)  # Set lock command
-        self.data_write(0xB1)                     # Command A2,B1,B3,BB,BE,C1 accessible if in unlock state
-
-        self.cmd_write(0xAE)     # Display disable
-
-        self.cmd_write(0xA4) # Normal Display mode
-
-        self.cmd_write(0x15)      # Set column address
-        self.data_write(0x00) # Column address start value
-        self.data_write(0x7F) # Column address end value
-
-        self.cmd_write(0x75) # Set row address
-        self.data_write(0x00)             # Row address start value
-        self.data_write(0x7F)             # Row address end value
-
-        self.cmd_write(0xB3)
-        self.data_write(0xF1)
-
-        self.cmd_write(0xCA)
-        self.data_write(0x7F)
-
-        self.cmd_write(0xA0) # Set re-map & data format
-        self.data_write(0b00100101)               # Vertical address increment 0b01110101
-                                            #// bit 0 - 1: kursor od lewej do prawej, 1 od góry do dołu
-                                            #    // bit 1 - lustrzane odbicie Y
-                                            #    // bit 2 - zamiana kolorów
-                                            #    // bit 3 - nieużywany
-                                            #    // bit 4 - lustrzane odbicie X
-                                            #    // bit 5 - naprzemienne linie (nie używać)
-                                            #    // bit 67 - format koloru
-
-        self.cmd_write(0xA1) # Set display start line
-        self.data_write(0x00)
-
-        self.cmd_write(0xA2) # Set display offset
-        self.data_write(0x00)
-
-        self.cmd_write(0xAB) # Function selection
-        self.data_write(0x01)
-
-        self.cmd_write(0xB4) # segment low voltage
-        self.data_write(0xA0)
-        self.data_write(0xB5)
-        self.data_write(0x55)
-
-        self.cmd_write(0xC1) # Contrast
-        self.data_write(255)
-        self.data_write(255)
-        self.data_write(255)
-
-        self.cmd_write(0xC7) # Master contrast current
-        self.data_write(0x0F)
-
-        self.cmd_write(0xB1) # Reset precharge
-        self.data_write(0x32)
-
-        self.cmd_write(0xB2) # Display enhancement
-        self.data_write(0xA4)
-        self.data_write(0x00)
-        self.data_write(0x00)
-
-        self.cmd_write(0xBB) # Precharge voltage
-        self.data_write(0x17)
-
-        self.cmd_write(0xB6) # Second precharge
-        self.data_write(0x01)
-
-        self.cmd_write(0xBE) # VCOMH voltage
-        self.data_write(0x05)
-
-        self.cmd_write(0xA6) # Display mode reset
-
-        self.cmd_write(0xAF) # Display on
+        self.transmit(b"\xFD\x12") # Set lock command
+        self.transmit(b"\xFD\xB1") # Set lock command
+        self.transmit(b"\xAE") # Display disable
+        self.transmit(b"\xA4") # Normal Display mode
+        self.transmit(b"\x15\x00\x7F") # Set column address range
+        self.transmit(b"\x75\x00\x7F") # Set row address
+        self.transmit(b"\xB3\xF1") #
+        self.transmit(b"\xCA\x7F") #
+        self.transmit(b"\xA0\x25") # Set re-map & data format
+        self.transmit(b"\xA1\x00") # Set display start line
+        self.transmit(b"\xA2\x00") # Set display offset
+        self.transmit(b"\xAB\x01") # Function selection
+        self.transmit(b"\xB4\xA0\xB5\x55") # segment low voltage
+        self.transmit(b"\xC1\xFF\xFF\xFF") # Contrast
+        self.transmit(b"\xC7\x0F") # Master contrast current
+        self.transmit(b"\xB1\x32") # Reset precharge
+        self.transmit(b"\xB2\xA4\x00\x00") # Display enhancement
+        self.transmit(b"\xBB\x17") # Precharge voltage
+        self.transmit(b"\xB6\x01") # Second precharge
+        self.transmit(b"\xBE\x05") # VCOMH voltage
+        self.transmit(b"\xA6") # Display mode reset
+        self.transmit(b"\xAF") # Display on
+        self.transmit(b"\x5C") # RAM Write
         
-        self.cmd_write(0x5C) # RAM Write
+        self.cs(1)
         self.dc(1)
         
         print("Init end")
-
-#         config = (
-#             0xAE,                     # Display off
-#             0x20, 0x00,               # Set memory addressing mode to horizontal addressing mode
-#             0x40,                     # Set display start line to 0
-#             0xA0 if flip_x else 0xA1, # Set segment remap
-#             0xA8, 0x3F,               # Set multiplex ratio to 63
-#             0xC0 if flip_y else 0xC8, # Set COM scan direction
-#             0xD3, 0x00,               # Set display offset to 0
-#             0xDA, 0x12,               # Set COM pins hardware config to enable COM left/right remap, sequential COM pin config
-#             0xD5, 0x80,               # Set clock and oscillator frequency to freq=8, clock=0
-#             0xD9, 0xF1,               # Set pre-charge period to phase_2=F, phase_1=1
-#             0xDB, 0x3C,               # Set VCOMH to max
-#             0x81, 0xFF,               # Set contrast to 255 (max)
-#             0xA4,                     # Use image in GDDRAM memory
-#             0xA6,                     # Display not inverted
-#             0x8D, 0x14,               # SSD1306 only - charge pump enable
-#             0xAF,                     # Display on
-#         )
-#         
-#         for cmd in config:
-#             self.write_cmd_write(cmd)
     
     @micropython.viper
     def __str__(self):
         return f"SSD1351(spi={self.spi}, cs={self.cs}, dc={self.dc}, rotate={self.rotate})"
-
-    def data_write(self, data):
-        self.dc(1)
-        self.cs(0)
-        self.spi.write(bytes([data]))
-        self.cs(1)
-        
-    def cmd_write(self, cmd):
-        self.dc(0)
-        self.cs(0)
-        self.spi.write(bytes([cmd]))
-        self.cs(1)
+    
+    @micropython.native
+    def transmit(self, buffer):
+        self.spi.write(buffer[0:1])
+        if len(buffer) > 1:
+            self.dc(1)
+            self.spi.write(buffer[1:])
+            self.dc(0)
     
     @micropython.viper
     def enable(self):
-        self.cmd_write(0xAF)
+        self.transmit("\xAF")
         
     @micropython.viper
     def disable(self):
-        self.cmd_write(0xAE)
+        self.transmit(b"\xAE")
     
     @micropython.viper
     def contrast_set(self, value):
-        self.cmd_write(0xC1)
-        self.data_write(value)
-        self.data_write(value)
-        self.data_write(value)
-        self.cmd_write(0x5C) # RAM Write
+        self.transmit(bytearray([0xC1, value, value, value]))
+        self.transmit(b"\x5C") # RAM Write
         self.dc(1)
         
     @micropython.viper
