@@ -97,9 +97,9 @@ class DisplayHAL:
             buffer = framebuf.FrameBuffer(bitmap[3:], width, height, 0)
             palette_array = bytearray(4)
             palette_framebuffer = framebuf.FrameBuffer(palette_array, 2, 1, framebuf.RGB565)
-            palette_framebuffer.pixel(0, 0, display.color(0x12, 0x34, 0x56)) # background
+            palette_framebuffer.pixel(0, 0, self.display.color(0x12, 0x34, 0x56)) # background
             palette_framebuffer.pixel(1, 0, color) # foreground
-            self.display.blit(buffer, x, y, display.color(0x12, 0x34, 0x56), palette_framebuffer)
+            self.display.blit(buffer, x, y, self.display.color(0x12, 0x34, 0x56), palette_framebuffer)
             
         return width + space  
         
@@ -143,9 +143,9 @@ class DisplayHAL:
         else:
             palette_array = bytearray(4)
             palette_framebuffer = framebuf.FrameBuffer(palette_array, 2, 1, framebuf.RGB565)
-            palette_framebuffer.pixel(0, 0, display.color(0x12, 0x34, 0x56)) # background
+            palette_framebuffer.pixel(0, 0, self.display.color(0x12, 0x34, 0x56)) # background
             palette_framebuffer.pixel(1, 0, color) # foreground
-            self.display.blit(bitmap, x, y, display.color(0x12, 0x34, 0x56), palette_framebuffer)
+            self.display.blit(bitmap, x, y, self.display.color(0x12, 0x34, 0x56), palette_framebuffer)
 
 if __name__ == "__main__":
     from machine import Pin, I2C
@@ -182,43 +182,6 @@ if __name__ == "__main__":
     hal.image(up_32x32,       96,  0, hal.color(0xFF, 0x00, 0x00))
     hal.image(down_32x32,     96, 32, hal.color(0x00, 0xFF, 0x00))
     
-#     font = extronic16_unicode
-#     char = 'F'
-#     x = 60
-#     y = 60
-#     color = hal.color(0xFF, 0x00, 0x00)
-#     
-#     try:
-#         bitmap = font[ord(char)]
-#     except:
-#         bitmap = font[0]
-#         print(f"Char {char} doesn't exist in font")
-# 
-#     width  = bitmap[0]
-#     height = bitmap[1]
-#     space  = bitmap[2]
-# 
-#     if hal.display.mono:
-#         if color:
-#             buffer = framebuf.FrameBuffer(bitmap[3:], width, height, 0)
-#         else:
-#             negative_bitmap = bitmap[:]
-#             for i in range(3, len(bitmap)):
-#                 negative_bitmap[i] = ~negative_bitmap[i]
-#             buffer = framebuf.FrameBuffer(negative_bitmap[3:], width, height, 0)
-#             hal.display.rect(x-space, y, space, height, 1, True)
-#             hal.display.rect(x+width, y, space, height, 1, True)
-#         self.display.blit(buffer, x, y)
-#     else:
-#         buffer = framebuf.FrameBuffer(bitmap[3:], width, height, 0)
-#         palette_array = bytearray(4)
-#         palette_framebuffer = framebuf.FrameBuffer(palette_array, 2, 1, framebuf.RGB565)
-#         palette_framebuffer.pixel(0, 0, display.color(0x12, 0x34, 0x56)) # background
-#         palette_framebuffer.pixel(1, 0, color) # foreground
-#         hal.display.blit(buffer, x, y, display.color(0x12, 0x34, 0x56), palette_framebuffer)
-
-    
-            
     measure_time.end("Rendering time:")
     
     measure_time.begin()
