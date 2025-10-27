@@ -14,6 +14,7 @@ class SSD1309(framebuf.FrameBuffer):
         self.rotate  = rotate
         self.width   = 128
         self.height  = 64
+        self.mono    = True
         self.array   = bytearray(self.width * self.height // 8)
         super().__init__(self.array, self.width, self.height, framebuf.MONO_VLSB)
         

@@ -18,6 +18,7 @@ class SH1106(framebuf.FrameBuffer):
         self.offset_x = offset_x
         self.width    = 128
         self.height   = 64
+        self.mono     = True
         self.array    = bytearray((self.width+4) * self.height // 8)
         super().__init__(self.array, (self.width+4), self.height, framebuf.MONO_VLSB)
         

@@ -139,7 +139,7 @@ class DisplayHAL:
     @micropython.native
     def image(self, bitmap, x, y, color=-1):
         if self.display.mono:
-            self.display.blit(bitmap, x, y, color)
+            self.display.blit(bitmap, x, y, 0)
         else:
             palette_array = bytearray(4)
             palette_framebuffer = framebuf.FrameBuffer(palette_array, 2, 1, framebuf.RGB565)
