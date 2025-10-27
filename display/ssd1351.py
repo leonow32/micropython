@@ -112,30 +112,6 @@ class SSD1351(framebuf.FrameBuffer):
         self.cmd_write(0x5C) # RAM Write
         self.dc(1)
         
-        print("Init end")
-
-#         config = (
-#             0xAE,                     # Display off
-#             0x20, 0x00,               # Set memory addressing mode to horizontal addressing mode
-#             0x40,                     # Set display start line to 0
-#             0xA0 if flip_x else 0xA1, # Set segment remap
-#             0xA8, 0x3F,               # Set multiplex ratio to 63
-#             0xC0 if flip_y else 0xC8, # Set COM scan direction
-#             0xD3, 0x00,               # Set display offset to 0
-#             0xDA, 0x12,               # Set COM pins hardware config to enable COM left/right remap, sequential COM pin config
-#             0xD5, 0x80,               # Set clock and oscillator frequency to freq=8, clock=0
-#             0xD9, 0xF1,               # Set pre-charge period to phase_2=F, phase_1=1
-#             0xDB, 0x3C,               # Set VCOMH to max
-#             0x81, 0xFF,               # Set contrast to 255 (max)
-#             0xA4,                     # Use image in GDDRAM memory
-#             0xA6,                     # Display not inverted
-#             0x8D, 0x14,               # SSD1306 only - charge pump enable
-#             0xAF,                     # Display on
-#         )
-#         
-#         for cmd in config:
-#             self.write_cmd_write(cmd)
-    
     @micropython.viper
     def __str__(self):
         return f"SSD1351(spi={self.spi}, cs={self.cs}, dc={self.dc}, rotate={self.rotate})"
@@ -155,10 +131,14 @@ class SSD1351(framebuf.FrameBuffer):
     @micropython.viper
     def enable(self):
         self.cmd_write(0xAF)
+        self.cmd_write(0x5C) # RAM Write
+        self.dc(1)
         
     @micropython.viper
     def disable(self):
         self.cmd_write(0xAE)
+        self.cmd_write(0x5C) # RAM Write
+        self.dc(1)
     
     @micropython.viper
     def contrast_set(self, value):
@@ -214,7 +194,6 @@ if __name__ == "__main__":
     hal.text("abcdefghijkl",  50, 40, hal.color(0xFF, 0xFF, 0x00), extronic16B_unicode, "center")
     hal.image(up_32x32,       96,  0, hal.color(0xFF, 0x00, 0x00))
     hal.image(down_32x32,     96, 32, hal.color(0x00, 0xFF, 0x00))
-   
     
     hal.refresh()
 #     hal.simulate()
