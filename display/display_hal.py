@@ -82,24 +82,24 @@ class DisplayHAL:
         height = bitmap[1]
         space  = bitmap[2]
         
-        if color:
-            buffer = framebuf.FrameBuffer(bitmap[3:], width, height, 0)
-        else:
-            negative_bitmap = bitmap[:]
-            for i in range(3, len(bitmap)):
-                negative_bitmap[i] = ~negative_bitmap[i]
-            buffer = framebuf.FrameBuffer(negative_bitmap[3:], width, height, 0)
-            self.display.rect(x-space, y, space, height, 1, True)
-            self.display.rect(x+width, y, space, height, 1, True)
-        
         if self.display.mono:
+            if color:
+                buffer = framebuf.FrameBuffer(bitmap[3:], width, height, 0)
+            else:
+                negative_bitmap = bitmap[:]
+                for i in range(3, len(bitmap)):
+                    negative_bitmap[i] = ~negative_bitmap[i]
+                buffer = framebuf.FrameBuffer(negative_bitmap[3:], width, height, 0)
+                self.display.rect(x-space, y, space, height, 1, True)
+                self.display.rect(x+width, y, space, height, 1, True)
             self.display.blit(buffer, x, y)
         else:
-            palette_array = bytearray(2)
+            buffer = framebuf.FrameBuffer(bitmap[3:], width, height, 0)
+            palette_array = bytearray(4)
             palette_framebuffer = framebuf.FrameBuffer(palette_array, 2, 1, framebuf.RGB565)
-            palette_framebuffer.pixel(0, 0, color)
-            palette_framebuffer.pixel(1, 0, display.color(0x00, 0x00, 0xFF))
-            self.display.blit(buffer, x, y, palette=palette_framebuffer)
+            palette_framebuffer.pixel(0, 0, display.color(0x12, 0x34, 0x56)) # background
+            palette_framebuffer.pixel(1, 0, color) # foreground
+            self.display.blit(buffer, x, y, display.color(0x12, 0x34, 0x56), palette_framebuffer)
             
         return width + space  
         
@@ -177,10 +177,45 @@ if __name__ == "__main__":
     hal.circle(display.width//2, display.height//2, display.width//4, hal.color(0x00, 0xFF, 0x00))
     hal.text('abcdefghijklm',  1,  2, hal.color(0x00, 0xFF, 0xFF))
     hal.text('nopqrstuvwxyz',  1, 10, hal.color(0x00, 0x00, 0xFF))
-#     hal.text("abcdefghijkl",  50, 20, 1, extronic16_unicode,  "center")
-#     hal.text("abcdefghijkl",  50, 40, 0, extronic16B_unicode, "center")
+    hal.text("abcdefghijkl",  50, 20, hal.color(0xFF, 0xFF, 0xFF), extronic16_unicode,  "center")
+    hal.text("abcdefghijkl",  50, 40, hal.color(0xFF, 0xFF, 0x00), extronic16B_unicode, "center")
     hal.image(up_32x32,       96,  0, hal.color(0xFF, 0x00, 0x00))
     hal.image(down_32x32,     96, 32, hal.color(0x00, 0xFF, 0x00))
+    
+#     font = extronic16_unicode
+#     char = 'F'
+#     x = 60
+#     y = 60
+#     color = hal.color(0xFF, 0x00, 0x00)
+#     
+#     try:
+#         bitmap = font[ord(char)]
+#     except:
+#         bitmap = font[0]
+#         print(f"Char {char} doesn't exist in font")
+# 
+#     width  = bitmap[0]
+#     height = bitmap[1]
+#     space  = bitmap[2]
+# 
+#     if hal.display.mono:
+#         if color:
+#             buffer = framebuf.FrameBuffer(bitmap[3:], width, height, 0)
+#         else:
+#             negative_bitmap = bitmap[:]
+#             for i in range(3, len(bitmap)):
+#                 negative_bitmap[i] = ~negative_bitmap[i]
+#             buffer = framebuf.FrameBuffer(negative_bitmap[3:], width, height, 0)
+#             hal.display.rect(x-space, y, space, height, 1, True)
+#             hal.display.rect(x+width, y, space, height, 1, True)
+#         self.display.blit(buffer, x, y)
+#     else:
+#         buffer = framebuf.FrameBuffer(bitmap[3:], width, height, 0)
+#         palette_array = bytearray(4)
+#         palette_framebuffer = framebuf.FrameBuffer(palette_array, 2, 1, framebuf.RGB565)
+#         palette_framebuffer.pixel(0, 0, display.color(0x12, 0x34, 0x56)) # background
+#         palette_framebuffer.pixel(1, 0, color) # foreground
+#         hal.display.blit(buffer, x, y, display.color(0x12, 0x34, 0x56), palette_framebuffer)
 
     
             
