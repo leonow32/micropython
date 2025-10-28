@@ -82,17 +82,25 @@ class DisplayHAL:
         height = bitmap[1]
         space  = bitmap[2]
         
-        if color:
-            buffer = framebuf.FrameBuffer(bitmap[3:], width, height, 0)
+        if self.display.mono:
+            if color:
+                buffer = framebuf.FrameBuffer(bitmap[3:], width, height, 0)
+            else:
+                negative_bitmap = bitmap[:]
+                for i in range(3, len(bitmap)):
+                    negative_bitmap[i] = ~negative_bitmap[i]
+                buffer = framebuf.FrameBuffer(negative_bitmap[3:], width, height, 0)
+                self.display.rect(x-space, y, space, height, 1, True)
+                self.display.rect(x+width, y, space, height, 1, True)
+            self.display.blit(buffer, x, y)
         else:
-            negative_bitmap = bitmap[:]
-            for i in range(3, len(bitmap)):
-                negative_bitmap[i] = ~negative_bitmap[i]
-            buffer = framebuf.FrameBuffer(negative_bitmap[3:], width, height, 0)
-            self.display.rect(x-space, y, space, height, 1, True)
-            self.display.rect(x+width, y, space, height, 1, True)
-        
-        self.display.blit(buffer, x, y)
+            buffer = framebuf.FrameBuffer(bitmap[3:], width, height, 0)
+            palette_array = bytearray(4)
+            palette_framebuffer = framebuf.FrameBuffer(palette_array, 2, 1, framebuf.RGB565)
+            palette_framebuffer.pixel(0, 0, self.display.color(0x12, 0x34, 0x56)) # background
+            palette_framebuffer.pixel(1, 0, color) # foreground
+            self.display.blit(buffer, x, y, self.display.color(0x12, 0x34, 0x56), palette_framebuffer)
+            
         return width + space  
         
     @micropython.native
@@ -129,14 +137,22 @@ class DisplayHAL:
         return total - last_char_space
     
     @micropython.native
-    def image(self, bitmap, x, y, transparent_color=-1):
-        self.display.blit(bitmap, x, y, transparent_color)
+    def image(self, bitmap, x, y, color=-1):
+        if self.display.mono:
+            self.display.blit(bitmap, x, y, 0)
+        else:
+            palette_array = bytearray(4)
+            palette_framebuffer = framebuf.FrameBuffer(palette_array, 2, 1, framebuf.RGB565)
+            palette_framebuffer.pixel(0, 0, self.display.color(0x12, 0x34, 0x56)) # background
+            palette_framebuffer.pixel(1, 0, color) # foreground
+            self.display.blit(bitmap, x, y, self.display.color(0x12, 0x34, 0x56), palette_framebuffer)
 
 if __name__ == "__main__":
     from machine import Pin, I2C
     from sh1106 import *
     from sh1108 import *
     from ssd1309 import *
+    from ssd1351 import *
     import mem_used
     import measure_time
     from image.down_32x32 import *
@@ -150,26 +166,28 @@ if __name__ == "__main__":
 
 #     spi = SPI(1, baudrate=10_000_000, polarity=0, phase=0)
 #     display = SH1108(spi, cs=Pin(4), dc=Pin(2), rotate=0, offset_x=16)
+#     display = SSD1351(spi, cs=Pin(27), dc=Pin(15), rotate=0)
     
     hal = DisplayHAL(display)
     print(hal)
     
     measure_time.begin()
-    hal.rect(0, 0, display.width, display.height, 1)
-    hal.line(2, 2, display.width-3, display.height-3, 1)
-    hal.circle(display.width//2, display.height//2, display.width//4, 1)
-    hal.text('abcdefghijklm',  1,  2, 1)
-    hal.text('nopqrstuvwxyz',  1, 10, 1)
-    hal.text("abcdefghijkl",  50, 20, 1, extronic16_unicode,  "center")
-    hal.text("abcdefghijkl",  50, 40, 0, extronic16B_unicode, "center")
-    hal.image(up_32x32,       96,  0, 0)
-    hal.image(down_32x32,     96, 32, 0)
+    hal.rect(0, 0, display.width, display.height, hal.color(0xFF, 0xFF, 0xFF))
+    hal.line(2, 2, display.width-3, display.height-3, hal.color(0xFF, 0x00, 0x00))
+    hal.circle(display.width//2, display.height//2, display.width//4, hal.color(0x00, 0xFF, 0x00))
+    hal.text('abcdefghijklm',  1,  2, hal.color(0x00, 0xFF, 0xFF))
+    hal.text('nopqrstuvwxyz',  1, 10, hal.color(0x00, 0x00, 0xFF))
+    hal.text("abcdefghijkl",  50, 20, hal.color(0xFF, 0xFF, 0xFF), extronic16_unicode,  "center")
+    hal.text("abcdefghijkl",  50, 40, hal.color(0xFF, 0xFF, 0x00), extronic16B_unicode, "center")
+    hal.image(up_32x32,       96,  0, hal.color(0xFF, 0x00, 0x00))
+    hal.image(down_32x32,     96, 32, hal.color(0x00, 0xFF, 0x00))
+    
     measure_time.end("Rendering time:")
     
     measure_time.begin()
     hal.refresh()
     measure_time.end("Refresh time:  ")
     
-    hal.simulate()
+#     hal.simulate()
 
     mem_used.print_ram_used()
