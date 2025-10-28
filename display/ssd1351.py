@@ -4,15 +4,6 @@
 from machine import Pin, SPI
 import framebuf
 
-RED     = const(0b000_00000_11111_000)
-YELLOW  = const(0b111_00000_11111_111)
-GREEN   = const(0b111_00000_00000_111)
-CYAN    = const(0b111_11111_00000_111)
-BLUE    = const(0b000_11111_00000_000)
-MAGENTA = const(0b000_11111_11111_000)
-WHITE   = const(0b111_11111_11111_111)
-BLACK   = const(0b000_00000_00000_000)
-
 class SSD1351(framebuf.FrameBuffer):
     
     @micropython.native
@@ -172,36 +163,4 @@ class SSD1351(framebuf.FrameBuffer):
     @micropython.viper
     def simulate(self):
         print("Not implemented")
-
-if __name__ == "__main__":
-    from machine import Pin, SPI
-    import mem_used
-    import measure_time
-    import display_hal
-    from image.down_32x32 import *
-    from image.up_32x32 import *
-    from font.extronic16_unicode import *
-    from font.extronic16B_unicode import *
-
-    spi     = SPI(1, baudrate=10_000_000, polarity=0, phase=0) # use default pinout
-    cs      = Pin(27)
-    dc      = Pin(15)
-    display = SSD1351(spi, cs, dc, rotate=0)
-    hal     = display_hal.DisplayHAL(display)
-    print(hal)
-    
-    hal.rect(0, 0, 128, 128, hal.color(0xFF, 0xFF, 0xFF))
-    hal.line(2, 2, 125, 125, hal.color(0xFF, 0x00, 0x00))
-    hal.circle(64, 64, 32, hal.color(0x00, 0xFF, 0x00))
-    hal.text('abcdefghijklm',  1,  2, hal.color(0x00, 0xFF, 0xFF))
-    hal.text('nopqrstuvwxyz',  1, 10, hal.color(0x00, 0x00, 0xFF))
-    hal.text("abcdefghijkl",  50, 20, hal.color(0xFF, 0x00, 0xFF), extronic16_unicode, "center")
-    hal.text("abcdefghijkl",  50, 40, hal.color(0xFF, 0xFF, 0x00), extronic16B_unicode, "center")
-    hal.image(up_32x32,       96,  0, hal.color(0xFF, 0x00, 0x00))
-    hal.image(down_32x32,     96, 32, hal.color(0x00, 0xFF, 0x00))
-    
-    hal.refresh()
-#     hal.simulate()
-
-    mem_used.print_ram_used()
     
