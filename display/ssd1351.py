@@ -17,19 +17,17 @@ class SSD1351(framebuf.FrameBuffer):
     
     @micropython.native
     def __init__(self, spi, cs, dc, rotate=0):
-        print("Init begin")
-        
-        self.spi     = spi
-        self.cs      = cs
-        self.dc      = dc
+        self.spi    = spi
+        self.cs     = cs
+        self.dc     = dc
         self.cs.init(mode=Pin.OUT, value=1)
         self.dc.init(mode=Pin.OUT, value=1)
         
-        self.rotate  = rotate
-        self.width   = 128
-        self.height  = 128
-        self.mono    = False
-        self.array   = bytearray(self.width * self.height * 2)
+        self.rotate = rotate
+        self.width  = 128
+        self.height = 128
+        self.mono   = False
+        self.array  = bytearray(self.width * self.height * 2)
         super().__init__(self.array, self.width, self.height, framebuf.RGB565)
         
         self.cmd_write(0xFD)  # Set lock command
@@ -68,17 +66,6 @@ class SSD1351(framebuf.FrameBuffer):
             self.data_write(0b00100110)
         else:
             raise Exception("Wrong rotation value")
-#          # rotate 0
-#          # rotate 90
-         # rotate 180
-#          # rotate 270
-                                            # bit 0 - 1: kursor od lewej do prawej, 1 od góry do dołu
-                                            # bit 1 - lustrzane odbicie Y
-                                            # bit 2 - zamiana kolorów
-                                            # bit 3 - nieużywany
-                                            # bit 4 - lustrzane odbicie X
-                                            # bit 5 - naprzemienne linie (nie używać)
-                                            # bit 67 - format koloru
 
         self.cmd_write(0xA1)  # Set display start line
         self.data_write(0x00)
@@ -132,13 +119,15 @@ class SSD1351(framebuf.FrameBuffer):
     def __str__(self):
         return f"SSD1351(spi={self.spi}, cs={self.cs}, dc={self.dc}, rotate={self.rotate})"
 
-    def data_write(self, data):
+    @micropython.viper
+    def data_write(self, data: uint):
         self.dc(1)
         self.cs(0)
         self.spi.write(bytes([data]))
         self.cs(1)
         
-    def cmd_write(self, cmd):
+    @micropython.viper
+    def cmd_write(self, cmd: uint):
         self.dc(0)
         self.cs(0)
         self.spi.write(bytes([cmd]))
