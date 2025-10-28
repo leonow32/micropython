@@ -32,84 +32,100 @@ class SSD1351(framebuf.FrameBuffer):
         self.array   = bytearray(self.width * self.height * 2)
         super().__init__(self.array, self.width, self.height, framebuf.RGB565)
         
-        self.cmd_write(0xFD) # Set lock command
+        self.cmd_write(0xFD)  # Set lock command
         self.data_write(0x12)
 
         self.cmd_write(0xFD)  # Set lock command
-        self.data_write(0xB1)                     # Command A2,B1,B3,BB,BE,C1 accessible if in unlock state
+        self.data_write(0xB1) # Command A2,B1,B3,BB,BE,C1 accessible if in unlock state
 
-        self.cmd_write(0xAE)     # Display disable
+        self.cmd_write(0xAE)  # Display disable
 
-        self.cmd_write(0xA4) # Normal Display mode
+        self.cmd_write(0xA4)  # Normal Display mode
 
-        self.cmd_write(0x15)      # Set column address
+        self.cmd_write(0x15)  # Set column address
         self.data_write(0x00) # Column address start value
         self.data_write(0x7F) # Column address end value
 
-        self.cmd_write(0x75) # Set row address
-        self.data_write(0x00)             # Row address start value
-        self.data_write(0x7F)             # Row address end value
+        self.cmd_write(0x75)  # Set row address
+        self.data_write(0x00) # Row address start value
+        self.data_write(0x7F) # Row address end value
 
-        self.cmd_write(0xB3)
+        self.cmd_write(0xB3)  # Clock divider
         self.data_write(0xF1)
 
-        self.cmd_write(0xCA)
+        self.cmd_write(0xCA)  # Set mux ratio
         self.data_write(0x7F)
 
-        self.cmd_write(0xA0) # Set re-map & data format
-        self.data_write(0b00100101)               # Vertical address increment 0b01110101
-                                            #// bit 0 - 1: kursor od lewej do prawej, 1 od góry do dołu
-                                            #    // bit 1 - lustrzane odbicie Y
-                                            #    // bit 2 - zamiana kolorów
-                                            #    // bit 3 - nieużywany
-                                            #    // bit 4 - lustrzane odbicie X
-                                            #    // bit 5 - naprzemienne linie (nie używać)
-                                            #    // bit 67 - format koloru
+        self.cmd_write(0xA0)  # Set re-map & data format
+        
+        if rotate == 0:
+            self.data_write(0b00100101)
+        elif rotate == 90:
+            self.data_write(0b00110100)
+        elif rotate == 180:
+            self.data_write(0b00110111)
+        elif rotate == 270:
+            self.data_write(0b00100110)
+        else:
+            raise Exception("Wrong rotation value")
+#          # rotate 0
+#          # rotate 90
+         # rotate 180
+#          # rotate 270
+                                            # bit 0 - 1: kursor od lewej do prawej, 1 od góry do dołu
+                                            # bit 1 - lustrzane odbicie Y
+                                            # bit 2 - zamiana kolorów
+                                            # bit 3 - nieużywany
+                                            # bit 4 - lustrzane odbicie X
+                                            # bit 5 - naprzemienne linie (nie używać)
+                                            # bit 67 - format koloru
 
-        self.cmd_write(0xA1) # Set display start line
+        self.cmd_write(0xA1)  # Set display start line
         self.data_write(0x00)
 
-        self.cmd_write(0xA2) # Set display offset
+        self.cmd_write(0xA2)  # Set display offset
         self.data_write(0x00)
 
-        self.cmd_write(0xAB) # Function selection
+        self.cmd_write(0xAB)  # Function selection
         self.data_write(0x01)
 
-        self.cmd_write(0xB4) # segment low voltage
+        self.cmd_write(0xB4)  # segment low voltage
         self.data_write(0xA0)
         self.data_write(0xB5)
         self.data_write(0x55)
 
-        self.cmd_write(0xC1) # Contrast
+        self.cmd_write(0xC1)  # Contrast
         self.data_write(255)
         self.data_write(255)
         self.data_write(255)
 
-        self.cmd_write(0xC7) # Master contrast current
+        self.cmd_write(0xC7)  # Master contrast current
+        self.data_write(0x0F)
+        self.data_write(0x0F)
         self.data_write(0x0F)
 
-        self.cmd_write(0xB1) # Reset precharge
+        self.cmd_write(0xB1)  # Reset precharge
         self.data_write(0x32)
 
-        self.cmd_write(0xB2) # Display enhancement
+        self.cmd_write(0xB2)  # Display enhancement
         self.data_write(0xA4)
         self.data_write(0x00)
         self.data_write(0x00)
 
-        self.cmd_write(0xBB) # Precharge voltage
+        self.cmd_write(0xBB)  # Precharge voltage
         self.data_write(0x17)
 
-        self.cmd_write(0xB6) # Second precharge
+        self.cmd_write(0xB6)  # Second precharge
         self.data_write(0x01)
 
-        self.cmd_write(0xBE) # VCOMH voltage
+        self.cmd_write(0xBE)  # VCOMH voltage
         self.data_write(0x05)
 
-        self.cmd_write(0xA6) # Display mode reset
+        self.cmd_write(0xA6)  # Display mode reset
 
-        self.cmd_write(0xAF) # Display on
+        self.cmd_write(0xAF)  # Display on
         
-        self.cmd_write(0x5C) # RAM Write
+        self.cmd_write(0x5C)  # RAM Write
         self.dc(1)
         
     @micropython.viper
