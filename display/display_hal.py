@@ -160,12 +160,12 @@ if __name__ == "__main__":
     from font.extronic16_unicode import *
     from font.extronic16B_unicode import *
 
-    i2c = I2C(0) # use default pinout and clock frequency
+#     i2c = I2C(0) # use default pinout and clock frequency
 #     display = SH1106(i2c, address=0x3D, rotate=0, offset_x=2)
-    display = SSD1309(i2c, address=0x3C, rotate=0)
+#     display = SSD1309(i2c, address=0x3C, rotate=0)
 
-#     spi = SPI(1, baudrate=10_000_000, polarity=0, phase=0)
-#     display = SH1108(spi, cs=Pin(4), dc=Pin(2), rotate=0, offset_x=16)
+    spi = SPI(1, baudrate=10_000_000, polarity=0, phase=0)
+    display = SH1108(spi, cs=Pin(4), dc=Pin(2), rotate=0, offset_x=16)
 #     display = SSD1351(spi, cs=Pin(27), dc=Pin(15), rotate=0)
     
     hal = DisplayHAL(display)
