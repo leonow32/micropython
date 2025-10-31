@@ -39,8 +39,8 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         self.data_write(0x00)
         
         self.cmd_write(0xA0) # Set Re-Map & Dual COM Line Mode
-        self.data_write(0x36) # Creatway
-        self.data_write(0x01) # Creatway
+        self.data_write(0b00110010) # Creatway 0x36
+        self.data_write(0x00) # Creatway 0x01
 #         self.data_write(0x32) # Midas
 #         self.data_write(0x00) # Midas
         
@@ -70,16 +70,18 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         self.data_write(0x20)
         
         self.cmd_write(0x15)  # Set Column Address
-        self.data_write(0x1C) # 28  - Creatway
-        self.data_write(0x5B) # 133 - Creatway
+#         self.data_write(0x1C) # 28  - Creatway
+#         self.data_write(0x5B) # 133 - Creatway
 #         self.data_write(0x08) # 8  - Midas
 #         self.data_write(0x47) # 71 - Midas
 #         self.data_write(0x04) # moje prawa krawędź
 #         self.data_write(0x23) # moje, lewa krawędź -> 32 kolumny
+        self.data_write(0x00) # 28  - Creatway
+        self.data_write(0x7F) # 133 - Creatway
         
         self.cmd_write(0x75)  # Set Row Address
         self.data_write(0x00) # 0
-        self.data_write(0x5F) # 95
+        self.data_write(0x7F) # 95
         # 5F to linia na samej górze wyświetlacza
         
         self.cmd_write(0xBB) # Set Pre-Charge Voltage
@@ -128,7 +130,13 @@ class SSD1363_SPI(framebuf.FrameBuffer):
     
     @micropython.viper
     def refresh(self):
-        pass
+        self.cs(0)
+        self.dc(0)
+        self.spi.write(bytes([0x5C]))
+        self.dc(1)
+        self.spi.write(self.array)
+        self.cs(1)
+#         pass
         # Set column address range from 0x00 to 0x7F, set page address range from 0x00 to 0x07
 #         for cmd in (0x21, 0x00, 0x7F, 0x22, 0x00, 0x07):
 #             self.cmd_write(cmd)
@@ -179,7 +187,11 @@ if __name__ == "__main__":
 #     hal = DisplayHAL(display)
 #     print(hal)
     
-#     hal.rect(0, 0, 128, 64, 1)
+#     display.fill_rect(0, 0, 7, 7, 15)
+#     display.rect(0, 0, 255, 127, 15)
+#     display.rect(1, 1, 255, 127, 1)
+    display.ellipse(128, 64, 64, 64, 15)
+    display.ellipse(64, 32, 30, 30, 15)
 #     hal.line(2, 2, 125, 61, 1)
 #     hal.circle(64, 32, 30, 1)
 #     hal.text('abcdefghijklm',  1,  2, 1)
@@ -190,7 +202,7 @@ if __name__ == "__main__":
 #     hal.image(down_32x32,     96, 32, 0)
    
     
-#     hal.refresh()
+    display.refresh()
 #     hal.simulate()
 
     mem_used.print_ram_used()
