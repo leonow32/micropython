@@ -226,6 +226,21 @@ class SSD1363_SPI(framebuf.FrameBuffer):
 #         for i in range(128*4):
             self.spi.write(bytes([data]))
         self.cs(1)
+        
+    def test2(self, x, y, data):
+        self.cmd_write(0x15)  # Set column range (0...79)
+        self.data_write(8+x)
+        self.data_write(8+x)   # display height (71-8+1)*2 = 128px
+        
+        self.cmd_write(0x75)  # Set row range (0...159)
+        self.data_write(y)
+        self.data_write(y)  # display width (127-0+1)*2 = 256px
+        
+        self.cmd_write(0x5C)  # Write RAM
+        self.cs(0)
+        self.dc(1)
+        self.spi.write(data)
+        self.cs(1)
     
     @micropython.viper
     def refresh(self):
@@ -297,11 +312,11 @@ if __name__ == "__main__":
 #     display.pixel(255, 0, 15)
     
 #     display.fill_rect(0, 0, 7, 7, 15)
-    display.rect(0, 0, 256, 128, 15)
+#     display.rect(0, 0, 256, 128, 15)
 #     display.rect(1, 1, 255, 127, 1)
 #     display.ellipse(128, 64, 64, 64, 15)
 #     display.ellipse(64, 32, 30, 30, 15)
-    display.line(0, 0, 255, 127, 15)
+#     display.line(0, 0, 255, 127, 15)
 #     hal.circle(64, 32, 30, 1)
 #     hal.text('abcdefghijklm',  1,  2, 1)
 #     hal.text('nopqrstuvwxyz',  1, 10, 1)
