@@ -19,7 +19,44 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         self.array  = bytearray(self.width * self.height // 2)
         super().__init__(self.array, self.width, self.height, framebuf.GS4_HMSB)
         
-        # East Rising
+#         self.cmd_write(0xFD) # Command Lock
+#         self.data_write(0x12)
+#         
+#         self.cmd_write(0xAE) # Set Display Off
+#         
+#         self.cmd_write(0xC1) # Set Contrast Current
+#         self.data_write(0xA0)
+#         
+#         self.cmd_write(0xA0) # Set Re-Map & Dual COM Line Mode
+#         self.data_write(0b00000001) # od lewej do prawej, potem w dół
+#         self.data_write(0b00000000)
+#         
+#         self.cmd_write(0xA2) # Set Display Offset
+#         self.data_write(0x00)
+#         
+#         self.cmd_write(0x15)  # Set column range (0...79)
+#         self.data_write(8)
+#         self.data_write(71)   # display height (71-8+1)*2 = 128px
+#         
+#         self.cmd_write(0x75)  # Set row range (0...159)
+#         self.data_write(0)
+#         self.data_write(127)  # display width (127-0+1)*2 = 256px
+#         
+#         self.cmd_write(0xCA) # Set Multiplex Ratio
+#         self.data_write(0x7F)
+#         
+#         self.cmd_write(0xAD) # Set IREF (tego nie ma w Creatway i Midas)
+#         self.data_write(0x90) # Internal
+#         
+#         self.cmd_write(0xB3) # Set Display Clock Divide Ratio/Oscillator Frequency
+#         self.data_write(0x61)
+#         
+#         self.cmd_write(0xB9) # Select Gray Scale Table
+#         
+#         self.cmd_write(0xAF) # Set Display On
+        
+        
+        # This works - od lewej do prawej, potem w dół, kolejność pikseli w grypach 4 bajtów jest zamieniona
         self.cmd_write(0xFD) # Command Lock
         self.data_write(0x12)
         
@@ -29,8 +66,8 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         self.data_write(0xA0)
         
         self.cmd_write(0xA0) # Set Re-Map & Dual COM Line Mode
-        self.data_write(0b00110010) 
-        self.data_write(0x00)
+        self.data_write(0b00110010) # od lewej do prawej, potem w dół
+        self.data_write(0b00000000)
         
         self.cmd_write(0xA2) # Set Display Offset
         self.data_write(0x20)
@@ -50,7 +87,10 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         self.data_write(0x90) # Internal
         
         self.cmd_write(0xB3) # Set Display Clock Divide Ratio/Oscillator Frequency
-        self.data_write(0x61)
+#         self.data_write(0x00)
+        self.data_write(0x61) # Easy Rising
+#         self.data_write(0x90) # Creatway
+#         self.data_write(0x30) # Midas
         
         self.cmd_write(0xB9) # Select Gray Scale Table
         
@@ -245,13 +285,23 @@ if __name__ == "__main__":
     
 #     hal = DisplayHAL(display)
 #     print(hal)
+
+#     display.pixel(0, 0, 15)
+#     display.pixel(1, 1, 15)
+#     display.pixel(2, 2, 15)
+#     display.pixel(3, 3, 15)
+#     display.pixel(4, 4, 15)
+#     display.pixel(5, 5, 15)
+#     display.pixel(6, 6, 15)
+#     display.pixel(7, 7, 15)
+#     display.pixel(255, 0, 15)
     
 #     display.fill_rect(0, 0, 7, 7, 15)
-    display.rect(0, 0, 255, 127, 15)
-    display.rect(1, 1, 255, 127, 1)
-    display.ellipse(128, 64, 64, 64, 15)
-    display.ellipse(64, 32, 30, 30, 15)
-#     hal.line(2, 2, 125, 61, 1)
+    display.rect(0, 0, 256, 128, 15)
+#     display.rect(1, 1, 255, 127, 1)
+#     display.ellipse(128, 64, 64, 64, 15)
+#     display.ellipse(64, 32, 30, 30, 15)
+    display.line(0, 0, 255, 127, 15)
 #     hal.circle(64, 32, 30, 1)
 #     hal.text('abcdefghijklm',  1,  2, 1)
 #     hal.text('nopqrstuvwxyz',  1, 10, 1)
