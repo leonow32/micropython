@@ -19,6 +19,46 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         self.array  = bytearray(self.width * self.height // 2)
         super().__init__(self.array, self.width, self.height, framebuf.GS4_HMSB)
         
+        # East Rising
+        self.cmd_write(0xFD) # Command Lock
+        self.data_write(0x12)
+        
+        self.cmd_write(0xAE) # Set Display Off
+        
+        self.cmd_write(0xC1) # Set Contrast Current
+        self.data_write(0xA0)
+        
+        self.cmd_write(0xA0) # Set Re-Map & Dual COM Line Mode
+        self.data_write(0b00110010) 
+        self.data_write(0x00)
+        
+        self.cmd_write(0xA2) # Set Display Offset
+        self.data_write(0x20)
+        
+        self.cmd_write(0x15)  # Set column range (0...79)
+        self.data_write(8)
+        self.data_write(71)   # display height (71-8+1)*2 = 128px
+        
+        self.cmd_write(0x75)  # Set row range (0...159)
+        self.data_write(0)
+        self.data_write(127)  # display width (127-0+1)*2 = 256px
+        
+        self.cmd_write(0xCA) # Set Multiplex Ratio
+        self.data_write(0x7F)
+        
+        self.cmd_write(0xAD) # Set IREF (tego nie ma w Creatway i Midas)
+        self.data_write(0x90) # Internal
+        
+        self.cmd_write(0xB3) # Set Display Clock Divide Ratio/Oscillator Frequency
+        self.data_write(0x61)
+        
+        self.cmd_write(0xB9) # Select Gray Scale Table
+        
+        self.cmd_write(0xAF) # Set Display On
+        
+        
+        
+        """
         self.cmd_write(0xFD) # Command Lock
         self.data_write(0x12)
         
@@ -96,6 +136,7 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         self.cmd_write(0xA6) # Set Display Mode to not onverted
         
         self.cmd_write(0xAF) # Set Display On
+        """
     
     @micropython.viper
     def __str__(self):
@@ -127,6 +168,24 @@ class SSD1363_SPI(framebuf.FrameBuffer):
     def contrast(self, value):
         self.cmd_write(0x81)
         self.cmd_write(value)
+        
+    def test1(self, data):
+        self.cmd_write(0x15)  # Set column range (0...79)
+        self.data_write(8)
+        self.data_write(71)   # display height (71-8+1)*2 = 128px
+        
+        self.cmd_write(0x75)  # Set row range (0...159)
+        self.data_write(0)
+        self.data_write(127)  # display width (127-0+1)*2 = 256px
+        
+        self.cmd_write(0x5C)  # Write RAM
+        
+        self.cs(0)
+        self.dc(1)
+        for i in range(16384):
+#         for i in range(128*4):
+            self.spi.write(bytes([data]))
+        self.cs(1)
     
     @micropython.viper
     def refresh(self):
@@ -165,7 +224,7 @@ if __name__ == "__main__":
 #     from font.extronic16_unicode import *
 #     from font.extronic16B_unicode import *
 
-    spi = SPI(1, baudrate=10_000_000, polarity=0, phase=0)
+    spi = SPI(1, baudrate=5_000_000, polarity=0, phase=0)
     print(spi)
     
     display = SSD1363_SPI(spi, cs=Pin(9), dc=Pin(10), rotate=0)
@@ -188,8 +247,8 @@ if __name__ == "__main__":
 #     print(hal)
     
 #     display.fill_rect(0, 0, 7, 7, 15)
-#     display.rect(0, 0, 255, 127, 15)
-#     display.rect(1, 1, 255, 127, 1)
+    display.rect(0, 0, 255, 127, 15)
+    display.rect(1, 1, 255, 127, 1)
     display.ellipse(128, 64, 64, 64, 15)
     display.ellipse(64, 32, 30, 30, 15)
 #     hal.line(2, 2, 125, 61, 1)
