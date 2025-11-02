@@ -16,45 +16,11 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         self.rotate = rotate
         self.width  = 256
         self.height = 128
-        self.array  = bytearray(self.width * self.height // 2)
-        super().__init__(self.array, self.width, self.height, framebuf.GS4_HMSB)
+        self.array  = bytearray(self.width * self.height // 8)
+        super().__init__(self.array, self.width, self.height, framebuf.MONO_VLSB)
         
-#         self.cmd_write(0xFD) # Command Lock
-#         self.data_write(0x12)
-#         
-#         self.cmd_write(0xAE) # Set Display Off
-#         
-#         self.cmd_write(0xC1) # Set Contrast Current
-#         self.data_write(0xA0)
-#         
-#         self.cmd_write(0xA0) # Set Re-Map & Dual COM Line Mode
-#         self.data_write(0b00000001) # od lewej do prawej, potem w dół
-#         self.data_write(0b00000000)
-#         
-#         self.cmd_write(0xA2) # Set Display Offset
-#         self.data_write(0x00)
-#         
-#         self.cmd_write(0x15)  # Set column range (0...79)
-#         self.data_write(8)
-#         self.data_write(71)   # display height (71-8+1)*2 = 128px
-#         
-#         self.cmd_write(0x75)  # Set row range (0...159)
-#         self.data_write(0)
-#         self.data_write(127)  # display width (127-0+1)*2 = 256px
-#         
-#         self.cmd_write(0xCA) # Set Multiplex Ratio
-#         self.data_write(0x7F)
-#         
-#         self.cmd_write(0xAD) # Set IREF (tego nie ma w Creatway i Midas)
-#         self.data_write(0x90) # Internal
-#         
-#         self.cmd_write(0xB3) # Set Display Clock Divide Ratio/Oscillator Frequency
-#         self.data_write(0x61)
-#         
-#         self.cmd_write(0xB9) # Select Gray Scale Table
-#         
-#         self.cmd_write(0xAF) # Set Display On
-        
+#         self.array  = bytearray(self.width * self.height // 2)
+#         super().__init__(self.array, self.width, self.height, framebuf.GS4_HMSB)
         
         # This works - od lewej do prawej, potem w dół, kolejność pikseli w grypach 4 bajtów jest zamieniona
         self.cmd_write(0xFD) # Command Lock
@@ -95,88 +61,6 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         self.cmd_write(0xB9) # Select Gray Scale Table
         
         self.cmd_write(0xAF) # Set Display On
-        
-        
-        
-        """
-        self.cmd_write(0xFD) # Command Lock
-        self.data_write(0x12)
-        
-        self.cmd_write(0xAE) # Set Display Off
-        
-        self.cmd_write(0xB3) # Set Display Clock Divide Ratio/Oscillator Frequency
-        self.data_write(0x90) # Creatway
-#         self.data_write(0x30) # Midas
-        
-        self.cmd_write(0xCA) # Set Multiplex Ratio
-        self.data_write(0x7F)
-        
-        self.cmd_write(0xA2) # Set Display Offset
-        self.data_write(0x00) # Creatway
-#         self.data_write(0x20) # Midas
-        
-        self.cmd_write(0xA1) # Set Display Start Line
-        self.data_write(0x00)
-        
-        self.cmd_write(0xA0) # Set Re-Map & Dual COM Line Mode
-        self.data_write(0b00110010) # Creatway 0x36
-        self.data_write(0x00) # Creatway 0x01
-#         self.data_write(0x32) # Midas
-#         self.data_write(0x00) # Midas
-        
-        self.cmd_write(0xB5) # Set GPIO - Creatway
-        self.data_write(0x00)
-        
-        self.cmd_write(0xAB) # Function Selection - Creatway
-        self.data_write(0x01)
-        
-        self.cmd_write(0xB4) # Set Segment Low Voltage - Creatway
-        self.data_write(0xA0)
-        self.data_write(0xDD)
-        
-        self.cmd_write(0xC1) # Set Contrast Current
-        self.data_write(0xCF)
-        
-        self.cmd_write(0xC7) # Master Contrast Current Control
-        self.data_write(0x0F)
-        
-        self.cmd_write(0xB9) # Select Gray Scale Table
-        
-        self.cmd_write(0xB1) # Set Phase Length
-        self.data_write(0xE2)
-        
-        self.cmd_write(0xD1) # Enhance Driving Scheme Capability
-        self.data_write(0x82)
-        self.data_write(0x20)
-        
-        self.cmd_write(0x15)  # Set Column Address
-#         self.data_write(0x1C) # 28  - Creatway
-#         self.data_write(0x5B) # 133 - Creatway
-#         self.data_write(0x08) # 8  - Midas
-#         self.data_write(0x47) # 71 - Midas
-#         self.data_write(0x04) # moje prawa krawędź
-#         self.data_write(0x23) # moje, lewa krawędź -> 32 kolumny
-        self.data_write(0x00) # 28  - Creatway
-        self.data_write(0x7F) # 133 - Creatway
-        
-        self.cmd_write(0x75)  # Set Row Address
-        self.data_write(0x00) # 0
-        self.data_write(0x7F) # 95
-        # 5F to linia na samej górze wyświetlacza
-        
-        self.cmd_write(0xBB) # Set Pre-Charge Voltage
-        self.data_write(0x1F)
-        
-        self.cmd_write(0xB6) # Set Second Pre-Charge Period
-        self.data_write(0x08)
-        
-        self.cmd_write(0xBE) # Set VCOMH Deselect Level
-        self.data_write(0x07)
-        
-        self.cmd_write(0xA6) # Set Display Mode to not onverted
-        
-        self.cmd_write(0xAF) # Set Display On
-        """
     
     @micropython.viper
     def __str__(self):
@@ -253,7 +137,7 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         self.cs(1)
     
     # 1953 ms
-    # Działa ale bardzo wolno
+    # Działa na GS4_HMSB ale bardzo wolno
     @micropython.native
     def refresh2(self):
         self.cs(0)
@@ -273,6 +157,54 @@ class SSD1363_SPI(framebuf.FrameBuffer):
             self.spi.write(buf2)
             
         self.cs(1)
+        
+    def refresh3(self):
+        buf = bytearray(self.width * self.height // 2)
+        
+        # 256px na linię = 128B na linię
+        
+        
+        x = 0
+        p = 0
+        for byte in self.array:
+            if x%4 == 0:
+                if byte & 0b00000001: buf[128*0+1] |= 0x0F
+                if byte & 0b00000010: buf[128*1+1] |= 0x0F
+                if byte & 0b00000100: buf[128*2+1] |= 0x0F
+                if byte & 0b00001000: buf[128*3+1] |= 0x0F
+                if byte & 0b00010000: buf[128*4+1] |= 0x0F
+                if byte & 0b00100000: buf[128*5+1] |= 0x0F
+                if byte & 0b01000000: buf[128*6+1] |= 0x0F
+                if byte & 0b10000000: buf[128*7+1] |= 0x0F
+            elif x%4 == 1:
+                if byte & 0b00000001: buf[128*0+1] |= 0xF0
+                if byte & 0b00000010: buf[128*1+1] |= 0xF0
+                if byte & 0b00000100: buf[128*2+1] |= 0xF0
+                if byte & 0b00001000: buf[128*3+1] |= 0xF0
+                if byte & 0b00010000: buf[128*4+1] |= 0xF0
+                if byte & 0b00100000: buf[128*5+1] |= 0xF0
+                if byte & 0b01000000: buf[128*6+1] |= 0xF0
+                if byte & 0b10000000: buf[128*7+1] |= 0xF0
+            if x%4 == 2:
+                if byte & 0b00000001: buf[128*0] |= 0x0F
+                if byte & 0b00000010: buf[128*1] |= 0x0F
+                if byte & 0b00000100: buf[128*2] |= 0x0F
+                if byte & 0b00001000: buf[128*3] |= 0x0F
+                if byte & 0b00010000: buf[128*4] |= 0x0F
+                if byte & 0b00100000: buf[128*5] |= 0x0F
+                if byte & 0b01000000: buf[128*6] |= 0x0F
+                if byte & 0b10000000: buf[128*7] |= 0x0F
+            if x%4 == 3:
+                if byte & 0b00000001: buf[128*0] |= 0xF0
+                if byte & 0b00000010: buf[128*1] |= 0xF0
+                if byte & 0b00000100: buf[128*2] |= 0xF0
+                if byte & 0b00001000: buf[128*3] |= 0xF0
+                if byte & 0b00010000: buf[128*4] |= 0xF0
+                if byte & 0b00100000: buf[128*5] |= 0xF0
+                if byte & 0b01000000: buf[128*6] |= 0xF0
+                if byte & 0b10000000: buf[128*7] |= 0xF0
+                
+            x += 1
         
     @micropython.native
     def simulate(self):
