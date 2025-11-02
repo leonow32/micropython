@@ -241,23 +241,38 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         self.dc(1)
         self.spi.write(data)
         self.cs(1)
-    
-    @micropython.viper
-    def refresh(self):
+        
+    # 14 ms
+    @micropython.native
+    def refresh1(self):
         self.cs(0)
         self.dc(0)
         self.spi.write(bytes([0x5C]))
         self.dc(1)
         self.spi.write(self.array)
         self.cs(1)
-#         pass
-        # Set column address range from 0x00 to 0x7F, set page address range from 0x00 to 0x07
-#         for cmd in (0x21, 0x00, 0x7F, 0x22, 0x00, 0x07):
-#             self.cmd_write(cmd)
-
-#         self.cmd_write(0x5C)  # Set Column Address
+    
+    # 1953 ms
+    # Działa ale bardzo wolno
+    @micropython.native
+    def refresh2(self):
+        self.cs(0)
+        self.dc(0)
+        self.spi.write(bytes([0x5C]))
+        self.dc(1)
         
-#         self.i2c.writevto(self.address, (b"\x80\x5C\x40", self.array))
+        for i in range(0, 256*128//2, 2):
+            buf1 = self.array[i:i+2]
+            
+            pix0 = (buf1[1] & 0x0F) << 4
+            pix1 = (buf1[1] & 0xF0) >> 4
+            pix2 = (buf1[0] & 0x0F) << 4
+            pix3 = (buf1[0] & 0xF0) >> 4
+            
+            buf2 = bytearray([pix0 | pix1, pix2 | pix3])
+            self.spi.write(buf2)
+            
+        self.cs(1)
         
     @micropython.native
     def simulate(self):
@@ -274,12 +289,13 @@ class SSD1363_SPI(framebuf.FrameBuffer):
 if __name__ == "__main__":
     from machine import Pin, I2C
     import mem_used
+    import measure_time
 #     from image.down_32x32 import *
 #     from image.up_32x32 import *
 #     from font.extronic16_unicode import *
 #     from font.extronic16B_unicode import *
 
-    spi = SPI(1, baudrate=5_000_000, polarity=0, phase=0)
+    spi = SPI(1, baudrate=10_000_000, polarity=0, phase=0)
     print(spi)
     
     display = SSD1363_SPI(spi, cs=Pin(9), dc=Pin(10), rotate=0)
@@ -312,21 +328,24 @@ if __name__ == "__main__":
 #     display.pixel(255, 0, 15)
     
 #     display.fill_rect(0, 0, 7, 7, 15)
-#     display.rect(0, 0, 256, 128, 15)
+    display.rect(0, 0, 256, 128, 15)
 #     display.rect(1, 1, 255, 127, 1)
-#     display.ellipse(128, 64, 64, 64, 15)
-#     display.ellipse(64, 32, 30, 30, 15)
-#     display.line(0, 0, 255, 127, 15)
-#     hal.circle(64, 32, 30, 1)
-#     hal.text('abcdefghijklm',  1,  2, 1)
-#     hal.text('nopqrstuvwxyz',  1, 10, 1)
+    display.ellipse(128, 64, 64, 64, 15)
+    display.ellipse(64, 32, 30, 30, 15)
+    display.line(0, 0, 255, 127, 15)
+#     display.circle(64, 32, 30, 15)
+    display.text('abcdefghijklm',  1,  2, 8)
+    display.text('nopqrstuvwxyz',  1, 10, 15)
 #     hal.text("abcdefghijkl",  50, 20, 1,  extronic16_unicode, "center")
 #     hal.text("abcdefghijkl",  50, 40, 0, extronic16B_unicode, "center")
 #     hal.image(up_32x32,       96,  0, 0)
 #     hal.image(down_32x32,     96, 32, 0)
    
     
-    display.refresh()
+    measure_time.begin()
+    display.refresh1()
+    measure_time.end("Refresh time:  ")
+    
 #     hal.simulate()
 
     mem_used.print_ram_used()
