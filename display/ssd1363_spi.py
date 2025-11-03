@@ -16,11 +16,11 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         self.rotate = rotate
         self.width  = 256
         self.height = 128
-        self.array  = bytearray(self.width * self.height // 8)
-        super().__init__(self.array, self.width, self.height, framebuf.MONO_VLSB)
+#         self.array  = bytearray(self.width * self.height // 8)
+#         super().__init__(self.array, self.width, self.height, framebuf.MONO_VLSB)
         
-#         self.array  = bytearray(self.width * self.height // 2)
-#         super().__init__(self.array, self.width, self.height, framebuf.GS4_HMSB)
+        self.array  = bytearray(self.width * self.height // 2)
+        super().__init__(self.array, self.width, self.height, framebuf.GS4_HMSB)
         
         # This works - od lewej do prawej, potem w dół, kolejność pikseli w grypach 4 bajtów jest zamieniona
         self.cmd_write(0xFD) # Command Lock
@@ -54,9 +54,9 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         
         self.cmd_write(0xB3) # Set Display Clock Divide Ratio/Oscillator Frequency
 #         self.data_write(0x00)
-        self.data_write(0x61) # Easy Rising
+#         self.data_write(0x61) # Easy Rising
 #         self.data_write(0x90) # Creatway
-#         self.data_write(0x30) # Midas
+        self.data_write(0x30) # Midas
         
         self.cmd_write(0xB9) # Select Gray Scale Table
         
@@ -227,7 +227,7 @@ if __name__ == "__main__":
 #     from font.extronic16_unicode import *
 #     from font.extronic16B_unicode import *
 
-    spi = SPI(1, baudrate=10_000_000, polarity=0, phase=0)
+    spi = SPI(1, baudrate=5_000_000, polarity=0, phase=0)
     print(spi)
     
     display = SSD1363_SPI(spi, cs=Pin(9), dc=Pin(10), rotate=0)
