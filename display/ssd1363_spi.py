@@ -22,6 +22,47 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         self.array  = bytearray(self.width * self.height // 2)
         super().__init__(self.array, self.width, self.height, framebuf.GS4_HMSB)
         
+        # Demo code
+        self.cmd_write(0xFD) # Command Lock
+        self.data_write(0x12)
+        
+        self.cmd_write(0xAE) # Set Display Off
+        
+        self.cmd_write(0xC1) # Set Contrast Current
+        self.data_write(0xA0)
+        
+        horizontal = False
+        
+        if horizontal:
+            self.cmd_write(0xA0) # Set Re-Map & Dual COM Line Mode
+            self.data_write(0b00100100) # od lewej do prawej, potem w dół
+            self.data_write(0b00000000)
+            
+            self.cmd_write(0xA2) # Set Display Offset
+            self.data_write(0x80)
+        
+        else:
+            self.cmd_write(0xA0) # Set Re-Map & Dual COM Line Mode
+            self.data_write(0x32) # od lewej do prawej, potem w dół
+            self.data_write(0x00)
+            
+            self.cmd_write(0xA2) # Set Display Offset
+            self.data_write(0x20)
+        
+        self.cmd_write(0xCA) # Set Multiplex Ratio
+        self.data_write(0x7F)
+        
+        self.cmd_write(0xAD) # Set IREF (tego nie ma w Creatway i Midas)
+        self.data_write(0x90) # Internal
+        
+        self.cmd_write(0xB3) # Set Display Clock Divide Ratio/Oscillator Frequency
+        self.data_write(0x61) # Easy Rising
+        
+        self.cmd_write(0xB9) # Select Gray Scale Table
+        
+        self.cmd_write(0xAF) # Set Display On
+        
+        """
         # This works - od lewej do prawej, potem w dół, kolejność pikseli w grypach 4 bajtów jest zamieniona
         self.cmd_write(0xFD) # Command Lock
         self.data_write(0x12)
@@ -61,6 +102,7 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         self.cmd_write(0xB9) # Select Gray Scale Table
         
         self.cmd_write(0xAF) # Set Display On
+        """
     
     @micropython.viper
     def __str__(self):
