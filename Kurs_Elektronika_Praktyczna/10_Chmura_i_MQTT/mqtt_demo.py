@@ -1,12 +1,16 @@
-# MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+# MicroPython 1.26.1 ESP32-S3 Octal SPIRAM
 
 import _thread
 import esp32
+import machine
 import network
 import time
 import wifi_config
 import sys
 from umqtt.robust import MQTTClient
+
+client_id = machine.unique_id().hex().upper()
+print(f"Client ID: {client_id}")
 
 def wifi_connect():
     station = network.WLAN(network.STA_IF)
@@ -27,23 +31,26 @@ def mqtt_callback(topic, payload):
 def mqtt_listener_task(delay_ms):
     while True:  
         time.sleep_ms(delay_ms)
-        client.check_msg()
-
+        try:
+            client.check_msg()
+        except Exception as e:
+            sys.print_exception(e)
+            
 def mqtt_publish(topic, payload):
     client.publish(f"0000000_Elektronika_Praktyczna/{topic}", payload)
     
 def temperature_task(delay_ms):
     while True:
-        client.publish("0000000_Elektronika_Praktyczna/sensor", str(esp32.mcu_temperature()))
+        client.publish(f"0000000_Elektronika_Praktyczna/sensor_{client_id}", str(esp32.mcu_temperature()))
         time.sleep_ms(delay_ms)
  
 wifi_connect()
-client = MQTTClient(client_id="My-ESP32-S3", server="test.mosquitto.org")  
+client = MQTTClient(client_id, "test.mosquitto.org")  
 client.set_callback(mqtt_callback)  
-client.connect()  
-client.subscribe("0000000_Elektronika_Praktyczna")
+client.connect()
+# client.subscribe("0000000_Elektronika_Praktyczna")
 client.subscribe("0000000_Elektronika_Praktyczna/test")
-client.subscribe("0000000_Elektronika_Praktyczna/#")
+# client.subscribe("0000000_Elektronika_Praktyczna/#")
 
 print("Oczekiwanie na wiadomości z MQTT")
 _thread.start_new_thread(mqtt_listener_task, [1000])
