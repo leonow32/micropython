@@ -25,6 +25,9 @@ def wifi_connect():
     
     print(f"Adres IP: {station.ifconfig()[0]}")
        
+def mqtt_publish(topic, payload):
+    client.publish(f"0000000_Elektronika_Praktyczna/{topic}", payload)
+
 def mqtt_callback(topic, payload):  
     print(f"{topic} > {payload}")
 
@@ -35,9 +38,6 @@ def mqtt_listener_task(delay_ms):
             client.check_msg()
         except Exception as e:
             sys.print_exception(e)
-            
-def mqtt_publish(topic, payload):
-    client.publish(f"0000000_Elektronika_Praktyczna/{topic}", payload)
     
 def temperature_task(delay_ms):
     while True:
