@@ -6,7 +6,7 @@ import framebuf
 class SSD1363_SPI(framebuf.FrameBuffer):
     
     @micropython.native
-    def __init__(self, spi, cs, dc, rotate=0,):
+    def __init__(self, spi, cs, dc, rotate=0):
         self.spi    = spi
         self.cs     = cs
         self.dc     = dc
@@ -31,9 +31,7 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         self.cmd_write(0xC1) # Set Contrast Current
         self.data_write(0xA0)
         
-        horizontal = False
-        
-        if horizontal:
+        if rotate:
             self.cmd_write(0xA0) # Set Re-Map & Dual COM Line Mode
             self.data_write(0b00100100) # od lewej do prawej, potem w dół
             self.data_write(0b00000000)
@@ -48,6 +46,14 @@ class SSD1363_SPI(framebuf.FrameBuffer):
             
             self.cmd_write(0xA2) # Set Display Offset
             self.data_write(0x20)
+        
+        self.cmd_write(0x15)  # Set column range (0...79)
+        self.data_write(8)
+        self.data_write(71)   # display height (71-8+1)*2 = 128px
+        
+        self.cmd_write(0x75)  # Set row range (0...159)
+        self.data_write(0)
+        self.data_write(127)  # display width (127-0+1)*2 = 256px
         
         self.cmd_write(0xCA) # Set Multiplex Ratio
         self.data_write(0x7F)
@@ -269,10 +275,12 @@ if __name__ == "__main__":
 #     from font.extronic16_unicode import *
 #     from font.extronic16B_unicode import *
 
-    spi = SPI(1, baudrate=5_000_000, polarity=0, phase=0)
+#     spi = SPI(1, baudrate=1_000_000, polarity=0, phase=0)
+    spi = SPI(1, baudrate=1_000_000, polarity=0, phase=0, sck=Pin(4), mosi=Pin(5), miso=None)
     print(spi)
     
-    display = SSD1363_SPI(spi, cs=Pin(9), dc=Pin(10), rotate=0)
+#     display = SSD1363_SPI(spi, cs=Pin(9), dc=Pin(10), rotate=0)
+    display = SSD1363_SPI(spi, cs=Pin(7), dc=Pin(6), rotate=180)
     print(display)
     
     print("----")
@@ -317,7 +325,7 @@ if __name__ == "__main__":
    
     
     measure_time.begin()
-    display.refresh1()
+#     display.refresh2()
     measure_time.end("Refresh time:  ")
     
 #     hal.simulate()
