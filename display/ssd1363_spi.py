@@ -216,7 +216,7 @@ class SSD1363_SPI(framebuf.FrameBuffer):
     def refresh3(self):
         buffer = bytearray(self.width * self.height // 2)
         
-        for i in range(0, 256*128//2, 2):
+        for i in range(0, self.width*self.height//2, 2):
             byte_0 = self.array[i]
             byte_1 = self.array[i+1]
             
@@ -234,8 +234,31 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         self.dc(1)
         self.spi.write(buffer)
         self.cs(1)
-        pass
         
+    # 198 ms
+    # Działa na GS4_HMSB
+    # Odczytywanie i zamienianie całej tablicy, przesyłanie nowego bufora na raz
+    @micropython.native
+    def refresh4(self):
+        
+        @micropython.viper
+        def swap(x: uint) -> uint:
+            return (x & 0x0F) << 4 | x >> 4
+        
+        buffer = bytearray(self.width * self.height // 2)
+        
+        for i in range(0, self.width*self.height//2, 2):
+            buffer[i]   = swap(self.array[i+1])
+            buffer[i+1] = swap(self.array[i])
+        
+        self.cs(0)
+        self.dc(0)
+        self.spi.write(bytes([0x5C]))
+        self.dc(1)
+        self.spi.write(buffer)
+        self.cs(1)
+        
+
         
     def refresh_xxx(self):
         buf = bytearray(self.width * self.height // 2)
@@ -357,7 +380,9 @@ if __name__ == "__main__":
     
     measure_time.begin()
 #     display.refresh2()
-    display.refresh3()
+#     display.refresh3()
+    display.refresh4()
+#     display.refresh5()
     measure_time.end("Refresh time:  ")
     
 #     hal.simulate()
