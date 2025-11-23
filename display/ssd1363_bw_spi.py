@@ -4,7 +4,7 @@
 from machine import Pin, SPI
 import framebuf
 
-class SSD1363_SPI(framebuf.FrameBuffer):
+class SSD1363_BW_SPI(framebuf.FrameBuffer):
     
     @micropython.native
     def __init__(self, spi, cs, dc, rotate=0):
@@ -16,9 +16,9 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         
         self.rotate = rotate
         self.width  = 256
-        self.height = 128 
-        self.array  = bytearray(self.width * self.height // 2)
-        super().__init__(self.array, self.width, self.height, framebuf.GS4_HMSB)
+        self.height = 128
+        self.array  = bytearray(self.width * self.height // 8)
+        super().__init__(self.array, self.width, self.height, framebuf.MONO_VLSB)
         
         self.cmd_write(0xFD) # Command Lock
         self.data_write(0x12)
@@ -67,7 +67,7 @@ class SSD1363_SPI(framebuf.FrameBuffer):
     
     @micropython.viper
     def __str__(self):
-        return f"SSD1363_SPI(spi={self.spi}, cs={self.cs}, dc={self.dc}, rotate={self.rotate})"
+        return f"SSD1363_BW_SPI(spi={self.spi}, cs={self.cs}, dc={self.dc}, rotate={self.rotate})"
     
     @micropython.viper
     def data_write(self, data: uint):
@@ -92,41 +92,60 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         self.cmd_write(0xAE)
     
     @micropython.viper
-    def contrast_set(self, value):        
+    def contrast_set(self, value: uint):        
         self.cmd_write(0xC1) # Set Contrast Current
         self.data_write(value)
         
     @micropython.native
     def refresh(self):
+        buf = bytearray(self.width * self.height // 2)
         
-        @micropython.viper
-        def swap(x: uint) -> uint:
-            return (x & 0x0F) << 4 | x >> 4
+        @micropython.native
+        def pixel_set(x, y):
+            col = x % 4
+            if col == 0:
+                buf[y*128 + x//2 + 1]  = 0x0F
+            elif col == 1:
+                buf[y*128 + x//2 + 1] |= 0xF0
+            elif col == 2:
+                buf[y*128 + x//2 - 1]  = 0x0F
+            else:
+                buf[y*128 + x//2 - 1] |= 0xF0
         
-        buffer = bytearray(self.width * self.height // 2)
-        
-        for i in range(0, self.width*self.height//2, 2):
-            buffer[i]   = swap(self.array[i+1])
-            buffer[i+1] = swap(self.array[i])
+        x = 0
+        y = 0
+        for byte in self.array:
+            if byte & 0b00000001: pixel_set(x, y+0)
+            if byte & 0b00000010: pixel_set(x, y+1)
+            if byte & 0b00000100: pixel_set(x, y+2)
+            if byte & 0b00001000: pixel_set(x, y+3)
+            if byte & 0b00010000: pixel_set(x, y+4)
+            if byte & 0b00100000: pixel_set(x, y+5)
+            if byte & 0b01000000: pixel_set(x, y+6)
+            if byte & 0b10000000: pixel_set(x, y+7)
+            
+            x += 1
+            if x == 256:
+                x = 0
+                y += 8
         
         self.cs(0)
         self.dc(0)
         self.spi.write(bytes([0x5C]))
         self.dc(1)
-        self.spi.write(buffer)
+        self.spi.write(buf)
         self.cs(1)
         
     @micropython.native
     def simulate(self):
-        pass
-#         for y in range(self.height):
-#             print(f"{y}\t", end="")
-#             for x in range(self.width):
-#                 bit  = 1 << (y % 8)
-#                 byte = int(self.array[(y // 8) * self.width + x])
-#                 pixel = "#" if byte & bit else "."
-#                 print(pixel, end="")
-#             print("")
+        for y in range(self.height):
+            print(f"{y}\t", end="")
+            for x in range(self.width):
+                bit  = 1 << (y % 8)
+                byte = int(self.array[(y // 8) * self.width + x])
+                pixel = "#" if byte & bit else "."
+                print(pixel, end="")
+            print("")
 
 if __name__ == "__main__":
     from machine import Pin, I2C
@@ -141,45 +160,21 @@ if __name__ == "__main__":
     spi = SPI(1, baudrate=1_000_000, polarity=0, phase=0, sck=Pin(4), mosi=Pin(5), miso=None)
     print(spi)
     
-#     display = SSD1363_SPI(spi, cs=Pin(9), dc=Pin(10), rotate=0)
-    display = SSD1363_SPI(spi, cs=Pin(7), dc=Pin(6), rotate=0)
+#     display = SSD1363_BW_SPI(spi, cs=Pin(9), dc=Pin(10), rotate=0)
+    display = SSD1363_BW_SPI(spi, cs=Pin(7), dc=Pin(6), rotate=0)
     print(display)
     
     print("----")
 
-#     display.fill_rect( 0,   0, 40, 20, display.color(0xFF, 0x00, 0x00))
-#     display.fill_rect( 0,  20, 40, 20, display.color(0xFF, 0xFF, 0x00))
-#     display.fill_rect( 0,  40, 40, 20, display.color(0x00, 0xFF, 0x00))
-#     display.fill_rect( 0,  60, 40, 20, display.color(0x00, 0xFF, 0xFF))
-#     display.fill_rect( 0,  80, 40, 20, display.color(0x00, 0x00, 0xFF))
-#     display.fill_rect( 0, 100, 40, 20, display.color(0xFF, 0x00, 0xFF))
-#     
-# 
-#     display.refresh()
-    
-    
-#     hal = DisplayHAL(display)
-#     print(hal)
-
-#     display.pixel(0, 0, 15)
-#     display.pixel(1, 1, 15)
-#     display.pixel(2, 2, 15)
-#     display.pixel(3, 3, 15)
-#     display.pixel(4, 4, 15)
-#     display.pixel(5, 5, 15)
-#     display.pixel(6, 6, 15)
-#     display.pixel(7, 7, 15)
-#     display.pixel(255, 0, 15)
-    
-#     display.fill_rect(0, 0, 7, 7, 15)
-    display.rect(0, 0, 256, 128, 15)
+#     display.fill_rect(0, 0, 16, 1, 1)
+    display.rect(0, 0, 256, 128, 1)
 #     display.rect(1, 1, 255, 127, 1)
-    display.ellipse(128, 64, 60, 60, 15)
-    display.ellipse(64, 32, 30, 30, 15)
-    display.line(0, 0, 255, 127, 15)
-#     display.circle(64, 32, 30, 15)
-    display.text('abcdefghijklm',  1,  2, 8)
-    display.text('nopqrstuvwxyz',  1, 10, 15)
+    display.ellipse(128, 64, 60, 60, 1)
+    display.ellipse(64, 32, 30, 30, 1)
+    display.line(0, 0, 255, 127, 1)
+#     display.circle(64, 32, 30, 1)
+    display.text('abcdefghijklm',  1,  2)
+    display.text('nopqrstuvwxyz',  1, 10)
 #     hal.text("abcdefghijkl",  50, 20, 1,  extronic16_unicode, "center")
 #     hal.text("abcdefghijkl",  50, 40, 0, extronic16B_unicode, "center")
 #     hal.image(up_32x32,       96,  0, 0)
@@ -190,6 +185,6 @@ if __name__ == "__main__":
     display.refresh()
     measure_time.end("Refresh time:  ")
     
-#     hal.simulate()
+#     display.simulate()
 
     mem_used.print_ram_used()
