@@ -153,6 +153,8 @@ if __name__ == "__main__":
     from sh1108 import *
     from ssd1309 import *
     from ssd1351 import *
+    from ssd1363_spi import *
+    from ssd1363_bw_spi import *
     import mem_used
     import measure_time
     from image.down_32x32 import *
@@ -164,12 +166,17 @@ if __name__ == "__main__":
 #     display = SH1106(i2c, address=0x3D, rotate=0, offset_x=2)
 #     display = SSD1309(i2c, address=0x3C, rotate=0)
 
-    spi = SPI(1, baudrate=10_000_000, polarity=0, phase=0)
-    display = SH1108(spi, cs=Pin(4), dc=Pin(2), rotate=0, offset_x=16)
+#     spi = SPI(1, baudrate=10_000_000, polarity=0, phase=0)
+#     display = SH1108(spi, cs=Pin(4), dc=Pin(2), rotate=0, offset_x=16)
 #     display = SSD1351(spi, cs=Pin(27), dc=Pin(15), rotate=0)
+
+    spi = SPI(1, baudrate=1_000_000, polarity=0, phase=0, sck=Pin(4), mosi=Pin(5), miso=None)
+    display = SSD1363_BW_SPI(spi, cs=Pin(7), dc=Pin(6), rotate=0)
     
     hal = DisplayHAL(display)
     print(hal)
+    
+    hal.contrast_set(0xFF)
     
     measure_time.begin()
     hal.rect(0, 0, display.width, display.height, hal.color(0xFF, 0xFF, 0xFF))

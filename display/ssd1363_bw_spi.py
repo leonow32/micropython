@@ -17,6 +17,7 @@ class SSD1363_BW_SPI(framebuf.FrameBuffer):
         self.rotate = rotate
         self.width  = 256
         self.height = 128
+        self.mono   = True
         self.array  = bytearray(self.width * self.height // 8)
         super().__init__(self.array, self.width, self.height, framebuf.MONO_VLSB)
         
@@ -95,6 +96,10 @@ class SSD1363_BW_SPI(framebuf.FrameBuffer):
     def contrast_set(self, value: uint):        
         self.cmd_write(0xC1) # Set Contrast Current
         self.data_write(value)
+        
+    @micropython.native
+    def color(self, r, g, b):
+        return 1 if r | g | b else 0
         
     @micropython.native
     def refresh(self):

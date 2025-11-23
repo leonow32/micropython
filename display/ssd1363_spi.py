@@ -16,7 +16,8 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         
         self.rotate = rotate
         self.width  = 256
-        self.height = 128 
+        self.height = 128
+        self.mono   = False
         self.array  = bytearray(self.width * self.height // 2)
         super().__init__(self.array, self.width, self.height, framebuf.GS4_HMSB)
         
@@ -97,6 +98,10 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         self.data_write(value)
         
     @micropython.native
+    def color(self, r, g, b):
+        return 1 if r | g | b else 0
+        
+    @micropython.native
     def refresh(self):
         
         @micropython.viper
@@ -118,15 +123,7 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         
     @micropython.native
     def simulate(self):
-        pass
-#         for y in range(self.height):
-#             print(f"{y}\t", end="")
-#             for x in range(self.width):
-#                 bit  = 1 << (y % 8)
-#                 byte = int(self.array[(y // 8) * self.width + x])
-#                 pixel = "#" if byte & bit else "."
-#                 print(pixel, end="")
-#             print("")
+        print("Not implemented")
 
 if __name__ == "__main__":
     from machine import Pin, I2C
