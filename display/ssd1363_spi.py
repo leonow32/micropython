@@ -260,7 +260,7 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         
 
         
-    def refresh_xxx(self):
+    def refresh_bw(self):
         buf = bytearray(self.width * self.height // 2)
         
         # 256px na linię = 128B na linię
