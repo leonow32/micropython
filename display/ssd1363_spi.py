@@ -22,6 +22,8 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         self.array  = bytearray(self.width * self.height // 2)
         super().__init__(self.array, self.width, self.height, framebuf.GS4_HMSB)
         
+#         self.buffer = bytearray(self.width * self.height // 2)
+        
         # Demo code
         self.cmd_write(0xFD) # Command Lock
         self.data_write(0x12)
@@ -184,8 +186,9 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         self.spi.write(self.array)
         self.cs(1)
     
-    # 1953 ms
+    # 876 ms
     # Działa na GS4_HMSB ale bardzo wolno
+    # Odczytywanie 4 pikseli z bufora, zamienianie i wysyłanie
     @micropython.native
     def refresh2(self):
         self.cs(0)
@@ -206,7 +209,35 @@ class SSD1363_SPI(framebuf.FrameBuffer):
             
         self.cs(1)
         
+    # 196 ms
+    # Działa na GS4_HMSB
+    # Odczytywanie i zamienianie całej tablicy, przesyłanie nowego bufora na raz
+    @micropython.native
     def refresh3(self):
+        buffer = bytearray(self.width * self.height // 2)
+        
+        for i in range(0, 256*128//2, 2):
+            byte_0 = self.array[i]
+            byte_1 = self.array[i+1]
+            
+            nibble_0 = (byte_0 & 0x0F) << 4
+            nibble_1 = byte_0 >> 4
+            nibble_2 = (byte_1 & 0x0F) << 4
+            nibble_3 = byte_1 >> 4
+            
+            buffer[i]   = nibble_2 | nibble_3
+            buffer[i+1] = nibble_0 | nibble_1
+        
+        self.cs(0)
+        self.dc(0)
+        self.spi.write(bytes([0x5C]))
+        self.dc(1)
+        self.spi.write(buffer)
+        self.cs(1)
+        pass
+        
+        
+    def refresh_xxx(self):
         buf = bytearray(self.width * self.height // 2)
         
         # 256px na linię = 128B na linię
@@ -280,7 +311,7 @@ if __name__ == "__main__":
     print(spi)
     
 #     display = SSD1363_SPI(spi, cs=Pin(9), dc=Pin(10), rotate=0)
-    display = SSD1363_SPI(spi, cs=Pin(7), dc=Pin(6), rotate=180)
+    display = SSD1363_SPI(spi, cs=Pin(7), dc=Pin(6), rotate=0)
     print(display)
     
     print("----")
@@ -312,7 +343,7 @@ if __name__ == "__main__":
 #     display.fill_rect(0, 0, 7, 7, 15)
     display.rect(0, 0, 256, 128, 15)
 #     display.rect(1, 1, 255, 127, 1)
-    display.ellipse(128, 64, 64, 64, 15)
+    display.ellipse(128, 64, 60, 60, 15)
     display.ellipse(64, 32, 30, 30, 15)
     display.line(0, 0, 255, 127, 15)
 #     display.circle(64, 32, 30, 15)
@@ -326,6 +357,7 @@ if __name__ == "__main__":
     
     measure_time.begin()
 #     display.refresh2()
+    display.refresh3()
     measure_time.end("Refresh time:  ")
     
 #     hal.simulate()
