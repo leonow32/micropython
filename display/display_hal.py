@@ -181,7 +181,7 @@ if __name__ == "__main__":
     measure_time.begin()
     hal.rect(0, 0, display.width, display.height, hal.color(0xFF, 0xFF, 0xFF))
     hal.line(2, 2, display.width-3, display.height-3, hal.color(0xFF, 0x00, 0x00))
-    hal.circle(display.width//2, display.height//2, display.width//4, hal.color(0x00, 0xFF, 0x00))
+    hal.circle(display.width//2, display.height//2, display.width//4-3, hal.color(0x00, 0xFF, 0x00))
     hal.text('abcdefghijklm',  1,  2, hal.color(0x00, 0xFF, 0xFF))
     hal.text('nopqrstuvwxyz',  1, 10, hal.color(0x00, 0x00, 0xFF))
     hal.text("abcdefghijkl",  50, 20, hal.color(0xFF, 0xFF, 0xFF), extronic16_unicode,  "center")
