@@ -1,4 +1,6 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+# MicroPython 1.26.1 ESP32-S3 Octal SPIRAM
+# MicroPython 1.26.1 ESP32 Pico
 
 from machine import Pin, I2C
 import framebuf
@@ -153,6 +155,8 @@ if __name__ == "__main__":
     from sh1108 import *
     from ssd1309 import *
     from ssd1351 import *
+    from ssd1363_spi import *
+    from ssd1363_spi_bw import *
     import mem_used
     import measure_time
     from image.down_32x32 import *
@@ -160,21 +164,27 @@ if __name__ == "__main__":
     from font.extronic16_unicode import *
     from font.extronic16B_unicode import *
 
-    i2c = I2C(0) # use default pinout and clock frequency
+#     i2c = I2C(0) # use default pinout and clock frequency
 #     display = SH1106(i2c, address=0x3D, rotate=0, offset_x=2)
-    display = SSD1309(i2c, address=0x3C, rotate=0)
+#     display = SSD1309(i2c, address=0x3C, rotate=0)
 
 #     spi = SPI(1, baudrate=10_000_000, polarity=0, phase=0)
 #     display = SH1108(spi, cs=Pin(4), dc=Pin(2), rotate=0, offset_x=16)
 #     display = SSD1351(spi, cs=Pin(27), dc=Pin(15), rotate=0)
+
+    spi = SPI(1, baudrate=1_000_000, polarity=0, phase=0, sck=Pin(4), mosi=Pin(5), miso=None)
+#     display = SSD1363_SPI(spi, cs=Pin(7), dc=Pin(6), rotate=0)
+    display = SSD1363_SPI_BW(spi, cs=Pin(7), dc=Pin(6), rotate=0)
     
     hal = DisplayHAL(display)
     print(hal)
     
+    hal.contrast_set(0xFF)
+    
     measure_time.begin()
     hal.rect(0, 0, display.width, display.height, hal.color(0xFF, 0xFF, 0xFF))
     hal.line(2, 2, display.width-3, display.height-3, hal.color(0xFF, 0x00, 0x00))
-    hal.circle(display.width//2, display.height//2, display.width//4, hal.color(0x00, 0xFF, 0x00))
+    hal.circle(display.width//2, display.height//2, display.width//4-3, hal.color(0x00, 0xFF, 0x00))
     hal.text('abcdefghijklm',  1,  2, hal.color(0x00, 0xFF, 0xFF))
     hal.text('nopqrstuvwxyz',  1, 10, hal.color(0x00, 0x00, 0xFF))
     hal.text("abcdefghijkl",  50, 20, hal.color(0xFF, 0xFF, 0xFF), extronic16_unicode,  "center")
