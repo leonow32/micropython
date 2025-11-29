@@ -4,7 +4,7 @@
 from machine import Pin, SPI
 import framebuf
 
-class SSD1363_BW_SPI(framebuf.FrameBuffer):
+class SSD1363_SPI_BW(framebuf.FrameBuffer):
     
     @micropython.native
     def __init__(self, spi, cs, dc, rotate=0):
@@ -68,7 +68,7 @@ class SSD1363_BW_SPI(framebuf.FrameBuffer):
     
     @micropython.viper
     def __str__(self):
-        return f"SSD1363_BW_SPI(spi={self.spi}, cs={self.cs}, dc={self.dc}, rotate={self.rotate})"
+        return f"SSD1363_SPI_BW(spi={self.spi}, cs={self.cs}, dc={self.dc}, rotate={self.rotate})"
     
     @micropython.viper
     def data_write(self, data: uint):
@@ -165,8 +165,8 @@ if __name__ == "__main__":
     spi = SPI(1, baudrate=1_000_000, polarity=0, phase=0, sck=Pin(4), mosi=Pin(5), miso=None)
     print(spi)
     
-#     display = SSD1363_BW_SPI(spi, cs=Pin(9), dc=Pin(10), rotate=0)
-    display = SSD1363_BW_SPI(spi, cs=Pin(7), dc=Pin(6), rotate=0)
+#     display = SSD1363_SPI_BW(spi, cs=Pin(9), dc=Pin(10), rotate=0)
+    display = SSD1363_SPI_BW(spi, cs=Pin(7), dc=Pin(6), rotate=0)
     print(display)
     
     print("----")
