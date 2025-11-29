@@ -1,0 +1,126 @@
+# MicroPython 1.24.1 ESP32 Pico
+# MicroPython 1.26.1 ESP32-S3 Octal-SPIRAM
+
+from machine import Pin, SPI
+import framebuf
+
+class SSD1363_SPI(framebuf.FrameBuffer):
+    
+    @micropython.native
+    def __init__(self, spi, cs, dc, rotate=0):
+        self.spi    = spi
+        self.cs     = cs
+        self.dc     = dc
+        self.cs.init(mode=Pin.OUT, value=1)
+        self.dc.init(mode=Pin.OUT, value=1)
+        
+        self.rotate = rotate
+        self.width  = 256
+        self.height = 128
+        self.mono   = False
+        self.array  = bytearray(self.width * self.height // 2)
+        super().__init__(self.array, self.width, self.height, framebuf.GS4_HMSB)
+        
+        self.cmd_write(0xFD) # Command Lock
+        self.data_write(0x12)
+        
+        self.cmd_write(0xAE) # Set Display Off
+        
+        self.cmd_write(0xC1) # Set Contrast Current
+        self.data_write(0xA0)
+        
+        if rotate:
+            self.cmd_write(0xA0) # Set Re-Map & Dual COM Line Mode
+            self.data_write(0b00100100)
+            self.data_write(0b00000000)
+            
+            self.cmd_write(0xA2) # Set Display Offset
+            self.data_write(0x80)
+        
+        else:
+            self.cmd_write(0xA0) # Set Re-Map & Dual COM Line Mode
+            self.data_write(0x32)
+            self.data_write(0x00)
+            
+            self.cmd_write(0xA2) # Set Display Offset
+            self.data_write(0x20)
+        
+        self.cmd_write(0x15)  # Set column range (0...79)
+        self.data_write(8)
+        self.data_write(71)   # display height (71-8+1)*2 = 128px
+        
+        self.cmd_write(0x75)  # Set row range (0...159)
+        self.data_write(0)
+        self.data_write(127)  # display width (127-0+1)*2 = 256px
+        
+        self.cmd_write(0xCA) # Set Multiplex Ratio
+        self.data_write(0x7F)
+        
+        self.cmd_write(0xAD) # Set IREF (tego nie ma w Creatway i Midas)
+        self.data_write(0x90) # Internal
+        
+        self.cmd_write(0xB3) # Set Display Clock Divide Ratio/Oscillator Frequency
+        self.data_write(0x61) # Easy Rising
+        
+        self.cmd_write(0xB9) # Select Gray Scale Table
+        
+        self.cmd_write(0xAF) # Set Display On
+    
+    @micropython.viper
+    def __str__(self):
+        return f"SSD1363_SPI(spi={self.spi}, cs={self.cs}, dc={self.dc}, rotate={self.rotate})"
+    
+    @micropython.viper
+    def data_write(self, data: uint):
+        self.dc(1)
+        self.cs(0)
+        self.spi.write(bytes([data]))
+        self.cs(1)
+        
+    @micropython.viper
+    def cmd_write(self, cmd: uint):
+        self.dc(0)
+        self.cs(0)
+        self.spi.write(bytes([cmd]))
+        self.cs(1)
+    
+    @micropython.viper
+    def enable(self):
+        self.cmd_write(0xAF)
+        
+    @micropython.viper
+    def disable(self):
+        self.cmd_write(0xAE)
+    
+    @micropython.viper
+    def contrast_set(self, value: uint):        
+        self.cmd_write(0xC1) # Set Contrast Current
+        self.data_write(value)
+        
+    @micropython.native
+    def color(self, r, g, b):
+        return max(r, g, b) // 16
+        
+    @micropython.native
+    def refresh(self):
+        
+        @micropython.viper
+        def swap(x: uint) -> uint:
+            return (x & 0x0F) << 4 | x >> 4
+        
+        buffer = bytearray(self.width * self.height // 2)
+        
+        for i in range(0, self.width*self.height//2, 2):
+            buffer[i]   = swap(self.array[i+1])
+            buffer[i+1] = swap(self.array[i])
+        
+        self.cs(0)
+        self.dc(0)
+        self.spi.write(bytes([0x5C]))
+        self.dc(1)
+        self.spi.write(buffer)
+        self.cs(1)
+        
+    @micropython.native
+    def simulate(self):
+        print("Not implemented")
