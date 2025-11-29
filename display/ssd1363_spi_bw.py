@@ -103,19 +103,19 @@ class SSD1363_SPI_BW(framebuf.FrameBuffer):
         
     @micropython.native
     def refresh(self):
-        buf = bytearray(self.width * self.height // 2)
+        buffer = bytearray(self.width * self.height // 2)
         
         @micropython.native
         def pixel_set(x, y):
             col = x % 4
             if col == 0:
-                buf[y*128 + x//2 + 1]  = 0x0F
+                buffer[y*128 + x//2 + 1]  = 0x0F
             elif col == 1:
-                buf[y*128 + x//2 + 1] |= 0xF0
+                buffer[y*128 + x//2 + 1] |= 0xF0
             elif col == 2:
-                buf[y*128 + x//2 - 1]  = 0x0F
+                buffer[y*128 + x//2 - 1]  = 0x0F
             else:
-                buf[y*128 + x//2 - 1] |= 0xF0
+                buffer[y*128 + x//2 - 1] |= 0xF0
         
         x = 0
         y = 0
@@ -138,7 +138,7 @@ class SSD1363_SPI_BW(framebuf.FrameBuffer):
         self.dc(0)
         self.spi.write(bytes([0x5C]))
         self.dc(1)
-        self.spi.write(buf)
+        self.spi.write(buffer)
         self.cs(1)
         
     @micropython.native
@@ -151,45 +151,3 @@ class SSD1363_SPI_BW(framebuf.FrameBuffer):
                 pixel = "#" if byte & bit else "."
                 print(pixel, end="")
             print("")
-
-if __name__ == "__main__":
-    from machine import Pin, I2C
-    import mem_used
-    import measure_time
-#     from image.down_32x32 import *
-#     from image.up_32x32 import *
-#     from font.extronic16_unicode import *
-#     from font.extronic16B_unicode import *
-
-#     spi = SPI(1, baudrate=1_000_000, polarity=0, phase=0)
-    spi = SPI(1, baudrate=1_000_000, polarity=0, phase=0, sck=Pin(4), mosi=Pin(5), miso=None)
-    print(spi)
-    
-#     display = SSD1363_SPI_BW(spi, cs=Pin(9), dc=Pin(10), rotate=0)
-    display = SSD1363_SPI_BW(spi, cs=Pin(7), dc=Pin(6), rotate=0)
-    print(display)
-    
-    print("----")
-
-#     display.fill_rect(0, 0, 16, 1, 1)
-    display.rect(0, 0, 256, 128, 1)
-#     display.rect(1, 1, 255, 127, 1)
-    display.ellipse(128, 64, 60, 60, 1)
-    display.ellipse(64, 32, 30, 30, 1)
-    display.line(0, 0, 255, 127, 1)
-#     display.circle(64, 32, 30, 1)
-    display.text('abcdefghijklm',  1,  2)
-    display.text('nopqrstuvwxyz',  1, 10)
-#     hal.text("abcdefghijkl",  50, 20, 1,  extronic16_unicode, "center")
-#     hal.text("abcdefghijkl",  50, 40, 0, extronic16B_unicode, "center")
-#     hal.image(up_32x32,       96,  0, 0)
-#     hal.image(down_32x32,     96, 32, 0)
-   
-    
-    measure_time.begin()
-    display.refresh()
-    measure_time.end("Refresh time:  ")
-    
-#     display.simulate()
-
-    mem_used.print_ram_used()

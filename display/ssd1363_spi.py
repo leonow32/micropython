@@ -93,13 +93,13 @@ class SSD1363_SPI(framebuf.FrameBuffer):
         self.cmd_write(0xAE)
     
     @micropython.viper
-    def contrast_set(self, value):        
+    def contrast_set(self, value: uint):        
         self.cmd_write(0xC1) # Set Contrast Current
         self.data_write(value)
         
     @micropython.native
     def color(self, r, g, b):
-        return 1 if r | g | b else 0
+        return max(r, g, b) // 16
         
     @micropython.native
     def refresh(self):
@@ -124,69 +124,3 @@ class SSD1363_SPI(framebuf.FrameBuffer):
     @micropython.native
     def simulate(self):
         print("Not implemented")
-
-if __name__ == "__main__":
-    from machine import Pin, I2C
-    import mem_used
-    import measure_time
-#     from image.down_32x32 import *
-#     from image.up_32x32 import *
-#     from font.extronic16_unicode import *
-#     from font.extronic16B_unicode import *
-
-#     spi = SPI(1, baudrate=1_000_000, polarity=0, phase=0)
-    spi = SPI(1, baudrate=1_000_000, polarity=0, phase=0, sck=Pin(4), mosi=Pin(5), miso=None)
-    print(spi)
-    
-#     display = SSD1363_SPI(spi, cs=Pin(9), dc=Pin(10), rotate=0)
-    display = SSD1363_SPI(spi, cs=Pin(7), dc=Pin(6), rotate=0)
-    print(display)
-    
-    print("----")
-
-#     display.fill_rect( 0,   0, 40, 20, display.color(0xFF, 0x00, 0x00))
-#     display.fill_rect( 0,  20, 40, 20, display.color(0xFF, 0xFF, 0x00))
-#     display.fill_rect( 0,  40, 40, 20, display.color(0x00, 0xFF, 0x00))
-#     display.fill_rect( 0,  60, 40, 20, display.color(0x00, 0xFF, 0xFF))
-#     display.fill_rect( 0,  80, 40, 20, display.color(0x00, 0x00, 0xFF))
-#     display.fill_rect( 0, 100, 40, 20, display.color(0xFF, 0x00, 0xFF))
-#     
-# 
-#     display.refresh()
-    
-    
-#     hal = DisplayHAL(display)
-#     print(hal)
-
-#     display.pixel(0, 0, 15)
-#     display.pixel(1, 1, 15)
-#     display.pixel(2, 2, 15)
-#     display.pixel(3, 3, 15)
-#     display.pixel(4, 4, 15)
-#     display.pixel(5, 5, 15)
-#     display.pixel(6, 6, 15)
-#     display.pixel(7, 7, 15)
-#     display.pixel(255, 0, 15)
-    
-#     display.fill_rect(0, 0, 7, 7, 15)
-    display.rect(0, 0, 256, 128, 15)
-#     display.rect(1, 1, 255, 127, 1)
-    display.ellipse(128, 64, 60, 60, 15)
-    display.ellipse(64, 32, 30, 30, 15)
-    display.line(0, 0, 255, 127, 15)
-#     display.circle(64, 32, 30, 15)
-    display.text('abcdefghijklm',  1,  2, 8)
-    display.text('nopqrstuvwxyz',  1, 10, 15)
-#     hal.text("abcdefghijkl",  50, 20, 1,  extronic16_unicode, "center")
-#     hal.text("abcdefghijkl",  50, 40, 0, extronic16B_unicode, "center")
-#     hal.image(up_32x32,       96,  0, 0)
-#     hal.image(down_32x32,     96, 32, 0)
-   
-    
-    measure_time.begin()
-    display.refresh()
-    measure_time.end("Refresh time:  ")
-    
-#     hal.simulate()
-
-    mem_used.print_ram_used()
