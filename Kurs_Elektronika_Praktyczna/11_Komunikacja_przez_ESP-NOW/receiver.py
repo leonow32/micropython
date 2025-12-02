@@ -13,8 +13,7 @@ e = espnow.ESPNow()
 e.active(True)
 
 while True:
-    host, msg = e.recv()
-    if msg:             # msg == None if timeout in recv()
-        print(host, msg)
-        if msg == b"end":
-            break
+    sender, data = e.recv(-1)
+    sender = binascii.hexlify(sender, ":").decode().upper()
+    data = data.decode()
+    print(f"{sender} -> {data}")
