@@ -18,4 +18,4 @@ e.add_peer(peer)      # Must add_peer() before send()
 
 e.send(peer, "Starting...")
 e.send(peer, "Hello 1234567890")
-e.send(peer, b"end")
+e.send(peer, "end")
