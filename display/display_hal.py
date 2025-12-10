@@ -1,6 +1,7 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
 # MicroPython 1.26.1 ESP32-S3 Octal SPIRAM
 # MicroPython 1.26.1 ESP32 Pico
+# MicroPython 1.27.0 ESP32 Pico
 
 from machine import Pin, I2C
 import framebuf
@@ -170,18 +171,18 @@ if __name__ == "__main__":
 
     spi = SPI(1, baudrate=10_000_000, polarity=0, phase=0)
     
-#     display = SH1108(spi, cs=Pin(4), dc=Pin(2), rotate=0, offset_x=16)
-    Pin(4, mode=Pin.OUT, value=1)
-    Pin(2, mode=Pin.OUT, value=1)
+    display = SH1108(spi, cs=Pin(4), dc=Pin(2), rotate=0, offset_x=16)
+#     Pin(4, mode=Pin.OUT, value=1)
+#     Pin(2, mode=Pin.OUT, value=1)
     
 #     display = SSD1351(spi, cs=Pin(27), dc=Pin(15), rotate=0)
-    Pin(27, mode=Pin.OUT, value=1)
-    Pin(15, mode=Pin.OUT, value=1)
+#     Pin(27, mode=Pin.OUT, value=1)
+#     Pin(15, mode=Pin.OUT, value=1)
 
 #     spi = SPI(1, baudrate=1_000_000, polarity=0, phase=0, sck=Pin(4), mosi=Pin(5), miso=None)
 #     display = SSD1363_SPI(spi, cs=Pin(7), dc=Pin(6), rotate=0)
 #     display = SSD1363_SPI_BW(spi, cs=Pin(7), dc=Pin(6), rotate=0)
-    display = SSD1363_SPI(spi, cs=Pin(9), dc=Pin(10), rotate=0)
+#     display = SSD1363_SPI(spi, cs=Pin(9), dc=Pin(10), rotate=0)
     
     hal = DisplayHAL(display)
     print(hal)
