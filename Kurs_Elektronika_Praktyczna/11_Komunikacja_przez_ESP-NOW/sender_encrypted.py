@@ -18,17 +18,12 @@ print(f"MAC Address: {mac}")
 
 e = espnow.ESPNow()
 e.active(True)
+e.set_pmk(b'\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xAA\xBB\xCC\xDD\xEE\xFF')
 # e.config(rate=espnow.RATE_LORA_250K)
 
 peer_mac = b'\xd8\xa0\x1di\x9fD'
-everyone = b'\xFF\xFF\xFF\xFF\xFF\xFF'
-e.add_peer(peer_mac)
-e.add_peer(everyone)
+e.add_peer(peer_mac, b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F')
 
 measure_time.begin()
-e.send(everyone, "Starting...")
-e.send(everyone, "Hello 1234567890", False)  # No respose needed
-e.send(everyone, "end")
-
 e.send(peer_mac, "Dedicated message")
 measure_time.end("Operation time")

@@ -4,7 +4,6 @@
 import binascii
 import espnow
 import network
-import measure_time
 
 sta = network.WLAN(network.STA_IF)
 sta.active(True)
@@ -18,17 +17,12 @@ print(f"MAC Address: {mac}")
 
 e = espnow.ESPNow()
 e.active(True)
-# e.config(rate=espnow.RATE_LORA_250K)
+e.set_pmk(b'\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xAA\xBB\xCC\xDD\xEE\xFF')
 
-peer_mac = b'\xd8\xa0\x1di\x9fD'
-everyone = b'\xFF\xFF\xFF\xFF\xFF\xFF'
-e.add_peer(peer_mac)
-e.add_peer(everyone)
+def receive_cb(e):
+    sender, data = e.irecv()
+    sender = binascii.hexlify(sender, ":").decode().upper()
+    data = data.decode()
+    print(f"{sender} -> {data}")
 
-measure_time.begin()
-e.send(everyone, "Starting...")
-e.send(everyone, "Hello 1234567890", False)  # No respose needed
-e.send(everyone, "end")
-
-e.send(peer_mac, "Dedicated message")
-measure_time.end("Operation time")
+e.irq(receive_cb)
