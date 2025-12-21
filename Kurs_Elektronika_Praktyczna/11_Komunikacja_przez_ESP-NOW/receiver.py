@@ -5,10 +5,10 @@ import binascii
 import espnow
 import network
 
-sta = network.WLAN(network.STA_IF)
-sta.active(True)
+wlan = network.WLAN(network.STA_IF)
+wlan.active(True)
 
-mac = sta.config('mac')
+mac = wlan.config('mac')
 mac = binascii.hexlify(mac, ":").decode().upper()
 print(f"MAC Address: {mac}")
 
