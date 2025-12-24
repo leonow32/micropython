@@ -4,10 +4,10 @@
 import espnow
 import network
 
-wlan = network.WLAN(network.STA_IF)
-wlan.active(True)
+sta = network.WLAN(network.STA_IF)
+sta.active(True)
 
-mac = wlan.config('mac')
+mac = sta.config('mac')
 print(f"MAC Address: {mac}")
 
 e = espnow.ESPNow()
