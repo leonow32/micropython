@@ -1,7 +1,6 @@
 # MicroPython 1.27.0 ESP32 Pico
 # MicroPython 1.27.0 ESP32-S3 Octal SPIRAM
 
-import binascii
 import espnow
 import network
 
