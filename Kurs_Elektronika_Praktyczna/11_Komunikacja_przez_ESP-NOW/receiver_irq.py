@@ -20,3 +20,6 @@ def receive_cb(e):
         print(f"{sender} -> {data}")
 
 e.irq(receive_cb)
+
+if e.any():
+    receive_cb(e)

@@ -19,5 +19,5 @@ e.add_peer(peer_mac)
 e.add_peer(everyone)
 
 e.send(everyone, "Wiadomość do wszystkich")
-e.send(everyone, "Wiadomość do wszystkich bez potwierdzenia odbioru", False)
 e.send(peer_mac, "Wiadomość do wybranego odbiorcy")
+e.send(everyone, "Wiadomość do wybranego odbiorcy bez potwierdzenia odbioru", False)
