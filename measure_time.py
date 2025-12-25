@@ -8,4 +8,6 @@ def begin():
     
 def end(message):
     elapsed_time = time.ticks_us() - start_time
-    print(f"{message}: {elapsed_time} us")
+    millis = elapsed_time // 1000
+    micros = elapsed_time % 1000
+    print(f"{message} {millis}.{micros:03} ms")

@@ -1,20 +1,22 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+# MicroPython 1.24.1 ESP32 Pico
+# Works also with SSD1306 128x64
 
 from machine import Pin, I2C
 import framebuf
-import mem_used
-
-WIDTH   = const(128)
-HEIGHT  = const(64)
 
 class SSD1309(framebuf.FrameBuffer):
     
     @micropython.native
-    def __init__(self, i2c, rotate=False, address=0x3C):
-        self.i2c = i2c
+    def __init__(self, i2c, address=0x3C, rotate=0):
+        self.i2c     = i2c
         self.address = address
-        self.array = bytearray(WIDTH * HEIGHT // 8)
-        super().__init__(self.array, WIDTH, HEIGHT, framebuf.MONO_VLSB)
+        self.rotate  = rotate
+        self.width   = 128
+        self.height  = 64
+        self.mono    = True
+        self.array   = bytearray(self.width * self.height // 8)
+        super().__init__(self.array, self.width, self.height, framebuf.MONO_VLSB)
         
         config = (
             0xAE,                     # Display off
@@ -36,93 +38,52 @@ class SSD1309(framebuf.FrameBuffer):
         )
         
         for cmd in config:
-            self.write_cmd(cmd)
-            
+            self.cmd_write(cmd)
+    
     @micropython.viper
-    def write_cmd(self, cmd: int):
+    def __str__(self):
+        return f"SSD1309(i2c={self.i2c}, address=0x{self.address:02X}, rotate={self.rotate})"
+    
+    @micropython.viper
+    def data_write(self, data: int):
+        self.i2c.writeto(self.address, bytes([0x40, cmd]))
+    
+    @micropython.viper
+    def cmd_write(self, cmd: int):
         self.i2c.writeto(self.address, bytes([0x80, cmd]))
     
     @micropython.viper
-    def display_on(self):
-        self.write_cmd(0xAF)
+    def enable(self):
+        self.cmd_write(0xAF)
         
     @micropython.viper
-    def display_off(self):
-        self.write_cmd(0xAE)
+    def disable(self):
+        self.cmd_write(0xAE)
     
     @micropython.viper
-    def contrast(self, value):
-        self.write_cmd(0x81)
-        self.write_cmd(value)
+    def contrast_set(self, value):
+        self.cmd_write(0x81)
+        self.cmd_write(value)
+    
+    @micropython.native
+    def color(self, r, g, b):
+        return 1 if r | g | b else 0
     
     @micropython.viper
     def refresh(self):
         # Set column address range from 0x00 to 0x7F, set page address range from 0x00 to 0x07
         for cmd in (0x21, 0x00, 0x7F, 0x22, 0x00, 0x07):
-            self.write_cmd(cmd)
+            self.cmd_write(cmd)
         
         self.i2c.writevto(self.address, (b"\x40", self.array))
         
-    @micropython.viper
+    @micropython.native
     def simulate(self):
-        for y in range(HEIGHT):
+        for y in range(self.height):
             print(f"{y}\t", end="")
-            for x in range(WIDTH):
+            for x in range(self.width):
                 bit  = 1 << (y % 8)
-                byte = int(self.array[(y // 8) * WIDTH + x])
+                byte = int(self.array[(y // 8) * self.width + x])
                 pixel = "#" if byte & bit else "."
                 print(pixel, end="")
             print("")
-    
-    @micropython.native
-    def print_char(self, font, char, x, y, color=1):
-        try:
-            bitmap = font[ord(char)]
-        except:
-            bitmap = font[0]
-            print(f"Char {char} doesn't exist in font")
-        
-        width  = bitmap[0]
-        height = bitmap[1]
-        space  = bitmap[2]
-        
-        if color:
-            buffer = framebuf.FrameBuffer(bitmap[3:], width, height, 0)
-        else:
-            negative_bitmap = bitmap[:]
-            for i in range(3, len(bitmap)):
-                negative_bitmap[i] = ~negative_bitmap[i]
-            buffer = framebuf.FrameBuffer(negative_bitmap[3:], width, height, 0)
-            self.rect(x-space, y, space, height, 1, True)
-            self.rect(x+width, y, space, height, 1, True)
-        
-        self.blit(buffer, x, y)
-        return width + space     
-
-    @micropython.native
-    def print_text(self, font, text, x, y, align="L", color=1):
-        width = self.get_text_width(font, text)
-        
-        if   align == "R":
-            x = WIDTH - width
-        elif align == "C":
-            x = WIDTH//2 - width//2
-        elif align == "r":
-            x = x - width + 1
-        elif align == "c":
-            x = x - width//2
-        
-        for char in text:
-            x += self.print_char(font, char, x, y, color)
-    
-    @micropython.native
-    def get_text_width(self, font, text):
-        total = 0
-        last_char_space = 0
-        for char in text:
-            bitmap = font.get(ord(char), font[0])
-            total += bitmap[0]
-            total += bitmap[2]
-            last_char_space = bitmap[2]
-        
-        return total - last_char_space

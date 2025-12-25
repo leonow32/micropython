@@ -1,5 +1,6 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
 # v1.0.0 2025.03.17
+# v1.1.0 2025.05.25
 
 import time
 from machine import Pin, I2C, RTC
@@ -15,6 +16,9 @@ class DS3231():
     
     def __init__(self, i2c):
         self.i2c = i2c
+        
+    def __str__(self):
+        return f"DS3231({self.i2c})"
     
     def read(self):
         """
@@ -106,6 +110,7 @@ if __name__ == "__main__":
     print(i2c)                # print pinout and clock frequency
     
     rtc = DS3231(i2c)
+    print(rtc)
     
 #   rtc.dump()
 
