@@ -1,38 +1,26 @@
-lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+lookup = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
 def bytes_to_base64(data):
-    """
-    Converts bytes, bytearray or string to base64 bytestring.
-    
-    z trzech bajtów robi cztery znaki ASCII
-    """
-    
-#     if isinstance(data, str): data = data.encode()
+    if isinstance(data, str):
+        data = data.encode()
         
     counter = 0
-    length  = len(data)
-    result  = str()
-    
-    #print(f"length = {length}")
+    length  = len(data)-1
+    result  = ""
     
     for byte in data:
-        print(f"=== byte 0x{byte:02X} ({chr(byte)}) {type(byte)}===")
+#         print(f"=== byte 0x{byte:02X} ===")
         
         # Przetwarzanie pierwszego bajtu
         if counter % 3 == 0:
             buffer0 = (byte & 0b11111100) >> 2
             buffer1 = (byte & 0b00000011) << 4
             
-#             print(f"buffer0 = {buffer0}, 0x{buffer0:02X}, {type(buffer0)}")
-            
-            char = lookup[buffer0]
-            #print(f"char = {char}")
-            
-            # Wysyłamy pierwszy znak Base64 do bufora wyjściowego
-            result += char
+            result += lookup[buffer0]
             
             # Jeżeli to był ostatni bajt w buforze wejściowym to wstawiamy wypełniacze
             if counter == length:
+                result += lookup[buffer1]
                 result += "=="
                 print(f"return at counter = {counter}")
                 return result
@@ -40,15 +28,13 @@ def bytes_to_base64(data):
         # Przetwarzanie drugiego bajtu
         elif counter % 3 == 1:
             buffer1 |= (byte & 0b11110000) >> 4
-            buffer2  = (byte & 0b00001111) << 4
+            buffer2  = (byte & 0b00001111) << 2
             
-            # Wysyłamy drugi znak Base64 do bufora wyjściowego
-            char = lookup[buffer1]
-            #print(f"char = {char}")
-            result += char
+            result += lookup[buffer1]
             
             # Jeżeli to był ostatni bajt w buforze wejściowym
             if counter == length:
+                result += lookup[buffer2]
                 result += "="
                 print(f"return at counter = {counter}")
                 return result
@@ -58,7 +44,6 @@ def bytes_to_base64(data):
             buffer2 |= (byte & 0b11000000) >> 6
             buffer3  = (byte & 0b00111111) << 0
             
-            # Wysyłamy trzeci i czwarty znak Base64 do bufora wyjściowego
             result += lookup[buffer2]
             result += lookup[buffer3]
             
@@ -68,13 +53,18 @@ def bytes_to_base64(data):
             
         
         counter += 1
-        
-# decoded = b"\x00"
-decoded = b"\xFF"
-# decoded = b"\x00\x00\x00"
-# decoded = b"\x00\x00\x00"
-# decoded = b"\x00\x00\xFF"
-encoded = encode(decoded)
+    
+    return ""
 
-print(f"{decoded} -> {encoded}")
+if __name__ == "__main__":
+#     decoded = b"\x00"
+#     decoded = b"\xFF"
+#     decoded = b"\x00\x00"
+#     decoded = b"\x00\x00\x00"
+#     decoded = b"\x00\x00\xFF"
+#     decoded = b"\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xAA\xBB\xCC\xDD\xEE\xFF"
+    decoded = "\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xAA\xBB\xCC\xDD\xEE\xFF"
+    encoded = bytes_to_base64(decoded)
+
+    print(f"{decoded} -> {encoded}")
         

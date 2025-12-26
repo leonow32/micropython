@@ -1,4 +1,4 @@
-from base16 import *
+from converter_base16 import *
 
 def test_bytes_to_base16_1():
     data_in  = b"\x00"
@@ -34,3 +34,8 @@ def test_base16_to_bytes_2():
     data_in  = " 00 01:02:03_04/05.06 "
     data_out = b'\x00\x01\x02\x03\x04\x05\x06'
     assert base16_to_bytes(data_in) == data_out
+
+if __name__ == "__main__":
+    import pytest
+    pytest.main()
+    
