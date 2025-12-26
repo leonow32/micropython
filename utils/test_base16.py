@@ -19,3 +19,8 @@ def test_bytes_to_base16_4():
     decoded = b"\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xAA\xBB\xCC\xDD\xEE\xFF"
     encoded = "00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF"
     assert bytes_to_base16(decoded, " ") == encoded
+
+def test_bytes_to_base16_5():
+    decoded = "abcd"
+    encoded = "61 62 63 64"
+    assert bytes_to_base16(decoded, " ") == encoded
