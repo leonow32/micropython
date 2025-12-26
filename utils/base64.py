@@ -1,13 +1,13 @@
 lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 
-def encode(data):
+def bytes_to_base64(data):
     """
     Converts bytes, bytearray or string to base64 bytestring.
     
     z trzech bajtów robi cztery znaki ASCII
     """
     
-    if isinstance(data, str): data = data.encode()
+#     if isinstance(data, str): data = data.encode()
         
     counter = 0
     length  = len(data)
@@ -20,12 +20,10 @@ def encode(data):
         
         # Przetwarzanie pierwszego bajtu
         if counter % 3 == 0:
-            
-            # Przetwarzamy pierwszy bajt na Base64
             buffer0 = (byte & 0b11111100) >> 2
             buffer1 = (byte & 0b00000011) << 4
             
-            print(f"buffer0 = {buffer0}, 0x{buffer0:02X}, {type(buffer0)}")
+#             print(f"buffer0 = {buffer0}, 0x{buffer0:02X}, {type(buffer0)}")
             
             char = lookup[buffer0]
             #print(f"char = {char}")
@@ -41,8 +39,6 @@ def encode(data):
             
         # Przetwarzanie drugiego bajtu
         elif counter % 3 == 1:
-            
-            # Przetwarzamy drugi bajt na Base64
             buffer1 |= (byte & 0b11110000) >> 4
             buffer2  = (byte & 0b00001111) << 4
             
@@ -59,8 +55,6 @@ def encode(data):
         
         # Przetwarzanie trzeciego bajtu
         else:
-            
-            # Przetwarzamy trzeci bajt na Base64
             buffer2 |= (byte & 0b11000000) >> 6
             buffer3  = (byte & 0b00111111) << 0
             
