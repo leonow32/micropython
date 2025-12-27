@@ -1,6 +1,33 @@
-lookup = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+
 
 def bytes_to_base64(data):
+    alphabet = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+
+    if isinstance(data, str):
+        data = data.encode()
+
+    result = bytearray()
+
+    for i in range(0, len(data), 3):
+        fragment = data[i:i+3]
+        paddnig  = 3 - len(fragment)
+        fragment += b"\x00" * paddnig
+
+        n = (fragment[0] << 16) | (fragment[1] << 8) | fragment[2]
+
+        result.append(alphabet[(n >> 18) & 0b00111111])
+        result.append(alphabet[(n >> 12) & 0b00111111])
+        result.append(alphabet[(n >>  6) & 0b00111111])
+        result.append(alphabet[(n      ) & 0b00111111])
+
+        if paddnig:
+            result[-paddnig:] = b"=" * paddnig
+
+    return result
+
+def bytes_to_base64_old(data):
+    lookup = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+    
     if isinstance(data, str):
         data = data.encode()
 
@@ -52,10 +79,11 @@ def base64_to_bytearray(data):
 if __name__ == "__main__":
     import measure_time
     import mem_used
-#     decoded = b"\x00"
+#     data_in = b"\x00"
 #     data_in = b"\xFF"
 #     data_in = b"\x00\x00"
 #     data_in = b"\x00\x00\x00"
+#     data_in = b"\x00\x00\x00\x00"
 #     data_in = b"\x00\x00\xFF"
 #     data_in = b"\xFF\x00\x00"
 #     data_in = b"\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xAA\xBB\xCC\xDD\xEE\xFF"
