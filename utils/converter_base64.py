@@ -50,21 +50,26 @@ def bytes_to_base64(data):
             if counter == length:
                 print(f"return at counter = {counter}")
                 return result
-            
         
         counter += 1
     
     return ""
 
 if __name__ == "__main__":
-#     decoded = b"\x00"
-#     decoded = b"\xFF"
-#     decoded = b"\x00\x00"
-#     decoded = b"\x00\x00\x00"
-#     decoded = b"\x00\x00\xFF"
-#     decoded = b"\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xAA\xBB\xCC\xDD\xEE\xFF"
-    decoded = "\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xAA\xBB\xCC\xDD\xEE\xFF"
-    encoded = bytes_to_base64(decoded)
+    import measure_time
+    import mem_used
+    decoded = b"\x00"
+#     data_in = b"\xFF"
+#     data_in = b"\x00\x00"
+#     data_in = b"\x00\x00\x00"
+#     data_in = b"\x00\x00\xFF"
+#     data_in = b"\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xAA\xBB\xCC\xDD\xEE\xFF"
+#     data_in = "\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xAA\xBB\xCC\xDD\xEE\xFF"
+    data_in  = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+    
+    measure_time.begin()
+    data_out = bytes_to_base64(data_in)
+    measure_time.end("")
 
-    print(f"{decoded} -> {encoded}")
-        
+    print(f"{data_in} -> {data_out}")
+    mem_used.print_ram_used()
