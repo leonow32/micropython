@@ -25,6 +25,7 @@ def bytes_to_base64(data):
     return result
 
 def base64_to_bytearray(data):
+    lookup = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
     result = bytearray()
     
     for i in range(0, len(data), 4):

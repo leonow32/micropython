@@ -1,6 +1,4 @@
-
-
-def bytes_to_base16(data, separator=None):
+def encode(data: bytearray, separator=None) -> str:
     result = bytearray()
     lookup = b'0123456789ABCDEF'
     
@@ -15,50 +13,59 @@ def bytes_to_base16(data, separator=None):
             result.append(lookup[byte & 0x0F])
             result.append(separator)
             
-        return result[0:-1]
+        return result[0:-1].decode()
     
     else:
         for byte in data:
             result.append(lookup[byte >> 4])
             result.append(lookup[byte & 0x0F])
-        return result
+        return result.decode()
 
-def base16_to_bytes(data):
-    even = True
+def decode(data: str) -> bytearray:
+    nibble = True
     result = bytearray()
-    lookup = b'0123456789ABCDEF'
-    
-    if isinstance(data, str):
-        data = data.encode()
-        
-    data = data.upper()
+    lookup = '0123456789ABCDEF'
+    data   = data.upper()
     
     for byte in data:
         num = lookup.find(byte)
+        
         if(num == -1):
             continue
         
-        if even:
+        if nibble:
             result.append(num << 4)
         else:
             result[-1] |= num
         
-        even = not even
+        nibble = not nibble
         
-    return bytes(result)
+    return result
 
 if __name__ == "__main__":
     import measure_time
     import mem_used
     
-    data_in = bytearray()
+    a = bytearray()
     
     for i in range(256):
-        data_in.append(i)
+        a.append(i)
     
     measure_time.begin()
-    data_out = bytes_to_base16(data_in, " ")
-    measure_time.end("")
+    b = encode(a, " ")
+    measure_time.end("encode")
     
-    print(f"{data_in} -> {data_out}")
+    measure_time.begin()
+    c = decode(b)
+    measure_time.end("decode")
+    
+    if a == c:
+        print("Success")
+    else:
+        print("Fail")
+        print(f"a = {a}")
+        print(f"b = {b}")
+        print(f"c = {c}")
+        
     mem_used.print_ram_used()
+
