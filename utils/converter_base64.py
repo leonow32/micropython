@@ -1,6 +1,4 @@
-
-
-def bytes_to_base64(data):
+def encode(data: bytearray) -> str:
     lookup = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
     result = bytearray()
     
@@ -22,9 +20,9 @@ def bytes_to_base64(data):
         if paddnig:
             result[-paddnig:] = b"=" * paddnig
 
-    return result
+    return result.decode()
 
-def base64_to_bytearray(data):
+def decode(data: str) -> bytearray:
     lookup = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
     result = bytearray()
     
@@ -54,13 +52,13 @@ if __name__ == "__main__":
     data_in  = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
     
     measure_time.begin()
-    data_out = bytes_to_base64(data_in)
+    data_out = encode(data_in)
     measure_time.end("")
 
 #     data_in = "AAAA"
     
 #     measure_time.begin()
-#     data_out = base64_to_bytearray(data_in)
+#     data_out = decode(data_in)
 #     measure_time.end("")    
 
     print(f"{data_in} -> {data_out}")
