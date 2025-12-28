@@ -1,12 +1,11 @@
 
 
 def bytes_to_base64(data):
-    alphabet = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-
+    lookup = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+    result = bytearray()
+    
     if isinstance(data, str):
         data = data.encode()
-
-    result = bytearray()
 
     for i in range(0, len(data), 3):
         fragment = data[i:i+3]
@@ -15,51 +14,14 @@ def bytes_to_base64(data):
 
         n = (fragment[0] << 16) | (fragment[1] << 8) | fragment[2]
 
-        result.append(alphabet[(n >> 18) & 0b00111111])
-        result.append(alphabet[(n >> 12) & 0b00111111])
-        result.append(alphabet[(n >>  6) & 0b00111111])
-        result.append(alphabet[(n      ) & 0b00111111])
+        result.append(lookup[(n >> 18) & 0b00111111])
+        result.append(lookup[(n >> 12) & 0b00111111])
+        result.append(lookup[(n >>  6) & 0b00111111])
+        result.append(lookup[(n      ) & 0b00111111])
 
         if paddnig:
             result[-paddnig:] = b"=" * paddnig
 
-    return result
-
-def bytes_to_base64_old(data):
-    lookup = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-    
-    if isinstance(data, str):
-        data = data.encode()
-
-    result = bytearray()
-    
-    for i in range(len(data)):
-        
-        if i % 3 == 0:
-            buffer0 = (data[i] & 0b11111100) >> 2
-            buffer1 = (data[i] & 0b00000011) << 4
-            result.append(lookup[buffer0])
-            
-            if i == len(data)-1:
-                result.append(lookup[buffer1])
-                result.append(ord(b'='))
-                result.append(ord(b'='))
-            
-        elif i % 3 == 1:
-            buffer1 |= (data[i] & 0b11110000) >> 4
-            buffer2  = (data[i] & 0b00001111) << 2
-            result.append(lookup[buffer1])
-            
-            if i == len(data)-1:
-                result.append(lookup[buffer2])
-                result.append(ord(b'='))
-        
-        else:
-            buffer2 |= (data[i] & 0b11000000) >> 6
-            buffer3  = (data[i] & 0b00111111)
-            result.append(lookup[buffer2])
-            result.append(lookup[buffer3])
-    
     return result
 
 def base64_to_bytearray(data):
