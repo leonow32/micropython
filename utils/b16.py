@@ -1,4 +1,4 @@
-def encode(data: bytearray, separator=None) -> str:
+def encode(data: bytes | bytearray | str, separator=None) -> str:
     result = bytearray()
     lookup = b'0123456789ABCDEF'
     
