@@ -21,22 +21,45 @@ def encode(data: bytearray, separator=None) -> str:
             result.append(lookup[byte & 0x0F])
         return result.decode()
 
-def decode(data: str) -> bytearray:
+lookup = [
+      -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1, 
+      -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1, 
+      -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1, 
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,   -1,   -1,   -1,   -1,   -1,   -1, 
+      -1, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1, 
+      -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1, 
+      -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1, 
+      -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1, 
+      -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1, 
+      -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1, 
+      -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1, 
+      -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1, 
+      -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1, 
+      -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1, 
+      -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1, 
+      -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1
+]
+
+def decode(data: str | bytes | bytearray) -> bytearray:
+    if isinstance(data, str):
+        data = data.encode()
+    
     nibble = True
     result = bytearray()
-    lookup = '0123456789ABCDEF'
     data   = data.upper()
+    temp   = 0
+    append = result.append
     
     for byte in data:
-        num = lookup.find(byte)
+        num = lookup[byte]
         
         if(num == -1):
             continue
         
         if nibble:
-            result.append(num << 4)
+            temp = num << 4
         else:
-            result[-1] |= num
+            append(temp | num)
         
         nibble = not nibble
         

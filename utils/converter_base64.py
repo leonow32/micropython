@@ -41,8 +41,7 @@ lookup = [
       -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1   
 ]
 
-# 8,8ms
-def decode(data: str) -> bytearray:
+def decode(data: str | bytes | bytearray) -> bytearray:
     if isinstance(data, str):
         data = data.encode()
 
@@ -87,7 +86,7 @@ if __name__ == "__main__":
     measure_time.end("encode")
     
     measure_time.begin()
-    c = decode2(b)
+    c = decode(b)
     measure_time.end("decode")
     
     if a == c:
