@@ -1,6 +1,7 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
 
 import bluetooth
+import binascii
 
 DEVICE_NAME = "ESP32-S3"
 
@@ -91,6 +92,9 @@ def advertiser():
     adv_data = bytearray(b'\x02\x01\x02') + bytearray((len(name) + 1, 0x09)) + name
     ble.gap_advertise(100, adv_data)
     print(adv_data)
+
+def get_my_mac():
+    return binascii.hexlify(ble.config("mac")[1], ":").decode().upper()
 
 def init():
     global ble
