@@ -3,14 +3,14 @@ import ubinascii
 import time
 from micropython import const
 
-# Czas skanowania [s]
-SCAN_TIME_S = const(100)
+# Czas skanowania
+SCAN_TIME_MS = const(30_000)
 
 _IRQ_SCAN_RESULT = const(5)
 _IRQ_SCAN_DONE   = const(6)
 
 # Słownik do zapisywania znalezionych urządzeń
-# {adres_mac: [rssi, name]}
+# {mac: [rssi, name]}
 devices = {}
 
 def decode_name(payload):
@@ -20,7 +20,7 @@ def decode_name(payload):
         type = payload[i+1]
         if type == 0x08 or type == 0x09:
             try:
-                return str(payload[i + 2 : i + length + 1], "utf-8")
+                return str(payload[i+2 : i+length+1], "utf-8")
             except:
                 return "Błąd dekodowania"
         i += length + 1
@@ -49,9 +49,9 @@ def bluetooth_interrupt(event, data):
 ble = bluetooth.BLE()
 ble.active(True)
 ble.irq(bluetooth_interrupt)
-ble.gap_scan(SCAN_TIME_S * 1000, 30000, 30000, True)
+ble.gap_scan(SCAN_TIME_MS, 30000, 30000, True)
 
 print("    Adres MAC     |   RSSI   | Nazwa")
 print("------------------------------------------")
 
-time.sleep(SCAN_TIME_S + 1)
+time.sleep_ms(SCAN_TIME_MS + 100)
