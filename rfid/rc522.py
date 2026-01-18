@@ -1,9 +1,9 @@
 from micropython import const
 import mem_used
 
-import rfid.reg as reg
+import rfid.reg2 as reg2
 
-print(reg.COMMAND)
+print(reg2.COMMAND)
 
 
 
