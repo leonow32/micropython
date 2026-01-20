@@ -42,6 +42,18 @@ class RC522:
         
         buffer[:] = temp[1:]
         
+    def reg_write(self, register: int, value: int) -> None:
+        temp = bytes([register, value])
+        self.cs(0)
+        self.spi.write(temp)
+        self.cs(1)
+        
+    def regs_write(self, register: int, buffer: bytes | bytearray) -> None:
+        self.cs(0)
+        self.spi.write(bytes([register]))
+        self.spi.write(buffer)
+        self.cs(1)
+        
     def dump(self) -> None:
         """
         Read all the registers of RC522 and print them to the console.
