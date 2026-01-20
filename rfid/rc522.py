@@ -1,7 +1,5 @@
-from micropython import const
 from machine import Pin, SPI
 import time
-import mem_used
 import rfid.reg as reg
 
 class RC522:
@@ -18,58 +16,40 @@ class RC522:
         time.sleep_ms(50)
         self.reset(1)
         
-    def reg_read(self, register):
-        write_buf = bytes([0x80 | register, 0x00])
-        read_buf = bytearray(2)
+    def reg_read(self, register: int) -> None:
+        """
+        Read single register. Argument should be given as a register name from reg.py file.
+        """
+        temp = bytearray([0x80 | register, 0x00])
         self.cs(0)
-        self.spi.write_readinto(write_buf, read_buf)
+        self.spi.write_readinto(temp, temp)
         self.cs(1)
-        return read_buf[1]
+        return temp[1]
     
-    def regs_read(self, register, buffer):
-        write_buf = bytearray(len(buffer)+1)
-        for i in range(len(write_buf)):
-            write_buf[i] = (2*(register + i)) | 0x80
-#             write_buf[i] = (register + i)
-        write_buf[-1] = 0x00
+    def regs_read(self, register: int, buffer: bytearray) -> None:
+        """
+        Read one or more registers. Argument should be given as a register name from reg.py file.
+        Result is stored in given buffer that must be a bytearray.
+        """
+        temp = bytearray(len(buffer) + 1)
+        for i in range(len(temp)):
+            temp[i] = (2*(register + i)) | 0x80
+        temp[-1] = 0x00
         
-        print(write_buf)
-        
-        read_buf = bytearray(len(buffer)+1)
         self.cs(0)
-        self.spi.write_readinto(write_buf, read_buf)
+        self.spi.write_readinto(temp, temp)
         self.cs(1)
         
-        print(read_buf)
+        buffer[:] = temp[1:]
         
-        return read_buf[1:]
-        
-#         buffer = read_buf[:]
-
-    def dump2(self):
-        print("   ", end="")
-        for i in range(16):
-            print(f"  {i:X}", end="")
-            
-        for i in range(64):
-            val = self.reg_read(i*2)
-            
-            if i%16 == 0:
-                print(f"\n{i:02X}: ", end="")
-                
-            print(f"{val:02X} ", end="")
-        
-        print()
-            
-        
-    def dump(self):
+    def dump(self) -> None:
+        """
+        Read all the registers of RC522 and print them to the console.
+        """
         registers = bytearray(64)
-        registers = self.regs_read(0x00, registers)
-        print(registers)
+        self.regs_read(0x00, registers)
         
-        print("   ", end="")
-        for i in range(16):
-            print(f"  {i:X}", end="")
+        print("     0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F", end="")
         
         for i in range(len(registers)):
             if i%16 == 0:
@@ -77,24 +57,20 @@ class RC522:
             print(f"{registers[i]:02X} ", end="")
         
         print()
-                
 
-        
+if __name__ == "__main__":
+    import mem_used
+    spi = SPI(0, baudrate=1_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
+    cs = Pin(5)
+    irq = Pin(6)
+    reset = Pin(7)
 
-#print(reg.COMMAND)
+    reader = RC522(spi, cs, irq, reset)
 
-# spi = SPI(0)
-spi = SPI(0, baudrate=1_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
-cs = Pin(5)
-irq = Pin(6)
-reset = Pin(7)
+    ver = reader.reg_read(reg.VERSION)
+    print(f"VERSION: {ver:02X}")
 
-reader = RC522(spi, cs, irq, reset)
+    reader.dump()
+    
 
-ver = reader.reg_read(reg.VERSION)
-print(f"VERSION: {ver:02X}")
-
-reader.dump()
-reader.dump2()
-
-mem_used.print_ram_used()
+    mem_used.print_ram_used()
