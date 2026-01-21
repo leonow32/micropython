@@ -43,19 +43,36 @@ class RC522:
         buffer[:] = temp[1:]
         
     def reg_write(self, register: int, value: int) -> None:
+        """
+
+        """
         temp = bytes([register, value])
         self.cs(0)
         self.spi.write(temp)
         self.cs(1)
         
     def regs_write(self, register: int, buffer: bytes | bytearray) -> None:
-#         self.cs(0)
-#         self.spi.write(bytes([register]))
-#         self.spi.write(buffer)
-#         self.cs(1)
-        
+        """
+
+        """
         for i in range(len(buffer)):
             self.reg_write(register + 2*i, buffer[i])
+            
+    def reg_set_bit(self, register: int, mask: int) -> None:
+        """
+
+        """
+        temp = self.reg_read(register)
+        temp |= mask
+        self.reg_write(register, temp)
+        
+    def reg_clr_bit(self, register: int, mask: int) -> None:
+        """
+        
+        """
+        temp = self.reg_read(register)
+        temp = (temp & ~mask) & 0xFF
+        self.reg_write(register, temp)
         
     def dump(self) -> None:
         """
@@ -72,6 +89,9 @@ class RC522:
             print(f"{registers[i]:02X} ", end="")
         
         print()
+        
+    def version_get(self) -> None:
+        return self.reg_read(reg.VersionReg)
 
 if __name__ == "__main__":
     import mem_used
@@ -82,10 +102,11 @@ if __name__ == "__main__":
 
     reader = RC522(spi, cs, irq, rst)
 
-    ver = reader.reg_read(reg.VersionReg)
+#     ver = reader.reg_read(reg.VersionReg)
+    ver = reader.version_get()
     print(f"VERSION: {ver:02X}")
 
-    reader.regs_write(reg.TModeReg, b"\x12\x34\x56\x78")
+    reader.regs_write(reg.TModeReg, b"\x01\x01\x01\x01")
     reader.dump()
     
 
