@@ -4,17 +4,17 @@ import rfid.reg as reg
 
 class RC522:
     
-    def __init__(self, spi, cs, irq, reset):
+    def __init__(self, spi, cs, irq, rst):
         self.spi = spi
         self.cs = cs
         self.irq = irq
-        self.reset = reset
+        self.rst = rst
         
         self.cs.init(mode=Pin.OUT, value=1)
         self.irq.init(mode=Pin.IN)
-        self.reset.init(mode=Pin.OUT, value=0)
+        self.rst.init(mode=Pin.OUT, value=0)
         time.sleep_ms(50)
-        self.reset(1)
+        self.rst(1)
         
     def reg_read(self, register: int) -> None:
         """
@@ -49,10 +49,13 @@ class RC522:
         self.cs(1)
         
     def regs_write(self, register: int, buffer: bytes | bytearray) -> None:
-        self.cs(0)
-        self.spi.write(bytes([register]))
-        self.spi.write(buffer)
-        self.cs(1)
+#         self.cs(0)
+#         self.spi.write(bytes([register]))
+#         self.spi.write(buffer)
+#         self.cs(1)
+        
+        for i in range(len(buffer)):
+            self.reg_write(register + 2*i, buffer[i])
         
     def dump(self) -> None:
         """
@@ -73,15 +76,16 @@ class RC522:
 if __name__ == "__main__":
     import mem_used
     spi = SPI(0, baudrate=1_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
-    cs = Pin(5)
+    cs  = Pin(5)
     irq = Pin(6)
-    reset = Pin(7)
+    rst = Pin(7)
 
-    reader = RC522(spi, cs, irq, reset)
+    reader = RC522(spi, cs, irq, rst)
 
-    ver = reader.reg_read(reg.VERSION)
+    ver = reader.reg_read(reg.VersionReg)
     print(f"VERSION: {ver:02X}")
 
+    reader.regs_write(reg.TModeReg, b"\x12\x34\x56\x78")
     reader.dump()
     
 
