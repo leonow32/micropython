@@ -15,7 +15,17 @@ class RC522:
         self.rst.init(mode=Pin.OUT, value=0)
         time.sleep_ms(50)
         self.rst(1)
-        
+
+        self.reg_write(reg.TxModeReg, 0x00);
+        self.reg_write(reg.RxModeReg, 0x00);
+        self.reg_write(reg.ModWidthReg, 0x26);
+        self.reg_write(reg.TModeReg, 0x80);
+        self.reg_write(reg.TPrescalerReg, 0xA9);
+        self.reg_write(reg.TReloadRegH, 0x03);
+        self.reg_write(reg.TReloadRegL, 0xE8);    
+        self.reg_write(reg.TxASKReg, 0x40);
+        self.reg_write(reg.ModeReg, 0x3D);
+            
     def reg_read(self, register: int) -> None:
         """
         Read single register. Argument should be given as a register name from reg.py file.
@@ -92,6 +102,14 @@ class RC522:
         
     def version_get(self) -> None:
         return self.reg_read(reg.VersionReg)
+    
+    def antenna_enable(self):
+        self.reg_set_bit(reg.TxControlReg, 0x03)
+        time.sleep_ms(5)
+        
+    def antenna_disable(self):
+        self.reg_clr_bit(reg.TxControlReg, 0x03)
+        time.sleep_ms(5)
 
 if __name__ == "__main__":
     import mem_used
@@ -102,12 +120,12 @@ if __name__ == "__main__":
 
     reader = RC522(spi, cs, irq, rst)
 
-#     ver = reader.reg_read(reg.VersionReg)
     ver = reader.version_get()
     print(f"VERSION: {ver:02X}")
 
-    reader.regs_write(reg.TModeReg, b"\x01\x01\x01\x01")
+#     reader.regs_write(reg.TModeReg, b"\x01\x01\x01\x01")
     reader.dump()
     
+    reader.antenna_enable()
 
     mem_used.print_ram_used()
