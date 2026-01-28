@@ -16,15 +16,7 @@ class RC522:
         time.sleep_ms(50)
         self.rst(1)
 
-        self.reg_write(reg.TxModeReg, 0x00);
-        self.reg_write(reg.RxModeReg, 0x00);
-        self.reg_write(reg.ModWidthReg, 0x26);
-        self.reg_write(reg.TModeReg, 0x80);
-        self.reg_write(reg.TPrescalerReg, 0xA9);
-        self.reg_write(reg.TReloadRegH, 0x03);
-        self.reg_write(reg.TReloadRegL, 0xE8);    
-        self.reg_write(reg.TxASKReg, 0x40);
-        self.reg_write(reg.ModeReg, 0x3D);
+        self.regs_init()
             
     def reg_read(self, register: int) -> None:
         """
@@ -84,6 +76,17 @@ class RC522:
         temp = (temp & ~mask) & 0xFF
         self.reg_write(register, temp)
         
+    def regs_init(self) -> None:
+        self.reg_write(reg.TxModeReg, 0x00);
+        self.reg_write(reg.RxModeReg, 0x00);
+        self.reg_write(reg.ModWidthReg, 0x26);
+        self.reg_write(reg.TModeReg, 0x80);
+        self.reg_write(reg.TPrescalerReg, 0xA9);
+        self.reg_write(reg.TReloadRegH, 0x03);
+        self.reg_write(reg.TReloadRegL, 0xE8);    
+        self.reg_write(reg.TxASKReg, 0x40);
+        self.reg_write(reg.ModeReg, 0x3D);
+        
     def dump(self) -> None:
         """
         Read all the registers of RC522 and print them to the console.
@@ -103,11 +106,11 @@ class RC522:
     def version_get(self) -> None:
         return self.reg_read(reg.VersionReg)
     
-    def antenna_enable(self):
+    def antenna_enable(self) -> None:
         self.reg_set_bit(reg.TxControlReg, 0x03)
         time.sleep_ms(5)
         
-    def antenna_disable(self):
+    def antenna_disable(self) -> None:
         self.reg_clr_bit(reg.TxControlReg, 0x03)
         time.sleep_ms(5)
 
