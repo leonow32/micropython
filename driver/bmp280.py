@@ -1,5 +1,7 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
 # v1.0.0 2025.04.25
+# v1.0.1 2025.05.05
+# v1.0.2 2025.01.30
 
 from micropython import const
 import struct
@@ -54,7 +56,7 @@ TIMEOUT_MS    = const(50)
 
 class BMP280():
     """
-    Create an object to support BMP280 temperature and humidity sensor.
+    Create an object to support BMP280 temperature and air pressure sensor.
     - i2c: instance of I2C object.
     - device_address: address of the memory chip on I2C bus.
     """
@@ -242,3 +244,4 @@ if __name__ == "__main__":
             time.sleep_ms(100)
         
     mem_used.print_ram_used()
+    
