@@ -1,6 +1,7 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
 # v1.0.0 2025.04.25
 # v1.0.1 2025.05.05
+# v1.0.2 2025.01.30
 
 from micropython import const
 import struct
@@ -64,21 +65,34 @@ class BMP280():
         time.sleep_ms(40)
         self.i2c = i2c
         self.device_address = device_address
+        self.reset()
+        self.wait_for_ready()
         
+        calib = self.i2c.readfrom_mem(self.device_address, 0x88, 24, addrsize=8)
+        self.T1 = struct.unpack("<H", calib[0:2])[0]
+        self.T2 = struct.unpack("<h", calib[2:4])[0]
+        self.T3 = struct.unpack("<h", calib[4:6])[0]
+        self.P1 = struct.unpack("<H", calib[6:8])[0]
+        self.P2 = struct.unpack("<h", calib[8:10])[0]
+        self.P3 = struct.unpack("<h", calib[10:12])[0]
+        self.P4 = struct.unpack("<h", calib[12:14])[0]
+        self.P5 = struct.unpack("<h", calib[14:16])[0]
+        self.P6 = struct.unpack("<h", calib[16:18])[0]
+        self.P7 = struct.unpack("<h", calib[18:20])[0]
+        self.P8 = struct.unpack("<h", calib[20:22])[0]
+        self.P9 = struct.unpack("<h", calib[22:24])[0]
         
     def __str__(self):
-        return f"APDS({self.i2c}, device_address=0x{self.device_address:02X})"
+        return f"BMP280({str(self.i2c)}, device_address=0x{self.device_address:02X})"
     
-    def read_register(self, register):
-        pass
-        return self.i2c.readfrom_mem(self.device_address, register, 1, addrsize=8)[0]
+    def read_register(self, register, length=1):
+        return self.i2c.readfrom_mem(self.device_address, register, length, addrsize=8)[0]
     
     def write_register(self, register, value):
-        pass
-#         self.i2c.writeto_mem(self.device_address, register, bytes([value]), addrsize=8)abs(
+        self.i2c.writeto_mem(self.device_address, register, bytes([value]), addrsize=8)
         
     def reset(self):
-        pass
+        self.write_register(REG_RESET, 0xB6)
         
     def config(self, osrs_t, osrs_p, mode, t_sb, filtr):
         self.write_register(REG_CTRL_MEAS, osrs_t | osrs_p | mode)
@@ -230,3 +244,4 @@ if __name__ == "__main__":
             time.sleep_ms(100)
         
     mem_used.print_ram_used()
+    
