@@ -126,7 +126,6 @@ if __name__ == "__main__":
     ver = reader.version_get()
     print(f"VERSION: {ver:02X}")
 
-#     reader.regs_write(reg.TModeReg, b"\x01\x01\x01\x01")
     reader.dump()
     
     reader.antenna_enable()
