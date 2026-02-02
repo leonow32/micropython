@@ -1,14 +1,17 @@
 from machine import Pin, SPI
 import time
 import rfid.reg as reg
+import rfid.pcd_cmd as pcd_cmd
+import rfid.picc_cmd as picc_cmd
 
 class RC522:
     
     def __init__(self, spi, cs, irq, rst):
         self.spi = spi
-        self.cs = cs
+        self.cs  = cs
         self.irq = irq
         self.rst = rst
+        self.crc = 0x6363
         
         self.cs.init(mode=Pin.OUT, value=1)
         self.irq.init(mode=Pin.IN)
@@ -77,16 +80,30 @@ class RC522:
         self.reg_write(register, temp)
         
     def regs_init(self) -> None:
-        self.reg_write(reg.TxModeReg, 0x00);
-        self.reg_write(reg.RxModeReg, 0x00);
-        self.reg_write(reg.ModWidthReg, 0x26);
-        self.reg_write(reg.TModeReg, 0x80);
-        self.reg_write(reg.TPrescalerReg, 0xA9);
-        self.reg_write(reg.TReloadRegH, 0x03);
-        self.reg_write(reg.TReloadRegL, 0xE8);    
-        self.reg_write(reg.TxASKReg, 0x40);
-        self.reg_write(reg.ModeReg, 0x3D);
+        self.reg_write(reg.TxModeReg,     0x00) # Reset baud rates
+        self.reg_write(reg.RxModeReg,     0x00) # Reset baud rates
+        self.reg_write(reg.ModWidthReg,   0x26) # Reset ModWidthReg
         
+        # When communicating with a PICC we need a timeout if something goes wrong.
+        # f_timer = 13.56 MHz / (2*TPreScaler+1) where TPreScaler = [TPrescaler_Hi:TPrescaler_Lo].
+        # TPrescaler_Hi are the four low bits in TModeReg. TPrescaler_Lo is TPrescalerReg.
+        self.reg_write(reg.TModeReg,      0x80) # TAuto=1; timer starts automatically at the end of the transmission in all communication modes at all speeds
+        self.reg_write(reg.TPrescalerReg, 0xA9) # TPreScaler = TModeReg[3..0]:TPrescalerReg, ie 0x0A9 = 169 => f_timer=40kHz, ie a timer period of 25μs.
+        self.reg_write(reg.TReloadRegH,   0x03) # Reload timer with 0x3E8 = 1000, ie 25ms before timeout.
+        self.reg_write(reg.TReloadRegL,   0xE8)    
+        self.reg_write(reg.TxASKReg,      0x40) # Default 0x00. Force a 100 % ASK modulation independent of the ModGsPReg register setting
+        self.reg_write(reg.ModeReg,       0x3D) # Default 0x3F. Set the preset value for the CRC coprocessor for the CalcCRC command to 0x6363 (ISO 14443-3 part 6.2.4)
+        
+    def reset(self) -> None:
+        self.reg_write(reg.CommandReg, pcd_cmd.SoftReset)
+
+        timeout_counter = 0
+        while self.reg_read(reg.CommandReg) & 0b00010000:
+            timeout_counter += 1
+            if(timeout_counter == 10):
+                raise TimeoutError
+            time.sleep_ms(10)
+            
     def dump(self) -> None:
         """
         Read all the registers of RC522 and print them to the console.
@@ -113,6 +130,28 @@ class RC522:
     def antenna_disable(self) -> None:
         self.reg_clr_bit(reg.TxControlReg, 0x03)
         time.sleep_ms(5)
+        
+    def transmit_7bit(self, data):
+        # RC_BufferClear();
+        self.reg_write(reg.CommandReg, pcd_cmd.Idle); # Stop any active command
+        self.reg_write(reg.ComIrqReg, 0x7F);          # Clear all seven interrupt request bits
+        self.reg_write(reg.FIFOLevelReg, 0x80);       # FlushBuffer = 1, FIFO initialization
+        #self.reg_write(reg.BitFramingReg, 0);         # Bit adjustments (to jest ważne, bo pierwsze polecenie wqysłane do karty, czyli WUPA, jest 7-bitowe)
+        self.RC_CRC = 0x6363;                         # Wartość początkowa licznika CRC
+
+        # RC_BufferAppendByte(DataToSend);
+        #...
+        
+        
+        
+        # Ustawienie, że ma być wysłane 7 bitów a nie 8
+        self.reg_write(reg.BitFramingReg, 7)
+        
+        #return RC_Transmit(Response, ResponseLength, NULL, 0, false);
+        
+        
+        
+        
 
 if __name__ == "__main__":
     import mem_used
