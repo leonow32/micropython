@@ -131,6 +131,47 @@ class RC522:
         self.reg_clr_bit(reg.TxControlReg, 0x03)
         time.sleep_ms(5)
         
+    def transmit(self, send_buf, recv_buf):
+        #RC_Res RC_Transmit(uint8_t * ResponseBuffer, uint8_t * ResponseLength, uint8_t * CommandBuffer, uint8_t CommandLenght, bool UseCRC)
+        
+        for byte in send_buf:
+            self.reg_write(reg.FIFODataReg, byte);
+            # TODO CRC
+            
+        # Jeżeli użytwane jest CRC to tutaj trzeba dodać CRC_L a potem CRC_H do bufora
+        # TODO
+        
+        # Przesyłanie bufora z RC522 do karty
+        self.reg_write(reg.CommandReg, pcd_cmd.Transceive);
+        
+        # StartSend=1, rozpoczęcie transmisji
+        self.reg_set_bit(reg.BitFramingReg, 0x80)
+        
+        # Czekanie na odpowiedź
+        for i in range(10):
+            
+            # Sprawdzanie czy jest RxIrq
+            if self.reg_read(reg.ComIrqReg) & 0b00100000:
+                
+                lenght = self.reg_read(reg.FIFOLevelReg)
+                print(f"FIFOLevelReg = {lenght}")
+                
+                print("FIFODataReg: ", end="")
+                for j in range(lenght):
+                    recv_buf[j] = self.reg_read(reg.FIFODataReg)
+                    print(f"{recv_buf[j]:02X }", end="")
+                print()
+                
+                print("Wyjście z transmit")
+                return
+            else:
+                print("_", end="")
+                time.sleep_ms(10)
+        
+        print("Receive timeout")
+        raise TimeoutError
+        
+        
     def transmit_7bit(self, data):
         # RC_BufferClear();
         self.reg_write(reg.CommandReg, pcd_cmd.Idle); # Stop any active command
@@ -140,17 +181,73 @@ class RC522:
         self.RC_CRC = 0x6363;                         # Wartość początkowa licznika CRC
 
         # RC_BufferAppendByte(DataToSend);
-        #...
-        
-        
+        self.reg_write(reg.FIFODataReg, data);
+        # tu było CRC ale pomijam
         
         # Ustawienie, że ma być wysłane 7 bitów a nie 8
         self.reg_write(reg.BitFramingReg, 7)
         
         #return RC_Transmit(Response, ResponseLength, NULL, 0, false);
         
+        # Przesyłanie bufora z RC522 do karty
+        self.reg_write(reg.CommandReg, pcd_cmd.Transceive);
         
+        # StartSend=1, rozpoczęcie transmisji
+        self.reg_set_bit(reg.BitFramingReg, 0x80)
         
+        response_buf = bytearray()
+        
+        # Czekanie na odpowiedź
+        for i in range(10):
+            
+            # Sprawdzanie czy jest RxIrq
+            if self.reg_read(reg.ComIrqReg) & 0b00100000:
+                
+                lenght = self.reg_read(reg.FIFOLevelReg)
+                print(f"FIFOLevelReg: {lenght}")
+                
+                print("FIFODataReg: ", end="")
+                for j in range(lenght):
+                    recv_byte = self.reg_read(reg.FIFODataReg)
+                    response_buf.append(recv_byte)
+                    print(f"{recv_byte:02X}", end="")
+                print()
+                
+                print("Wyjście z transmit")
+                return
+            else:
+                print("_", end="")
+                time.sleep_ms(10)
+        
+        print("Receive timeout")
+        raise TimeoutError
+        
+    def response_read(self, recv_buf):
+        
+        # Czekanie na odpowiedź
+        for i in range(10):
+            
+            # Sprawdzanie czy jest RxIrq
+            if self.reg_read(reg.ComIrqReg) & 0b00100000:
+                
+                lenght = self.reg_read(reg.FIFOLevelReg)
+                print(f"FIFOLevelReg: {lenght}")
+                
+                print("FIFODataReg: ", end="")
+                for j in range(lenght):
+                    
+                    recv_buf[j] = self.reg_read(reg.FIFODataReg)
+                    print(f"{recv_buf[j]:02X}", end="")
+                print()
+                
+                print("Wyjście z transmit")
+                return
+            else:
+                print("_", end="")
+                time.sleep_ms(10)
+        
+        print("Receive timeout")
+        raise TimeoutError
         
 
 if __name__ == "__main__":
