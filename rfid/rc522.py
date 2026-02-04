@@ -56,12 +56,12 @@ class RC522:
         self.spi.write(temp)
         self.cs(1)
         
-    def regs_write(self, register: int, buffer: bytes | bytearray) -> None:
-        """
-
-        """
-        for i in range(len(buffer)):
-            self.reg_write(register + 2*i, buffer[i])
+#     def regs_write(self, register: int, buffer: bytes | bytearray) -> None:
+#         """
+# 
+#         """
+#         for i in range(len(buffer)):
+#             self.reg_write(register + 2*i, buffer[i])
             
     def reg_set_bit(self, register: int, mask: int) -> None:
         """
@@ -101,7 +101,7 @@ class RC522:
         while self.reg_read(reg.CommandReg) & 0b00010000:
             timeout_counter += 1
             if(timeout_counter == 10):
-                raise TimeoutError
+                raise Exception(0, "No response after reset")
             time.sleep_ms(10)
             
     def dump(self) -> None:
@@ -130,6 +130,15 @@ class RC522:
     def antenna_disable(self) -> None:
         self.reg_clr_bit(reg.TxControlReg, 0x03)
         time.sleep_ms(5)
+        
+    def wait_for_rx_irq(self, timeout_ms=100) -> None:
+        for i in range(timeout_ms // 10):
+            if self.reg_read(reg.ComIrqReg) & 0b00100000:
+                return
+            else:
+                time.sleep_ms(10)
+        
+        raise Exception(0, "Timeout")
         
     def transmit(self, send_buf, recv_buf):
         #RC_Res RC_Transmit(uint8_t * ResponseBuffer, uint8_t * ResponseLength, uint8_t * CommandBuffer, uint8_t CommandLenght, bool UseCRC)
@@ -172,56 +181,52 @@ class RC522:
         raise TimeoutError
         
         
-    def transmit_7bit(self, data):
-        # RC_BufferClear();
-        self.reg_write(reg.CommandReg, pcd_cmd.Idle); # Stop any active command
-        self.reg_write(reg.ComIrqReg, 0x7F);          # Clear all seven interrupt request bits
-        self.reg_write(reg.FIFOLevelReg, 0x80);       # FlushBuffer = 1, FIFO initialization
-        #self.reg_write(reg.BitFramingReg, 0);         # Bit adjustments (to jest ważne, bo pierwsze polecenie wqysłane do karty, czyli WUPA, jest 7-bitowe)
-        self.RC_CRC = 0x6363;                         # Wartość początkowa licznika CRC
-
-        # RC_BufferAppendByte(DataToSend);
-        self.reg_write(reg.FIFODataReg, data);
-        # tu było CRC ale pomijam
+    def transmit_7bit(self, data, timeout_ms=100):
+        self.reg_write(reg.CommandReg, pcd_cmd.Idle);       # Stop any active command
+        self.reg_write(reg.ComIrqReg, 0x7F);                # Clear interrupt flags
+        self.reg_write(reg.FIFOLevelReg, 0x80);             # Clear FIFO buffer
+        self.reg_write(reg.FIFODataReg, data);              # Store data to FIFO buffer
+        self.reg_write(reg.BitFramingReg, 7)                # Set transfer length to 7 bits instead of 8
+        self.reg_write(reg.CommandReg, pcd_cmd.Transceive); # Enter new command
+        self.reg_set_bit(reg.BitFramingReg, 0x80)           # Start data transfer, bit StartSend=1
         
-        # Ustawienie, że ma być wysłane 7 bitów a nie 8
-        self.reg_write(reg.BitFramingReg, 7)
+        self.wait_for_rx_irq(timeout_ms)                    # Wait for receive interrupt flag
         
-        #return RC_Transmit(Response, ResponseLength, NULL, 0, false);
+        lenght = self.reg_read(reg.FIFOLevelReg)            # Check how many bytes are received
+        print(f"received length: {lenght}")
         
-        # Przesyłanie bufora z RC522 do karty
-        self.reg_write(reg.CommandReg, pcd_cmd.Transceive);
+        response_buf = bytearray(lenght)
         
-        # StartSend=1, rozpoczęcie transmisji
-        self.reg_set_bit(reg.BitFramingReg, 0x80)
+        for i in range(lenght):
+            recv_byte = self.reg_read(reg.FIFODataReg)
+            response_buf[i] = recv_byte
+            print(f"{recv_byte:02X}", end="")
+        print()
         
-        response_buf = bytearray()
-        
-        # Czekanie na odpowiedź
-        for i in range(10):
-            
-            # Sprawdzanie czy jest RxIrq
-            if self.reg_read(reg.ComIrqReg) & 0b00100000:
-                
-                lenght = self.reg_read(reg.FIFOLevelReg)
-                print(f"FIFOLevelReg: {lenght}")
-                
-                print("FIFODataReg: ", end="")
-                for j in range(lenght):
-                    recv_byte = self.reg_read(reg.FIFODataReg)
-                    response_buf.append(recv_byte)
-                    print(f"{recv_byte:02X}", end="")
-                print()
-                
-                print("Wyjście z transmit")
-                return
-            else:
-                print("_", end="")
-                time.sleep_ms(10)
-        
-        print("Receive timeout")
-        raise TimeoutError
-        
+        return response_buf
+    
+    def picc_wupa_send(self):
+        return self.transmit_7bit(picc_cmd.WUPA_7bit)
+    
+    def picc_reqa_send(self):
+        return self.transmit_7bit(picc_cmd.REQA_7bit)
+    
+    def scan_all_7bit_commands(self):
+        for i in range(128):
+#             print(f"{i:02X}")
+            try:
+                self.antenna_disable()
+                time.sleep_ms(1)
+                self.antenna_enable()
+                time.sleep_ms(1)
+                response = self.transmit_7bit(i)
+                print(f"{i:02X}: ", end="")
+                for byte in response:
+                    print(f"{byte:02X} ", end="")
+                print("")
+            except:
+                pass
+    
     def response_read(self, recv_buf):
         
         # Czekanie na odpowiedź
