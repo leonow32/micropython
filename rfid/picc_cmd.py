@@ -5,6 +5,7 @@ REQA_7bit        = const(0x26) # Request Command Type A, Set PICC from idle stat
 WUPA_7bit        = const(0x52) # Wake-Up Command Type A, Set PICC from idle or halt state to ready state
 BACKDOOR_40_7bit = const(0x4F) # Unlocks some Chinese MIFARE Classic cards
 BACKDOOR_4F_7bit = const(0x4F) # Unlocks some Chinese MIFARE Classic cards
+GOD_MODE_7bit    = const(0x43) # Access restricted blocks with any password
 HLTA             = const(0x50) # Set PICC to halt state
 RATS             = const(0xE0) # Request for Answer To Select
 

@@ -175,6 +175,7 @@ class RC522:
     Żeby wyjść z obliczania CRC trzeba wysłać komendę Idle
     """
         
+    
     def crc_calculate(self):
         self.reg_write(reg.CommandReg, pcd_cmd.CalcCRC)
         
@@ -199,6 +200,31 @@ class RC522:
         result = crc_h << 8 | crc_l
         print(f"CRC: {result:04X}")
         return result
+    
+    
+    def crc16(self, data):
+        crc = 0xC6C6;
+
+        for byte in data:
+            mask = 0b00000001
+            while mask:
+                bit = 1 if byte & mask else 0
+                msb = crc >> 15
+                crc = (crc << 1) & 0xFFFF
+
+                if bit != msb:
+                    crc = crc ^ 0x1021
+                    
+                mask = (mask << 1) & 0xFF
+
+        result = 0
+        
+        for i in range(16):
+            if crc & (1<<i):
+                result = result | (1<<(15-i))
+
+        return result;
+    
         
     def transmit(self, buffer, timeout_ms=100):
         self.reg_write(reg.CommandReg, pcd_cmd.Idle)        # Stop any ongoing command and set RC522 to idle state
@@ -288,8 +314,28 @@ class RC522:
         else:
             print("BCC correct")
             
+        buffer = [picc_cmd.SEL_CL1, picc_cmd.NVB_70, result[0], result[1], result[2], result[3], result[4]]
+        crc = self.crc16(buffer)
+        # Najpierw CRC_L, potem CRC_H
+        buffer.append(crc & 0xFF)
+        buffer.append(crc >> 8)
         
-            
+        # debug
+        print("Send: ", end="")
+        for byte in buffer:
+            print(f"{byte:02X} ", end="")
+        print()
+        
+        # Select
+        result = self.transmit(buffer)
+        print("Recv: ", end="")
+        for byte in result:
+            print(f"{byte:02X} ", end="")
+        print()
+        
+        # result[0] - SAK
+        # result[1] - CRC_L
+        # result[2] - CRC_H
             
     
     def scan_all_7bit_commands(self):
