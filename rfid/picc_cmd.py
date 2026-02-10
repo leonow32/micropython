@@ -14,3 +14,4 @@ SEL_CL2          = const(0x95) # Second iteration of anticollision loop
 SEL_CL3          = const(0x97) # Third iteration of anticollision loop
 NVB_20           = const(0x20) # Number of valid bits, byte count = 2
 NVB_70           = const(0x70) # Number of valid bits, byte count = 7
+CASCADE_TAG      = const(0x88) # Indicates that some more UID bytes remain to be read
