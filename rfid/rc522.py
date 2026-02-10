@@ -12,6 +12,7 @@ class RC522:
         self.irq = irq
         self.rst = rst
         self.crc = 0x6363
+        self.debug = False
         
         self.cs.init(mode=Pin.OUT, value=1)
         self.irq.init(mode=Pin.IN)
@@ -31,21 +32,21 @@ class RC522:
         self.cs(1)
         return temp[1]
     
-    def regs_read(self, register: int, buffer: bytearray) -> None:
-        """
-        Read one or more registers. Argument should be given as a register name from reg.py file.
-        Result is stored in given buffer that must be a bytearray.
-        """
-        temp = bytearray(len(buffer) + 1)
-        for i in range(len(temp)):
-            temp[i] = (2*(register + i)) | 0x80
-        temp[-1] = 0x00
-        
-        self.cs(0)
-        self.spi.write_readinto(temp, temp)
-        self.cs(1)
-        
-        buffer[:] = temp[1:]
+#     def regs_read(self, register: int, buffer: bytearray) -> None:
+#         """
+#         Read one or more registers. Argument should be given as a register name from reg.py file.
+#         Result is stored in given buffer that must be a bytearray.
+#         """
+#         temp = bytearray(len(buffer) + 1)
+#         for i in range(len(temp)):
+#             temp[i] = (2*(register + i)) | 0x80
+#         temp[-1] = 0x00
+#         
+#         self.cs(0)
+#         self.spi.write_readinto(temp, temp)
+#         self.cs(1)
+#         
+#         buffer[:] = temp[1:]
         
     def reg_write(self, register: int, value: int) -> None:
         """
@@ -104,21 +105,21 @@ class RC522:
                 raise Exception(0, "No response after reset")
             time.sleep_ms(10)
             
-    def dump(self) -> None:
-        """
-        Read all the registers of RC522 and print them to the console.
-        """
-        registers = bytearray(64)
-        self.regs_read(0x00, registers)
-        
-        print("     0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F", end="")
-        
-        for i in range(len(registers)):
-            if i%16 == 0:
-                print(f"\n{i:02X}: ", end="")
-            print(f"{registers[i]:02X} ", end="")
-        
-        print()
+#     def dump(self) -> None:
+#         """
+#         Read all the registers of RC522 and print them to the console.
+#         """
+#         registers = bytearray(64)
+#         self.regs_read(0x00, registers)
+#         
+#         print("     0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F", end="")
+#         
+#         for i in range(len(registers)):
+#             if i%16 == 0:
+#                 print(f"\n{i:02X}: ", end="")
+#             print(f"{registers[i]:02X} ", end="")
+#         
+#         print()
         
     def version_get(self) -> None:
         return self.reg_read(reg.VersionReg)
@@ -146,6 +147,7 @@ class RC522:
         
         raise Exception(0, "Timeout")
     
+    """
     def idle(self):
         self.reg_write(reg.CommandReg, pcd_cmd.Idle)
     
@@ -168,14 +170,14 @@ class RC522:
         for byte in buffer:
             print(f"{byte:02X} ", end="")
         print()
-        
+    """    
     """
     Komenda CalcCRC oblicza CRC ze wszystkich bajtów z FIFO i zeruje FIFO.
     Każdy kolejny bajt wpisany do FIFO w rzeczywistości trafia do obliczania CRC
     Żeby wyjść z obliczania CRC trzeba wysłać komendę Idle
     """
         
-    
+    """
     def crc_calculate(self):
         self.reg_write(reg.CommandReg, pcd_cmd.CalcCRC)
         
@@ -200,7 +202,7 @@ class RC522:
         result = crc_h << 8 | crc_l
         print(f"CRC: {result:04X}")
         return result
-    
+    """
     
     def crc16(self, data):
         crc = 0xC6C6;
@@ -246,10 +248,8 @@ class RC522:
 #         print(f"crc_given      = {crc_given:04X}")
         return crc_calculated == crc_given
         
-    def transmit(self, buffer: bytearray, *, timeout_ms=100, debug=False) -> bytearray:
-        if debug:
-            self.debug_print("Send", buffer)
-        
+    def transmit(self, buffer: bytearray, timeout_ms=100) -> bytearray:
+        self.debug_print("Send", buffer)
         self.reg_write(reg.CommandReg, pcd_cmd.Idle)        # Stop any ongoing command and set RC522 to idle state
         self.reg_write(reg.ComIrqReg, 0x7F)                 # Clear interrupt flags
         self.reg_write(reg.FIFOLevelReg, 0x80)              # Clear FIFO buffer
@@ -266,12 +266,11 @@ class RC522:
         for i in range(lenght):
             response_buf[i] = self.reg_read(reg.FIFODataReg)
         
-        if debug:
-            self.debug_print("Recv", response_buf)
-        
+        self.debug_print("Recv", response_buf)
         return response_buf
         
     def transmit_7bit(self, byte, *, timeout_ms=100):
+        self.debug_print("Send[s]", byte)
         self.reg_write(reg.CommandReg, pcd_cmd.Idle)        # Stop any ongoing command and set RC522 to idle state
         self.reg_write(reg.ComIrqReg, 0x7F)                 # Clear interrupt flags
         self.reg_write(reg.FIFOLevelReg, 0x80)              # Clear FIFO buffer
@@ -288,6 +287,7 @@ class RC522:
         for i in range(lenght):
             response_buf[i] = self.reg_read(reg.FIFODataReg)
         
+        self.debug_print("Recv", response_buf)
         return response_buf
     
     def picc_send_wupa(self):
@@ -322,7 +322,7 @@ class RC522:
             
         # Anticollision Loop 1
         print("Anticollision loop 1")
-        wupa_answer = self.transmit(bytearray([picc_cmd.SEL_CL1, picc_cmd.NVB_20]), debug=True)
+        wupa_answer = self.transmit(bytearray([picc_cmd.SEL_CL1, picc_cmd.NVB_20]))
         
         # This operation should return 5 bytes: [uid0, uid1, uid2, uid3, BCC] or [CT, uid0, uid1, uid2, BCC]
         # where CT is cascade tag and BCC is a check byte calculated as a XOR of first 4 bytes
@@ -339,7 +339,7 @@ class RC522:
         self.crc_calculate_and_append(buffer)
         
         # Select
-        result = self.transmit(buffer, debug=True)
+        result = self.transmit(buffer)
         
         # result[0] - SAK
         # result[1] - CRC_L
@@ -365,7 +365,7 @@ class RC522:
         
         # Another loop
         print("Anticollision loop 2")
-        wupa_answer = self.transmit(bytearray([picc_cmd.SEL_CL2, picc_cmd.NVB_20]), debug=True)
+        wupa_answer = self.transmit(bytearray([picc_cmd.SEL_CL2, picc_cmd.NVB_20]))
         
         # Verification of BCC
         if wupa_answer[0] ^ wupa_answer[1] ^wupa_answer[2] ^ wupa_answer[3] != wupa_answer[4]:
@@ -378,12 +378,14 @@ class RC522:
         self.crc_calculate_and_append(buffer)
         
         # Select
-        result = self.transmit(buffer, debug=True)
+        result = self.transmit(buffer)
         
         # Verify CRC
         if not self.crc_verify(buffer):
             print("Received wrong CRC")
             return None
+        
+        print(f"SAK: {result[0]:02X}")
         
         # If first byte of the response is cascade tag then we need another loop
         if wupa_answer[0] != picc_cmd.CASCADE_TAG:
@@ -413,13 +415,20 @@ class RC522:
             except:
                 pass
     
-    def debug_print(self, caption:str, buffer: bytes) -> None:
-        print(f"{caption}[{len(buffer)}]: ", end="")
-        for byte in buffer:
-            print(f"{byte:02X} ", end="")
-        print()
+    def debug_print(self, caption:str, data: bytes) -> None:
+        if self.debug:
+            if isinstance(data, int):
+                print(f"{caption}: {data:02X}")
+                
+            elif isinstance(data, bytearray) or isinstance(data, bytes):           
+                print(f"{caption}[{len(data)}]: ", end="")
+                for byte in data:
+                    print(f"{byte:02X} ", end="")
+                print()
+                
+            else:
+                print(f"{caption}")
         
-
 if __name__ == "__main__":
     import mem_used
     spi = SPI(0, baudrate=1_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
@@ -428,6 +437,7 @@ if __name__ == "__main__":
     rst = Pin(7)
 
     reader = RC522(spi, cs, irq, rst)
+    reader.debug = True
 
 #     ver = reader.version_get()
 #     print(f"VERSION: {ver:02X}")
