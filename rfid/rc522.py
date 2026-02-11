@@ -8,17 +8,15 @@ import measure_time
 
 class RC522:
     
-    def __init__(self, spi, cs, irq, rst):
+    def __init__(self, spi, cs, rst):
         self.spi = spi
         self.cs  = cs
-        self.irq = irq
         self.rst = rst
-        self.crc = 0x6363
+
         self.debug = False
         self.timeout_ms = 100
         
         self.cs.init(mode=Pin.OUT, value=1)
-        self.irq.init(mode=Pin.IN)
         self.rst.init(mode=Pin.OUT, value=0)
         time.sleep_ms(50)
         self.rst(1)
@@ -27,7 +25,7 @@ class RC522:
             
     def reg_read(self, register: int) -> None:
         """
-        Read single register. Argument should be given as a register name from reg.py file.
+        Read single register. Register name should come from reg.py file.
         """
         temp = bytearray([0x80 | register, 0x00])
         self.cs(0)
@@ -35,25 +33,16 @@ class RC522:
         self.cs(1)
         return temp[1]
     
-#     def regs_read(self, register: int, buffer: bytearray) -> None:
-#         """
-#         Read one or more registers. Argument should be given as a register name from reg.py file.
-#         Result is stored in given buffer that must be a bytearray.
-#         """
-#         temp = bytearray(len(buffer) + 1)
-#         for i in range(len(temp)):
-#             temp[i] = (2*(register + i)) | 0x80
-#         temp[-1] = 0x00
-#         
-#         self.cs(0)
-#         self.spi.write_readinto(temp, temp)
-#         self.cs(1)
-#         
-#         buffer[:] = temp[1:]
+    def reg_reads(self, register: int, length: int) -> bytearray:
+        temp = bytearray([0x80 | register] * (length + 1))
+        self.cs(0)
+        self.spi.write_readinto(temp, temp)
+        self.cs(1)
+        return temp[1:]
         
     def reg_write(self, register: int, value: int|bytes|bytearray) -> None:
         """
-
+        Write a value or buffer of values into a register. Register name should come from reg.py file.
         """
         self.cs(0)
         
@@ -64,13 +53,6 @@ class RC522:
             self.spi.write(value)
             
         self.cs(1)
-        
-#     def regs_write(self, register: int, buffer: bytes | bytearray) -> None:
-#         """
-# 
-#         """
-#         for i in range(len(buffer)):
-#             self.reg_write(register + 2*i, buffer[i])
             
     def reg_set_bit(self, register: int, mask: int) -> None:
         """
@@ -153,38 +135,7 @@ class RC522:
             else:
                 time.sleep_ms(10)
         
-        raise Exception(0, "Timeout")
-    
-    """
-    def idle(self):
-        self.reg_write(reg.CommandReg, pcd_cmd.Idle)
-    
-    def fifo_clear(self):
-        self.reg_write(reg.FIFOLevelReg, 0x80);             # Clear FIFO buffer
-    
-    def fifo_write(self, buffer):
-        for byte in buffer:
-            self.reg_write(reg.FIFODataReg, byte)
-            
-    def fifo_length(self):
-        return self.reg_read(reg.FIFOLevelReg)
-    
-    def fifo_read(self):
-        lenght = self.reg_read(reg.FIFOLevelReg)
-        buffer = bytearray(lenght)
-        for i in range(lenght):
-            buffer[i] = self.reg_read(reg.FIFODataReg)
-            
-        for byte in buffer:
-            print(f"{byte:02X} ", end="")
-        print()
-    """    
-    """
-    Komenda CalcCRC oblicza CRC ze wszystkich bajtów z FIFO i zeruje FIFO.
-    Każdy kolejny bajt wpisany do FIFO w rzeczywistości trafia do obliczania CRC
-    Żeby wyjść z obliczania CRC trzeba wysłać komendę Idle
-    """
-        
+        raise Exception(0, "Timeout")     
     
     def crc_coprocessor(self, data: bytes|bytearray) -> int:
         measure_time.begin()
@@ -193,62 +144,18 @@ class RC522:
         self.reg_write(reg.CommandReg, pcd_cmd.CalcCRC)  # Enable CRC coprocessor
         self.reg_write(reg.FIFODataReg, data)            # Transmit the data to FIFO buffer
         
-        crc_h = self.reg_read(reg.CRCResultRegH)
-        crc_l = self.reg_read(reg.CRCResultRegL)
-        
+        crc_h  = self.reg_read(reg.CRCResultRegH)
+        crc_l  = self.reg_read(reg.CRCResultRegL)
         result = crc_h << 8 | crc_l
         
         measure_time.end("CRC")
-        return result
-        
-        
-#     def crc_read(self):
-#         crc_h = self.reg_read(reg.CRCResultRegH)
-#         crc_l = self.reg_read(reg.CRCResultRegL)
-#         
-#         print(f"crc_h {crc_h:02X}")
-#         print(f"crc_l {crc_l:02X}")
-#         
-#         result = crc_h << 8 | crc_l
-#         print(f"CRC: {result:04X}")
-#         return result
-    
-    
-    def crc_calculate(self, data: bytes|bytearray) -> int:
-        """
-        Calculates the CRC value from the given data buffer. CRC configuration is: polynominal 0x1021, initial value 0xC6C6,
-        reflect in and reflext out.
-        """
-        measure_time.begin()
-        crc = 0xC6C6;
-
-        for byte in data:
-            mask = 0b00000001
-            while mask:
-                bit = 1 if byte & mask else 0
-                msb = crc >> 15
-                crc = (crc << 1) & 0xFFFF
-
-                if bit != msb:
-                    crc = crc ^ 0x1021
-                    
-                mask = (mask << 1) & 0xFF
-
-        result = 0
-        
-        for i in range(16):
-            if crc & (1<<i):
-                result = result | (1<<(15-i))
-
-        measure_time.end("CRC")
-        return result;
+        return result    
     
     def crc_calculate_and_append(self, buffer: bytearray) -> None:
         """
         Calculates the CRC from given buffer and appends the result to the end of the buffer, so it can be transmitted to
         the PICC in the following line.
         """
-#         crc = self.crc_calculate(buffer)
         crc = self.crc_coprocessor(buffer)
         buffer.append(crc & 0xFF) # CRC_L
         buffer.append(crc >> 8)   # CRC_H
@@ -258,52 +165,40 @@ class RC522:
         The function checks the buffer returned by PICC, which contains some data and the CRC at the end of the buffer.
         The function calculates the CRC from the received data and checks whether it matches the received CRC.
         """
-#         crc_calculated = self.crc_calculate(buffer[0:-2])
         crc_calculated = self.crc_coprocessor(buffer[0:-2])
-        crc_given = buffer[-1] << 8 | buffer[-2]
-        
-#         print(f"crc_calculated = {crc_calculated:04X}")
-#         print(f"crc_given      = {crc_given:04X}")
-        return crc_calculated == crc_given
+        crc_received   = buffer[-1] << 8 | buffer[-2]
+        return crc_calculated == crc_received
         
     def transmit(self, buffer: bytearray) -> bytearray:
         self.debug_print("Send", buffer)
         self.reg_write(reg.CommandReg, pcd_cmd.Idle)        # Stop any ongoing command and set RC522 to idle state
         self.reg_write(reg.ComIrqReg, 0x7F)                 # Clear interrupt flags
         self.reg_write(reg.FIFOLevelReg, 0x80)              # Clear FIFO buffer
-        for byte in buffer:
-            self.reg_write(reg.FIFODataReg, byte)           # Copy the buffer to FIFO buffer in RC522
+        self.reg_write(reg.FIFODataReg, buffer)             # Copy the buffer to FIFO buffer in RC522
         self.reg_write(reg.BitFramingReg, 0)                # Set transfer length to 8 bits
         self.reg_write(reg.CommandReg, pcd_cmd.Transceive)  # Enter new command
         self.reg_set_bit(reg.BitFramingReg, 0x80)           # Start data transfer, bit StartSend=1
         self.wait_for_rx_irq()                              # Wait for receive interrupt flag
         
-        lenght = self.reg_read(reg.FIFOLevelReg)            # Check how many bytes are received
-        response_buf = bytearray(lenght)
-        
-        for i in range(lenght):
-            response_buf[i] = self.reg_read(reg.FIFODataReg)
+        lenght = self.reg_read(reg.FIFOLevelReg)            # Check how many bytes are received            
+        response_buf = self.reg_reads(reg.FIFODataReg, lenght)
         
         self.debug_print("Recv", response_buf)
         return response_buf
         
-    def transmit_7bit(self, byte):
-        self.debug_print("Send[s]", byte)
+    def transmit_7bit(self, command_7bit: int) -> bytearray:
+        self.debug_print("Send[s]", command_7bit)
         self.reg_write(reg.CommandReg, pcd_cmd.Idle)        # Stop any ongoing command and set RC522 to idle state
         self.reg_write(reg.ComIrqReg, 0x7F)                 # Clear interrupt flags
         self.reg_write(reg.FIFOLevelReg, 0x80)              # Clear FIFO buffer
-        self.reg_write(reg.FIFODataReg, byte)               # Store data to FIFO buffer
+        self.reg_write(reg.FIFODataReg, command_7bit)       # Store data to FIFO buffer
         self.reg_write(reg.BitFramingReg, 7)                # Set transfer length to 7 bits instead of 8
         self.reg_write(reg.CommandReg, pcd_cmd.Transceive)  # Enter new command
         self.reg_set_bit(reg.BitFramingReg, 0x80)           # Start data transfer, bit StartSend=1
-        
         self.wait_for_rx_irq()                              # Wait for receive interrupt flag
         
         lenght = self.reg_read(reg.FIFOLevelReg)            # Check how many bytes are received
-        response_buf = bytearray(lenght)
-        
-        for i in range(lenght):
-            response_buf[i] = self.reg_read(reg.FIFODataReg)
+        response_buf = self.reg_reads(reg.FIFODataReg, lenght)
         
         self.debug_print("Recv", response_buf)
         return response_buf
@@ -321,7 +216,7 @@ class RC522:
         """
         return self.transmit_7bit(picc_cmd.REQA_7bit)
         
-    def picc_scan_and_select(self):
+    def picc_scan_and_select(self) -> bytearray|None:
         
         # The UID that will be returned if operation is successful
         uid = bytearray()
@@ -341,49 +236,42 @@ class RC522:
         for loop in range(3):
             print(f"Anticollision loop {loop+1}")
             
-            # Anticollision Loop 1
-            print("Anticollision loop 1")
-            wupa_answer = self.transmit(bytearray([picc_cmd.SEL_CL1 + 2*loop, picc_cmd.NVB_20]))
-        
             # This operation should return 5 bytes: [uid0, uid1, uid2, uid3, BCC] or [CT, uid0, uid1, uid2, BCC]
             # where CT is cascade tag and BCC is a check byte calculated as a XOR of first 4 bytes
+            cmd1 = bytearray([picc_cmd.SEL_CL1 + 2*loop, picc_cmd.NVB_20])
+            ans1 = self.transmit(cmd1)
         
             # Verification of BCC
-            if wupa_answer[0] ^ wupa_answer[1] ^wupa_answer[2] ^ wupa_answer[3] != wupa_answer[4]:
+            if ans1[0] ^ ans1[1] ^ ans1[2] ^ ans1[3] != ans1[4]:
                 print("BCC incorrect")
                 return
             else:
                 print("BCC correct")
             
-            buffer = bytearray([picc_cmd.SEL_CL1 + 2*loop, picc_cmd.NVB_70, wupa_answer[0], wupa_answer[1], wupa_answer[2], wupa_answer[3], wupa_answer[4]])
-            self.crc_calculate_and_append(buffer)
+            # Select PICC with UID that was received in the step above
+            # This operation should return 3 bytes: [SAK, CRC_L, CRC_H]
+            cmd2 = bytearray([picc_cmd.SEL_CL1 + 2*loop, picc_cmd.NVB_70, ans1[0], ans1[1], ans1[2], ans1[3], ans1[4]])
+            self.crc_calculate_and_append(cmd2)
+            ans2 = self.transmit(cmd2)
         
-            # Select
-            result = self.transmit(buffer)
-        
-            # result[0] - SAK
-            # result[1] - CRC_L
-            # result[2] - CRC_H
-            # Verify CRC
-            if not self.crc_verify(result): # tu powinno byc result
+            # Verification of CRC
+            if not self.crc_verify(ans2):
                 print("Received wrong CRC")
                 return None
         
-            print(f"SAK: {result[0]:02X}")
+            print(f"SAK: {ans2[0]:02X}")
         
-            # If first byte of the response is cascade tag then we need another loop
-            if wupa_answer[0] != picc_cmd.CASCADE_TAG:
-                uid.append(wupa_answer[0])
-                uid.append(wupa_answer[1])
-                uid.append(wupa_answer[2])
-                uid.append(wupa_answer[3])
-                return uid
+            # If first byte of the response is Cascade Tag then we need another loop
+            if ans1[0] == picc_cmd.CASCADE_TAG:
+                uid.append(ans1[1])
+                uid.append(ans1[2])
+                uid.append(ans1[3])
             else:
-                uid.append(wupa_answer[1])
-                uid.append(wupa_answer[2])
-                uid.append(wupa_answer[3])
-        
-      
+                uid.append(ans1[0])
+                uid.append(ans1[1])
+                uid.append(ans1[2])
+                uid.append(ans1[3])
+                return uid
     
     def scan_all_7bit_commands(self):
         """
@@ -421,10 +309,9 @@ if __name__ == "__main__":
     import mem_used
     spi = SPI(0, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
     cs  = Pin(5)
-    irq = Pin(6)
     rst = Pin(7)
 
-    reader = RC522(spi, cs, irq, rst)
+    reader = RC522(spi, cs, rst)
     reader.debug = True
 
 #     ver = reader.version_get()
