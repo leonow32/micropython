@@ -127,13 +127,18 @@ class RC522:
         self.reg_clr_bit(reg.Status2Reg, 0b00001000)
         
     def wait_for_rx_irq(self) -> None:
+        """
+        Periodically checks the interrupt flag in the ComIrqReg register. This check occurs every 10ms
+        for the period set in the self.timeout_ms variable.
+        """
         for i in range(self.timeout_ms // 10):
             if self.reg_read(reg.ComIrqReg) & 0b00100000:
-                return
+                return True
             else:
+                print(".", end="")
                 time.sleep_ms(10)
         
-        raise Exception(0, "Timeout")     
+        return False     
     
     def crc_coprocessor(self, data: bytes|bytearray) -> int:
         self.reg_write(reg.FIFOLevelReg, 0x80);          # Clear all the data in FIFO buffer
@@ -171,9 +176,15 @@ class RC522:
         self.reg_write(reg.BitFramingReg, 0)                # Set transfer length to 8 bits
         self.reg_write(reg.CommandReg, pcd_cmd.Transceive)  # Enter new command
         self.reg_set_bit(reg.BitFramingReg, 0x80)           # Start data transfer, bit StartSend=1
-        self.wait_for_rx_irq()                              # Wait for receive interrupt flag
+        if not self.wait_for_rx_irq():                      # Wait for receive interrupt flag
+            print("Timeout")
+            return None
         
-        lenght = self.reg_read(reg.FIFOLevelReg)            # Check how many bytes are received            
+        lenght = self.reg_read(reg.FIFOLevelReg)            # Check how many bytes are received
+        if length == 0:
+            print("Zero lenght response")
+            return None
+        
         response_buf = self.reg_reads(reg.FIFODataReg, lenght)
         
         self.debug_print("Recv", response_buf)
@@ -188,9 +199,15 @@ class RC522:
         self.reg_write(reg.BitFramingReg, 7)                # Set transfer length to 7 bits instead of 8
         self.reg_write(reg.CommandReg, pcd_cmd.Transceive)  # Enter new command
         self.reg_set_bit(reg.BitFramingReg, 0x80)           # Start data transfer, bit StartSend=1
-        self.wait_for_rx_irq()                              # Wait for receive interrupt flag
+        if not self.wait_for_rx_irq():                      # Wait for receive interrupt flag
+            print("Timeout")
+            return None
         
         lenght = self.reg_read(reg.FIFOLevelReg)            # Check how many bytes are received
+        if length == 0:
+            print("Zero lenght response")
+            return None
+        
         response_buf = self.reg_reads(reg.FIFODataReg, lenght)
         
         self.debug_print("Recv", response_buf)
@@ -233,6 +250,9 @@ class RC522:
             # where CT is cascade tag and BCC is a check byte calculated as a XOR of first 4 bytes
             cmd1 = bytearray([picc_cmd.SEL_CL1 + 2*loop, picc_cmd.NVB_20])
             ans1 = self.transmit(cmd1)
+            
+            if ans1 == None:
+                return None
         
             # Verification of BCC
             if ans1[0] ^ ans1[1] ^ ans1[2] ^ ans1[3] != ans1[4]:
@@ -246,6 +266,9 @@ class RC522:
             cmd2 = bytearray([picc_cmd.SEL_CL1 + 2*loop, picc_cmd.NVB_70, ans1[0], ans1[1], ans1[2], ans1[3], ans1[4]])
             self.crc_calculate_and_append(cmd2)
             ans2 = self.transmit(cmd2)
+            
+            if ans2 == None:
+                return None
         
             # Verification of CRC
             if not self.crc_verify(ans2):
@@ -272,6 +295,10 @@ class RC522:
             cmd = bytearray([picc_cmd.SEL_CL1, picc_cmd.NVB_70, uid[0], uid[1], uid[2], uid[3], bcc])
             self.crc_calculate_and_append(cmd)
             ans = self.transmit(cmd)
+            
+            if ans == None:
+                return False
+            
             if not self.crc_verify(ans):
                 print("Received wrong CRC")
                 return False
@@ -282,6 +309,10 @@ class RC522:
             cmd = bytearray([picc_cmd.SEL_CL1, picc_cmd.NVB_70, picc_cmd.CASCADE_TAG, uid[0], uid[1], uid[2], bcc])
             self.crc_calculate_and_append(cmd)
             ans = self.transmit(cmd)
+            
+            if ans == None:
+                return False
+            
             if not self.crc_verify(ans):
                 print("Received wrong CRC")
                 return False
@@ -290,6 +321,10 @@ class RC522:
             cmd = bytearray([picc_cmd.SEL_CL2, picc_cmd.NVB_70, uid[3], uid[4], uid[5], uid[6], bcc])
             self.crc_calculate_and_append(cmd)
             ans = self.transmit(cmd)
+            
+            if ans == None:
+                return False
+            
             if not self.crc_verify(ans):
                 print("Received wrong CRC")
                 return False
@@ -310,6 +345,10 @@ class RC522:
                 self.antenna_disable()
                 self.antenna_enable()
                 response = self.transmit_7bit(i)
+                
+                if response == None:
+                    continue
+                
                 print(f"cmd {i:02X}: response[{len(response)}] ", end="")
                 for byte in response:
                     print(f"{byte:02X} ", end="")
@@ -326,7 +365,7 @@ class RC522:
                 print(f"{caption}[{len(data)}]: ", end="")
                 for byte in data:
                     print(f"{byte:02X} ", end="")
-                print()
+                print(data)
                 
             else:
                 print(f"{caption}")
