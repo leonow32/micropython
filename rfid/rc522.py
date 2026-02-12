@@ -4,8 +4,6 @@ import rfid.reg as reg
 import rfid.pcd_cmd as pcd_cmd
 import rfid.picc_cmd as picc_cmd
 
-import measure_time
-
 class RC522:
     
     def __init__(self, spi, cs, rst):
@@ -21,7 +19,8 @@ class RC522:
         time.sleep_ms(50)
         self.rst(1)
 
-        self.regs_init()
+        self.reg_write(reg.TxASKReg,      0b01000000) # Force a 100 % ASK modulation
+        self.reg_write(reg.ModeReg,       0b00100001) # Set the initial value for the CRC coprocessor to 0x6363
             
     def reg_read(self, register: int) -> None:
         """
@@ -69,22 +68,7 @@ class RC522:
         temp = self.reg_read(register)
         temp = (temp & ~mask) & 0xFF
         self.reg_write(register, temp)
-        
-    def regs_init(self) -> None:
-        self.reg_write(reg.TxModeReg,     0x00) # Reset baud rates
-        self.reg_write(reg.RxModeReg,     0x00) # Reset baud rates
-        self.reg_write(reg.ModWidthReg,   0x26) # Reset ModWidthReg
-        
-        # When communicating with a PICC we need a timeout if something goes wrong.
-        # f_timer = 13.56 MHz / (2*TPreScaler+1) where TPreScaler = [TPrescaler_Hi:TPrescaler_Lo].
-        # TPrescaler_Hi are the four low bits in TModeReg. TPrescaler_Lo is TPrescalerReg.
-        self.reg_write(reg.TModeReg,      0x80) # TAuto=1; timer starts automatically at the end of the transmission in all communication modes at all speeds
-        self.reg_write(reg.TPrescalerReg, 0xA9) # TPreScaler = TModeReg[3..0]:TPrescalerReg, ie 0x0A9 = 169 => f_timer=40kHz, ie a timer period of 25μs.
-        self.reg_write(reg.TReloadRegH,   0x03) # Reload timer with 0x3E8 = 1000, ie 25ms before timeout.
-        self.reg_write(reg.TReloadRegL,   0xE8)    
-        self.reg_write(reg.TxASKReg,      0x40) # Default 0x00. Force a 100 % ASK modulation independent of the ModGsPReg register setting
-        self.reg_write(reg.ModeReg,       0x3D) # Default 0x3F. Set the preset value for the CRC coprocessor for the CalcCRC command to 0x6363 (ISO 14443-3 part 6.2.4)
-        
+                
     def reset(self) -> None:
         self.reg_write(reg.CommandReg, pcd_cmd.SoftReset)
 
@@ -122,6 +106,20 @@ class RC522:
         self.reg_clr_bit(reg.TxControlReg, 0x03)
         time.sleep_ms(5)
         
+    def gain_set(self, value: int) -> None:
+        if value < 0: value = 0
+        if value > 7: value = 7
+        temp = self.reg_read(reg.RFCfgReg)
+        temp = temp & 0b10001111
+        temp = temp | (value << 4)
+        self.reg_write(reg.RFCfgReg, temp)
+        pass
+    
+    def gain_get(self) -> int:
+        value = self.reg_read(reg.RFCfgReg)
+        value = (value >> 4) & 0b111
+        return value
+        
     def crypto1_stop(self) -> None:
         """
         This command resets Crypto1 engine. Use it to terminate communication with authenticated PICC.
@@ -138,17 +136,12 @@ class RC522:
         raise Exception(0, "Timeout")     
     
     def crc_coprocessor(self, data: bytes|bytearray) -> int:
-        measure_time.begin()
-        
         self.reg_write(reg.FIFOLevelReg, 0x80);          # Clear all the data in FIFO buffer
         self.reg_write(reg.CommandReg, pcd_cmd.CalcCRC)  # Enable CRC coprocessor
         self.reg_write(reg.FIFODataReg, data)            # Transmit the data to FIFO buffer
-        
         crc_h  = self.reg_read(reg.CRCResultRegH)
         crc_l  = self.reg_read(reg.CRCResultRegL)
         result = crc_h << 8 | crc_l
-        
-        measure_time.end("CRC")
         return result    
     
     def crc_calculate_and_append(self, buffer: bytearray) -> None:
@@ -272,6 +265,39 @@ class RC522:
                 uid.append(ans1[2])
                 uid.append(ans1[3])
                 return uid
+            
+    def picc_select(self, uid: bytes|bytearray):
+        if len(uid) == 4:
+            bcc = uid[0] ^ uid[1] ^ uid[2] ^ uid[3]
+            cmd = bytearray([picc_cmd.SEL_CL1, picc_cmd.NVB_70, uid[0], uid[1], uid[2], uid[3], bcc])
+            self.crc_calculate_and_append(cmd)
+            ans = self.transmit(cmd)
+            if not self.crc_verify(ans):
+                print("Received wrong CRC")
+                return False
+            else:
+                return True 
+        elif len(uid) == 7:
+            bcc = picc_cmd.CASCADE_TAG ^ uid[0] ^ uid[1] ^ uid[2]
+            cmd = bytearray([picc_cmd.SEL_CL1, picc_cmd.NVB_70, picc_cmd.CASCADE_TAG, uid[0], uid[1], uid[2], bcc])
+            self.crc_calculate_and_append(cmd)
+            ans = self.transmit(cmd)
+            if not self.crc_verify(ans):
+                print("Received wrong CRC")
+                return False
+            
+            bcc = uid[3] ^ uid[4] ^ uid[5] ^ uid[6]
+            cmd = bytearray([picc_cmd.SEL_CL2, picc_cmd.NVB_70, uid[3], uid[4], uid[5], uid[6], bcc])
+            self.crc_calculate_and_append(cmd)
+            ans = self.transmit(cmd)
+            if not self.crc_verify(ans):
+                print("Received wrong CRC")
+                return False
+            else:
+                return True
+            
+        else:
+            print(f"UID length {len(uid)} is not supported")
     
     def scan_all_7bit_commands(self):
         """
@@ -307,6 +333,7 @@ class RC522:
         
 if __name__ == "__main__":
     import mem_used
+    import measure_time
     spi = SPI(0, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
     cs  = Pin(5)
     rst = Pin(7)
@@ -320,6 +347,7 @@ if __name__ == "__main__":
 #     reader.dump()
     
     reader.antenna_enable()
+    reader.gain_set(7)
     uid = reader.picc_scan_and_select()
     
     print("UID: ", end="")
