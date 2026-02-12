@@ -128,7 +128,7 @@ class RC522:
         
     def wait_for_rx_irq(self) -> None:
         for i in range(self.timeout_ms // 10):
-            if self.reg_read(reg.ComIrqReg) & 0b00100000:
+            if self.reg_read(reg.ComIrqReg) & 0b00110000:  # transmisja 0b00100000
                 return
             else:
                 time.sleep_ms(10)
@@ -299,7 +299,7 @@ class RC522:
         else:
             print(f"UID length {len(uid)} is not supported")
     
-    def scan_all_7bit_commands(self):
+    def picc_test_all_7bit_commands(self):
         """
         Loop through all 128 7-bit commands. Before sending each command, the antenna is
         turned off and on to reset the PICC. If the card responds to any comments, the
@@ -316,6 +316,40 @@ class RC522:
                 print("")
             except:
                 pass
+            
+    def mifare_auth(self, auth_cmd, block_adr, key, uid):        
+        buffer = bytes([auth_cmd, block_adr]) + key + uid
+        
+        print("Authentication cmd: ")
+        for byte in buffer:
+            print(f"{byte:02X} ", end="")
+        print()
+        
+        self.crypto1_stop()
+        self.reg_write(reg.CommandReg, pcd_cmd.Idle)        # Stop any ongoing command and set RC522 to idle state
+        self.reg_write(reg.ComIrqReg, 0x7F)                 # Clear interrupt flags
+        self.reg_write(reg.FIFOLevelReg, 0x80)              # Clear FIFO buffer
+        self.reg_write(reg.FIFODataReg, buffer)             # Store data to FIFO buffer
+        self.reg_write(reg.CommandReg, pcd_cmd.MFAuthent)   # Enter new command
+        self.wait_for_rx_irq()
+        
+        if self.reg_read(reg.Status2Reg) & 0b00001000:      # Check bit MFCrypto1On
+            return True
+        else:
+            return False
+        
+    def mifare_read(self, block_adr):
+        send_buf = bytearray([picc_cmd.MIFARE_READ, block_adr])
+        self.crc_calculate_and_append(send_buf)
+        recv_buf = self.transmit(send_buf)
+        if not self.crc_verify(recv_buf):
+            print("Wrong CRC")
+        
+        return recv_buf[:-2]
+        
+        
+        
+        
     
     def debug_print(self, caption:str, data: bytes) -> None:
         if self.debug:
@@ -357,5 +391,9 @@ if __name__ == "__main__":
         print()
     else:
         print(uid)
+        
+    key = b"\xFF\xFF\xFF\xFF\xFF\xFF"
+    res = reader.mifare_auth(picc_cmd.AUTH_KEY_A, 0, key, uid)
+    print(f"Authentication result: {res}")
 
     mem_used.print_ram_used()
