@@ -317,6 +317,24 @@ class RC522:
             except:
                 pass
             
+    ###################
+    # MIFARE Commands #
+    ###################
+    
+    def mifare_validate_ack(self, recv_buf):
+        if recv_buf[0] == 0x0A:
+            return
+        elif recv_buf[0] == 0x00:
+            raise Exception("buffer valid, operation invalid")
+        elif recv_buf[0] == 0x01:
+            raise Exception("buffer valid, parity or CRC error")
+        elif recv_buf[0] == 0x04:
+            raise Exception("buffer invalid, operation invalid")
+        elif recv_buf[0] == 0x04:
+            raise Exception("buffer invalid, parity or CRC error")
+        else:
+            raise Exception(f"unsupported ack response {recv_buf[0]}")
+    
     def mifare_auth(self, auth_cmd, block_adr, key, uid):        
         buffer = bytes([auth_cmd, block_adr]) + key + uid
         
@@ -347,9 +365,27 @@ class RC522:
         
         return recv_buf[:-2]
         
+    def mifare_write(self, block_adr, data):
+        # First step
+        send_buf = bytearray([picc_cmd.MIFARE_WRITE, block_adr])
+        self.crc_calculate_and_append(send_buf)
+        recv_buf = self.transmit(send_buf)
+        self.mifare_validate_ack(recv_buf)
         
+        # Second step
+        send_buf = bytearray(data)
+        self.crc_calculate_and_append(send_buf)
+        recv_buf = self.transmit(send_buf)
+        self.mifare_validate_ack(recv_buf)
         
-        
+    def mifare_1k_dump(self):
+        print("Sector Block Data")
+        for block in range(64):
+            
+            
+            # At the beginning of every block me must perfor authentication
+            
+            
     
     def debug_print(self, caption:str, data: bytes) -> None:
         if self.debug:
@@ -395,5 +431,12 @@ if __name__ == "__main__":
     key = b"\xFF\xFF\xFF\xFF\xFF\xFF"
     res = reader.mifare_auth(picc_cmd.AUTH_KEY_A, 0, key, uid)
     print(f"Authentication result: {res}")
+    
+    
+    
+    print("Read block 0")
+    for i in range(4):
+        data = reader.mifare_read(i)
+        reader.debug_print(f"Block {i}", data)
 
     mem_used.print_ram_used()
