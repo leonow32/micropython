@@ -338,12 +338,12 @@ class RC522:
     def mifare_auth(self, auth_cmd, block_adr, key, uid):        
         buffer = bytes([auth_cmd, block_adr]) + key + uid
         
-        print("Authentication cmd: ")
-        for byte in buffer:
-            print(f"{byte:02X} ", end="")
-        print()
+#         print("Authentication cmd: ")
+#         for byte in buffer:
+#             print(f"{byte:02X} ", end="")
+#         print()
         
-        self.crypto1_stop()
+#         self.crypto1_stop()
         self.reg_write(reg.CommandReg, pcd_cmd.Idle)        # Stop any ongoing command and set RC522 to idle state
         self.reg_write(reg.ComIrqReg, 0x7F)                 # Clear interrupt flags
         self.reg_write(reg.FIFOLevelReg, 0x80)              # Clear FIFO buffer
@@ -378,12 +378,63 @@ class RC522:
         recv_buf = self.transmit(send_buf)
         self.mifare_validate_ack(recv_buf)
         
-    def mifare_1k_dump(self):
-        print("Sector Block Data")
-        for block in range(64):
-            
+    def mifare_1k_dump(self, key, uid, keys=None):
+        
+        # If key list is not provided then use default keys for each sector
+        if keys == None:
+            keys = [
+                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 0
+                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 1
+                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 2
+                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 3
+                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 4
+                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 5
+                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 6
+                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 7
+                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 8
+                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 9
+                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 10
+                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 11
+                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 12
+                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 13
+                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 14
+                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF")    # Sector 15
+            ]
+
+        print("| Sector | Block |                       Data                      |       ASCII      |")
+        print("|        |       |  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |                  |")
+        for block_adr in range(0, 64):
             
             # At the beginning of every block me must perfor authentication
+            if block_adr % 4 == 0:
+                res = reader.mifare_auth(keys[block_adr//4][0], block_adr, keys[block_adr//4][1], uid)
+                if res == False:
+                    print("Can't authenticate block {block_adr}")
+                    continue
+            
+            # Read the block
+            data = self.mifare_read(block_adr)
+            
+            # Print the result
+            if block_adr % 4 == 0:
+                print(f"| {block_adr//4:6} ", end="")
+            else:
+                print("|        ", end="")
+                
+            print(f"| {block_adr:5} | ", end="")
+            
+            for byte in data:
+                print(f"{byte:02X} ", end="")
+            
+            print("| ", end="")
+            
+            for byte in data:
+                if byte >= 32 and byte <= 126:
+                    print(chr(byte), end="")
+                else:
+                    print(" ", end="")
+            
+            print(" |")
             
             
     
@@ -429,14 +480,17 @@ if __name__ == "__main__":
         print(uid)
         
     key = b"\xFF\xFF\xFF\xFF\xFF\xFF"
-    res = reader.mifare_auth(picc_cmd.AUTH_KEY_A, 0, key, uid)
-    print(f"Authentication result: {res}")
+#     res = reader.mifare_auth(picc_cmd.AUTH_KEY_A, 0, key, uid)
+#     print(f"Authentication result: {res}")
     
     
     
-    print("Read block 0")
-    for i in range(4):
-        data = reader.mifare_read(i)
-        reader.debug_print(f"Block {i}", data)
+#     print("Read block 0")
+#     for i in range(4):
+#         data = reader.mifare_read(i)
+#         reader.debug_print(f"Block {i}", data)
+
+    reader.debug = False
+    reader.mifare_1k_dump(key, uid)
 
     mem_used.print_ram_used()
