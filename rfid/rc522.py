@@ -22,7 +22,7 @@ class RC522:
         self.reg_write(reg.TxASKReg,      0b01000000) # Force a 100 % ASK modulation
         self.reg_write(reg.ModeReg,       0b00100001) # Set the initial value for the CRC coprocessor to 0x6363
             
-    def reg_read(self, register: int) -> None:
+    def reg_read(self, register: int) -> int:
         """
         Read single register. Register name should come from reg.py file.
         """
@@ -33,6 +33,10 @@ class RC522:
         return temp[1]
     
     def reg_reads(self, register: int, length: int) -> bytearray:
+        """
+        Read more bytes from a single register. Register name should come from reg.py file.
+        This function is useful to read data from FIFO buffer.
+        """
         temp = bytearray([0x80 | register] * (length + 1))
         self.cs(0)
         self.spi.write_readinto(temp, temp)
@@ -55,7 +59,7 @@ class RC522:
             
     def reg_set_bit(self, register: int, mask: int) -> None:
         """
-
+        Read a register, set bit of bit mask to this register and then write it to RC522.
         """
         temp = self.reg_read(register)
         temp |= mask
@@ -63,50 +67,43 @@ class RC522:
         
     def reg_clr_bit(self, register: int, mask: int) -> None:
         """
-        
+        Read a register, clear bit of bit mask to this register and then write it to RC522.
         """
         temp = self.reg_read(register)
         temp = (temp & ~mask) & 0xFF
         self.reg_write(register, temp)
                 
     def reset(self) -> None:
+        """
+        Perform soft reset.
+        """
         self.reg_write(reg.CommandReg, pcd_cmd.SoftReset)
-
-        timeout_counter = 0
-        while self.reg_read(reg.CommandReg) & 0b00010000:
-            timeout_counter += 1
-            if(timeout_counter == 10):
-                raise Exception(0, "No response after reset")
-            time.sleep_ms(10)
-            
-#     def dump(self) -> None:
-#         """
-#         Read all the registers of RC522 and print them to the console.
-#         """
-#         registers = bytearray(64)
-#         self.regs_read(0x00, registers)
-#         
-#         print("     0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F", end="")
-#         
-#         for i in range(len(registers)):
-#             if i%16 == 0:
-#                 print(f"\n{i:02X}: ", end="")
-#             print(f"{registers[i]:02X} ", end="")
-#         
-#         print()
+        self.wait_for_irq()
         
     def version_get(self) -> None:
+        """
+        Get version of RC522.
+        """
         return self.reg_read(reg.VersionReg)
     
     def antenna_enable(self) -> None:
+        """
+        Turn on the antenna and wait 5ms, which is enough time for any card to start up.
+        """
         self.reg_set_bit(reg.TxControlReg, 0x03)
         time.sleep_ms(5)
         
     def antenna_disable(self) -> None:
+        """
+        Turn off the antenna and wait 5ms for the card to discarge its power capacitor.
+        """
         self.reg_clr_bit(reg.TxControlReg, 0x03)
         time.sleep_ms(5)
         
     def gain_set(self, value: int) -> None:
+        """
+        Set the gain value in the range of 0...7
+        """
         if value < 0: value = 0
         if value > 7: value = 7
         temp = self.reg_read(reg.RFCfgReg)
@@ -116,6 +113,9 @@ class RC522:
         pass
     
     def gain_get(self) -> int:
+        """
+        Set the gain value in the range of 0...7
+        """
         value = self.reg_read(reg.RFCfgReg)
         value = (value >> 4) & 0b111
         return value
@@ -126,7 +126,7 @@ class RC522:
         """
         self.reg_clr_bit(reg.Status2Reg, 0b00001000)
         
-    def wait_for_rx_irq(self) -> None:
+    def wait_for_irq(self) -> None:
         for i in range(self.timeout_ms // 10):
             if self.reg_read(reg.ComIrqReg) & 0b00110000:  # transmisja 0b00100000
                 return
@@ -136,6 +136,9 @@ class RC522:
         raise Exception(0, "Timeout")     
     
     def crc_coprocessor(self, data: bytes|bytearray) -> int:
+        """
+        The function calculates the CRC from the given data buffer.
+        """
         self.reg_write(reg.FIFOLevelReg, 0x80);          # Clear all the data in FIFO buffer
         self.reg_write(reg.CommandReg, pcd_cmd.CalcCRC)  # Enable CRC coprocessor
         self.reg_write(reg.FIFODataReg, data)            # Transmit the data to FIFO buffer
@@ -163,6 +166,9 @@ class RC522:
         return crc_calculated == crc_received
         
     def transmit(self, buffer: bytearray) -> bytearray:
+        """
+
+        """
         self.debug_print("Send", buffer)
         self.reg_write(reg.CommandReg, pcd_cmd.Idle)        # Stop any ongoing command and set RC522 to idle state
         self.reg_write(reg.ComIrqReg, 0x7F)                 # Clear interrupt flags
@@ -171,15 +177,16 @@ class RC522:
         self.reg_write(reg.BitFramingReg, 0)                # Set transfer length to 8 bits
         self.reg_write(reg.CommandReg, pcd_cmd.Transceive)  # Enter new command
         self.reg_set_bit(reg.BitFramingReg, 0x80)           # Start data transfer, bit StartSend=1
-        self.wait_for_rx_irq()                              # Wait for receive interrupt flag
-        
-        lenght = self.reg_read(reg.FIFOLevelReg)            # Check how many bytes are received            
-        response_buf = self.reg_reads(reg.FIFODataReg, lenght)
-        
-        self.debug_print("Recv", response_buf)
-        return response_buf
+        self.wait_for_irq()                                 # Wait for receive interrupt flag
+        lenght   = self.reg_read(reg.FIFOLevelReg)          # Check how many bytes are received            
+        recv_buf = self.reg_reads(reg.FIFODataReg, lenght)
+        self.debug_print("Recv", recv_buf)
+        return recv_buf
         
     def transmit_7bit(self, command_7bit: int) -> bytearray:
+        """
+
+        """
         self.debug_print("Send[s]", command_7bit)
         self.reg_write(reg.CommandReg, pcd_cmd.Idle)        # Stop any ongoing command and set RC522 to idle state
         self.reg_write(reg.ComIrqReg, 0x7F)                 # Clear interrupt flags
@@ -188,13 +195,11 @@ class RC522:
         self.reg_write(reg.BitFramingReg, 7)                # Set transfer length to 7 bits instead of 8
         self.reg_write(reg.CommandReg, pcd_cmd.Transceive)  # Enter new command
         self.reg_set_bit(reg.BitFramingReg, 0x80)           # Start data transfer, bit StartSend=1
-        self.wait_for_rx_irq()                              # Wait for receive interrupt flag
-        
-        lenght = self.reg_read(reg.FIFOLevelReg)            # Check how many bytes are received
-        response_buf = self.reg_reads(reg.FIFODataReg, lenght)
-        
-        self.debug_print("Recv", response_buf)
-        return response_buf
+        self.wait_for_irq()                                 # Wait for receive interrupt flag
+        lenght   = self.reg_read(reg.FIFOLevelReg)          # Check how many bytes are received
+        recv_buf = self.reg_reads(reg.FIFODataReg, lenght)
+        self.debug_print("Recv", recv_buf)
+        return recv_buf
     
     def picc_send_wupa(self):
         """
@@ -208,11 +213,18 @@ class RC522:
 
         """
         return self.transmit_7bit(picc_cmd.REQA_7bit)
-    
+            
     def picc_send_hlta(self):
+        """
+        Send HLTA (halt) command to deselect the PICC. This command does not return any value so we don't know if it has beed
+        received correctly.
+        """
         cmd = bytearray([picc_cmd.HLTA, 0x00])
         self.crc_calculate_and_append(cmd)
-        self.transmit(cmd)
+        try:
+            self.transmit(cmd)
+        except:
+            pass
         
     def picc_scan_and_select(self) -> bytearray|None:
         
@@ -340,21 +352,14 @@ class RC522:
         else:
             raise Exception(f"unsupported ack response {recv_buf[0]}")
     
-    def mifare_auth(self, auth_cmd, block_adr, key, uid):        
+    def mifare_auth(self, uid, block_adr, auth_cmd, key):
         buffer = bytes([auth_cmd, block_adr]) + key + uid
-        
-#         print("Authentication cmd: ")
-#         for byte in buffer:
-#             print(f"{byte:02X} ", end="")
-#         print()
-        
-#         self.crypto1_stop()
         self.reg_write(reg.CommandReg, pcd_cmd.Idle)        # Stop any ongoing command and set RC522 to idle state
         self.reg_write(reg.ComIrqReg, 0x7F)                 # Clear interrupt flags
         self.reg_write(reg.FIFOLevelReg, 0x80)              # Clear FIFO buffer
         self.reg_write(reg.FIFODataReg, buffer)             # Store data to FIFO buffer
         self.reg_write(reg.CommandReg, pcd_cmd.MFAuthent)   # Enter new command
-        self.wait_for_rx_irq()
+        self.wait_for_irq()
         
         if self.reg_read(reg.Status2Reg) & 0b00001000:      # Check bit MFCrypto1On
             return True
@@ -383,7 +388,44 @@ class RC522:
         recv_buf = self.transmit(send_buf)
         self.mifare_validate_ack(recv_buf)
         
-    def mifare_1k_dump(self, key, uid, keys=None):
+    def _mifare_block_dump(self, uid, key_ab, key_value, sector, block_start, block_end):
+#         print(f"_mifare_block_dump(sector={sector}, block_start={block_start}, block_end={block_end})")
+        try:
+            self.mifare_auth(uid, block_start, key_ab, key_value)
+        except:
+            print(f"Can't authenticate block {block_start}")
+            return
+        
+        for address in range(block_start, block_end+1):
+            # Read the block
+            try:
+                data = self.mifare_read(address)
+            except:
+                print(f"Can't read block {address}")
+                return
+            
+            # Print the result
+            if address == block_start:
+                print(f"| {sector:6} ", end="")
+            else:
+                print("|        ", end="")
+                
+            print(f"| {address:5} | ", end="")
+            
+            for byte in data:
+                print(f"{byte:02X} ", end="")
+            
+            print("| ", end="")
+            
+            for byte in data:
+                if byte >= 32 and byte <= 126:
+                    print(chr(byte), end="")
+                else:
+                    print(" ", end="")
+            
+            print(" |")
+            
+    def mifare_1k_dump(self, uid, keys=None):
         
         # If key list is not provided then use default keys for each sector
         if keys == None:
@@ -408,40 +450,56 @@ class RC522:
 
         print("| Sector | Block |                       Data                      |       ASCII      |")
         print("|        |       |  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |                  |")
-        for block_adr in range(0, 64):
+        
+        # MIFARE Classic 1k -> 16 sectors with 4 blocks each
+        for sector in range(16):
+            self._mifare_block_dump(uid, keys[sector][0], keys[sector][1], sector, sector*4, sector*4+3)
             
-            # At the beginning of every block me must perfor authentication
-            if block_adr % 4 == 0:
-                res = reader.mifare_auth(keys[block_adr//4][0], block_adr, keys[block_adr//4][1], uid)
-                if res == False:
-                    print("Can't authenticate block {block_adr}")
-                    continue
+    def mifare_4k_dump(self, uid, keys=None):
+        
+        # If key list is not provided then use default keys for each sector
+        if keys == None:
+            keys = list()
+            for i in range(40):
+                keys.append((picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"))
+
+        # Print header
+        print("| Sector | Block |                       Data                      |       ASCII      |")
+        print("|        |       |  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |                  |")
+        
+        # MIFARE Classic 4k -> 32 sectors with 4 blocks each
+        for sector in range(32):
+            self._mifare_block_dump(uid, keys[sector][0], keys[sector][1], sector, sector*4, sector*4+3)
             
-            # Read the block
-            data = self.mifare_read(block_adr)
+        # ...and then 8 sectors with 16 blocks each
+        for sector in range(32, 40):
+            self._mifare_block_dump(uid, keys[sector][0], keys[sector][1], sector, 128+(sector-32)*16, 15+128+(sector-32)*16)    
             
-            # Print the result
-            if block_adr % 4 == 0:
-                print(f"| {block_adr//4:6} ", end="")
-            else:
-                print("|        ", end="")
-                
-            print(f"| {block_adr:5} | ", end="")
+    def mifare_backdoor(self):
+        """
+        This function enables backdoor in some Chinese counterfeit MIFARE cards.
+        """
+        self.crypto1_stop()
+        self.antenna_disable()
+        self.antenna_enable()
+        
+        # At first try to send 40 or 4F command in 7-bit mode
+        try:
+            self.transmit_7bit(picc_cmd.BACKDOOR_40_7bit)
+        except:
+            try:
+                self.transmit_7bit(picc_cmd.BACKDOOR_4F_7bit)
+            except:
+                print("Can't execute the backdoor command")
+                return
             
-            for byte in data:
-                print(f"{byte:02X} ", end="")
-            
-            print("| ", end="")
-            
-            for byte in data:
-                if byte >= 32 and byte <= 126:
-                    print(chr(byte), end="")
-                else:
-                    print(" ", end="")
-            
-            print(" |")
-            
-            
+        try:
+            self.transmit_7bit(picc_cmd.GOD_MODE_7bit)
+        except:
+            # God Mode command doesn't respond with any data
+            pass
+        
+        print("Backdoor enabled")
     
     def debug_print(self, caption:str, data: bytes) -> None:
         if self.debug:
@@ -474,18 +532,38 @@ if __name__ == "__main__":
     
     reader.antenna_enable()
     reader.gain_set(7)
-    uid = reader.picc_scan_and_select()
     
-    print("UID: ", end="")
-    if isinstance(uid, bytearray):
+    try:
+        uid = reader.picc_scan_and_select()
+        
+        print("UID: ", end="")
         for byte in uid:
             print(f"{byte:02X} ", end="")
         print()
-    else:
-        print(uid)
         
-    key = b"\xFF\xFF\xFF\xFF\xFF\xFF"
-#     res = reader.mifare_auth(picc_cmd.AUTH_KEY_A, 0, key, uid)
+        
+#         reader.debug = False
+#         reader.mifare_1k_dump(uid)
+#         reader.mifare_4k_dump(uid)
+    
+    except:
+        print("No card")
+        
+    try:
+        reader.debug = False
+        reader.mifare_1k_dump(uid)
+    except:
+        pass
+        
+#     reader.mifare_backdoor()
+#     key = b"\xFF\xFF\xFF\xFF\xFF\xFF"
+#     key = b"\xAA\xBB\xCC\xDD\xEE\xFF"
+#     reader.mifare_auth(uid, 1, picc_cmd.AUTH_KEY_A, key)
+#     reader.mifare_read(1)
+    
+    
+        
+
 #     print(f"Authentication result: {res}")
     
     
@@ -495,7 +573,13 @@ if __name__ == "__main__":
 #         data = reader.mifare_read(i)
 #         reader.debug_print(f"Block {i}", data)
 
-#     reader.debug = False
-#     reader.mifare_1k_dump(key, uid)
+
+
+#     reader.mifare_backdoor()
+#     key = b"\xFF\xFF\xFF\xFF\xFF\xFF"
+#     res = reader.mifare_auth(uid, 1, picc_cmd.AUTH_KEY_A, key)
+#     reader.mifare_read(1)
+    
+#     reader.mifare_1k_dump(uid)
 
     mem_used.print_ram_used()
