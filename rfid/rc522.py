@@ -72,13 +72,6 @@ class RC522:
         temp = self.reg_read(register)
         temp = (temp & ~mask) & 0xFF
         self.reg_write(register, temp)
-                
-    def reset(self) -> None:
-        """
-        Perform soft reset.
-        """
-        self.reg_write(reg.CommandReg, pcd_cmd.SoftReset)
-        self.wait_for_irq()
         
     def version_get(self) -> None:
         """
@@ -95,7 +88,7 @@ class RC522:
         
     def antenna_disable(self) -> None:
         """
-        Turn off the antenna and wait 5ms for the card to discarge its power capacitor.
+        Turn off the antenna and wait 5ms for the card to discharge its power capacitor.
         """
         self.reg_clr_bit(reg.TxControlReg, 0x03)
         time.sleep_ms(5)
@@ -110,7 +103,6 @@ class RC522:
         temp = temp & 0b10001111
         temp = temp | (value << 4)
         self.reg_write(reg.RFCfgReg, temp)
-        pass
     
     def gain_get(self) -> int:
         """
@@ -122,18 +114,18 @@ class RC522:
         
     def crypto1_stop(self) -> None:
         """
-        This command resets Crypto1 engine. Use it to terminate communication with authenticated PICC.
+        This command resets Crypto1 engine. Use it to terminate communication with authenticated MIFARE Classic card.
         """
         self.reg_clr_bit(reg.Status2Reg, 0b00001000)
         
     def wait_for_irq(self) -> None:
         for i in range(self.timeout_ms // 10):
-            if self.reg_read(reg.ComIrqReg) & 0b00110000:  # transmisja 0b00100000
+            if self.reg_read(reg.ComIrqReg) & 0b00110000: # check RxIRq and IdleIRq
                 return
             else:
                 time.sleep_ms(10)
         
-        raise Exception(0, "Timeout")     
+        raise Exception("Timeout")
     
     def crc_coprocessor(self, data: bytes|bytearray) -> int:
         """
@@ -142,6 +134,7 @@ class RC522:
         self.reg_write(reg.FIFOLevelReg, 0x80);          # Clear all the data in FIFO buffer
         self.reg_write(reg.CommandReg, pcd_cmd.CalcCRC)  # Enable CRC coprocessor
         self.reg_write(reg.FIFODataReg, data)            # Transmit the data to FIFO buffer
+        # The CRC result is ready almost instantly, so there is no need to wait or check anything
         crc_h  = self.reg_read(reg.CRCResultRegH)
         crc_l  = self.reg_read(reg.CRCResultRegL)
         result = crc_h << 8 | crc_l
@@ -156,14 +149,20 @@ class RC522:
         buffer.append(crc & 0xFF) # CRC_L
         buffer.append(crc >> 8)   # CRC_H
         
-    def crc_verify(self, buffer: bytes|bytearray) -> bool:
+    def crc_verify(self, buffer: bytes|bytearray) -> None:
         """
         The function checks the buffer returned by PICC, which contains some data and the CRC at the end of the buffer.
         The function calculates the CRC from the received data and checks whether it matches the received CRC.
+        This function rises an exception in case of wrong CRC.
         """
         crc_calculated = self.crc_coprocessor(buffer[0:-2])
         crc_received   = buffer[-1] << 8 | buffer[-2]
-        return crc_calculated == crc_received
+        if crc_calculated != crc_received:
+            raise Exception("Wrong CRC")
+        
+    def bcc_verify(self, buffer: bytes|bytearray) -> None:
+        if buffer[0] ^ buffer[1] ^ buffer[2] ^ buffer[3] != buffer[4]:
+            raise Exception("BCC incorrect")
         
     def transmit(self, buffer: bytearray) -> bytearray:
         """
@@ -178,8 +177,8 @@ class RC522:
         self.reg_write(reg.CommandReg, pcd_cmd.Transceive)  # Enter new command
         self.reg_set_bit(reg.BitFramingReg, 0x80)           # Start data transfer, bit StartSend=1
         self.wait_for_irq()                                 # Wait for receive interrupt flag
-        lenght   = self.reg_read(reg.FIFOLevelReg)          # Check how many bytes are received            
-        recv_buf = self.reg_reads(reg.FIFODataReg, lenght)
+        length   = self.reg_read(reg.FIFOLevelReg)          # Check how many bytes are received            
+        recv_buf = self.reg_reads(reg.FIFODataReg, length)  # Read the response
         self.debug_print("Recv", recv_buf)
         return recv_buf
         
@@ -196,14 +195,14 @@ class RC522:
         self.reg_write(reg.CommandReg, pcd_cmd.Transceive)  # Enter new command
         self.reg_set_bit(reg.BitFramingReg, 0x80)           # Start data transfer, bit StartSend=1
         self.wait_for_irq()                                 # Wait for receive interrupt flag
-        lenght   = self.reg_read(reg.FIFOLevelReg)          # Check how many bytes are received
-        recv_buf = self.reg_reads(reg.FIFODataReg, lenght)
+        length   = self.reg_read(reg.FIFOLevelReg)          # Check how many bytes are received
+        recv_buf = self.reg_reads(reg.FIFODataReg, length)  # Read the response
         self.debug_print("Recv", recv_buf)
         return recv_buf
     
     def picc_send_wupa(self):
         """
-        Senf WUPA (Wake Up Type A) to PICC that is in idle or power-on state.
+        Send WUPA (Wake Up Type A) to PICC that is in idle or power-on state.
         PICC responds with ATQA data. This function may raise timeout exception.
         """
         return self.transmit_7bit(picc_cmd.WUPA_7bit)
@@ -216,7 +215,7 @@ class RC522:
             
     def picc_send_hlta(self):
         """
-        Send HLTA (halt) command to deselect the PICC. This command does not return any value so we don't know if it has beed
+        Send HLTA (halt) command to deselect the PICC. This command does not return any value so we don't know if it has been
         received correctly.
         """
         cmd = bytearray([picc_cmd.HLTA, 0x00])
@@ -226,52 +225,41 @@ class RC522:
         except:
             pass
         
-    def picc_scan_and_select(self) -> bytearray|None:
+    def picc_scan_and_select(self):
         
-        # The UID that will be returned if operation is successful
-        uid = bytearray()
+        # The UID, ATQO and SAK that will be returned if operation is successful
+        uid  = bytearray()
+        atqa = 0
+        sak  = 0
         
+        self.antenna_disable()
+        self.antenna_enable()
         self.crypto1_stop()
         
-        # Try to send WUPA twice
-        try:
-            self.picc_send_wupa()
-        except:
-            try:
-                self.picc_send_wupa()
-            except:
-                print("Error when sending WUPA")
-                return None
+        wupa_ans = self.picc_send_wupa()
+        atqa = wupa_ans[0] << 8 | wupa_ans[1]
             
         for loop in range(3):
-            print(f"Anticollision loop {loop+1}")
+            self.debug_print(f"Anticollision loop", loop+1)
             
             # This operation should return 5 bytes: [uid0, uid1, uid2, uid3, BCC] or [CT, uid0, uid1, uid2, BCC]
             # where CT is cascade tag and BCC is a check byte calculated as a XOR of first 4 bytes
             cmd1 = bytearray([picc_cmd.SEL_CL1 + 2*loop, picc_cmd.NVB_20])
             ans1 = self.transmit(cmd1)
-        
-            # Verification of BCC
-            if ans1[0] ^ ans1[1] ^ ans1[2] ^ ans1[3] != ans1[4]:
-                print("BCC incorrect")
-                return
-            else:
-                print("BCC correct")
             
-            # Select PICC with UID that was received in the step above
-            # This operation should return 3 bytes: [SAK, CRC_L, CRC_H]
+            # Verification of BCC
+            self.bcc_verify(ans1)
+            
+            # Select PICC with UID that was received in the step above. This operation should return 3 bytes: [SAK, CRC_L, CRC_H]
             cmd2 = bytearray([picc_cmd.SEL_CL1 + 2*loop, picc_cmd.NVB_70, ans1[0], ans1[1], ans1[2], ans1[3], ans1[4]])
             self.crc_calculate_and_append(cmd2)
             ans2 = self.transmit(cmd2)
+            self.crc_verify(ans2)
+
+            # Store SAK
+            sak = ans2[0]
         
-            # Verification of CRC
-            if not self.crc_verify(ans2):
-                print("Received wrong CRC")
-                return None
-        
-            print(f"SAK: {ans2[0]:02X}")
-        
-            # If first byte of the response is Cascade Tag then we need another loop
+            # If first byte of the response is Cascade Tag then we need another loop. Otherwise the process is done.
             if ans1[0] == picc_cmd.CASCADE_TAG:
                 uid.append(ans1[1])
                 uid.append(ans1[2])
@@ -281,38 +269,29 @@ class RC522:
                 uid.append(ans1[1])
                 uid.append(ans1[2])
                 uid.append(ans1[3])
-                return uid
+                return uid, atqa, sak
             
-    def picc_select(self, uid: bytes|bytearray):
+    def picc_select(self, uid: bytes|bytearray) -> None:
         if len(uid) == 4:
             bcc = uid[0] ^ uid[1] ^ uid[2] ^ uid[3]
             cmd = bytearray([picc_cmd.SEL_CL1, picc_cmd.NVB_70, uid[0], uid[1], uid[2], uid[3], bcc])
             self.crc_calculate_and_append(cmd)
             ans = self.transmit(cmd)
-            if not self.crc_verify(ans):
-                print("Received wrong CRC")
-                return False
-            else:
-                return True 
+            self.crc_verify(ans)
+
         elif len(uid) == 7:
             bcc = picc_cmd.CASCADE_TAG ^ uid[0] ^ uid[1] ^ uid[2]
             cmd = bytearray([picc_cmd.SEL_CL1, picc_cmd.NVB_70, picc_cmd.CASCADE_TAG, uid[0], uid[1], uid[2], bcc])
             self.crc_calculate_and_append(cmd)
             ans = self.transmit(cmd)
-            if not self.crc_verify(ans):
-                print("Received wrong CRC")
-                return False
+            self.crc_verify(ans)
             
             bcc = uid[3] ^ uid[4] ^ uid[5] ^ uid[6]
             cmd = bytearray([picc_cmd.SEL_CL2, picc_cmd.NVB_70, uid[3], uid[4], uid[5], uid[6], bcc])
             self.crc_calculate_and_append(cmd)
             ans = self.transmit(cmd)
-            if not self.crc_verify(ans):
-                print("Received wrong CRC")
-                return False
-            else:
-                return True
-            
+            self.crc_verify(ans)
+
         else:
             print(f"UID length {len(uid)} is not supported")
     
@@ -322,17 +301,19 @@ class RC522:
         turned off and on to reset the PICC. If the card responds to any comments, the
         response is printed to the console.
         """
+        self.debug = False
         for i in range(128):
             try:
                 self.antenna_disable()
                 self.antenna_enable()
                 response = self.transmit_7bit(i)
-                print(f"cmd {i:02X}: response[{len(response)}] ", end="")
-                for byte in response:
-                    print(f"{byte:02X} ", end="")
-                print("")
+                
+                self.debug = True
+                self.debug_print(f"cmd: {i:02X} -> response", response)
+                self.debug = False
             except:
                 pass
+        self.debug = True
             
     ###################
     # MIFARE Commands #
@@ -347,7 +328,7 @@ class RC522:
             raise Exception("buffer valid, parity or CRC error")
         elif recv_buf[0] == 0x04:
             raise Exception("buffer invalid, operation invalid")
-        elif recv_buf[0] == 0x04:
+        elif recv_buf[0] == 0x05:
             raise Exception("buffer invalid, parity or CRC error")
         else:
             raise Exception(f"unsupported ack response {recv_buf[0]}")
@@ -370,9 +351,7 @@ class RC522:
         send_buf = bytearray([picc_cmd.MIFARE_READ, block_adr])
         self.crc_calculate_and_append(send_buf)
         recv_buf = self.transmit(send_buf)
-        if not self.crc_verify(recv_buf):
-            print("Wrong CRC")
-        
+        self.crc_verify(recv_buf)
         return recv_buf[:-2]
         
     def mifare_write(self, block_adr, data):
@@ -394,6 +373,8 @@ class RC522:
             self.mifare_auth(uid, block_start, key_ab, key_value)
         except:
             print(f"Can't authenticate block {block_start}")
+            self.picc_send_wupa()
+            self.picc_select(uid)
             return
         
         for address in range(block_start, block_end+1):
@@ -451,7 +432,7 @@ class RC522:
         print("| Sector | Block |                       Data                      |       ASCII      |")
         print("|        |       |  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |                  |")
         
-        # MIFARE Classic 1k -> 16 sectors with 4 blocks each
+        # Read 16 sectors with 4 blocks each
         for sector in range(16):
             self._mifare_block_dump(uid, keys[sector][0], keys[sector][1], sector, sector*4, sector*4+3)
             
@@ -467,11 +448,11 @@ class RC522:
         print("| Sector | Block |                       Data                      |       ASCII      |")
         print("|        |       |  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |                  |")
         
-        # MIFARE Classic 4k -> 32 sectors with 4 blocks each
+        # First, read 32 sectors with 4 blocks each
         for sector in range(32):
             self._mifare_block_dump(uid, keys[sector][0], keys[sector][1], sector, sector*4, sector*4+3)
             
-        # ...and then 8 sectors with 16 blocks each
+        # Second, read 8 sectors with 16 blocks each
         for sector in range(32, 40):
             self._mifare_block_dump(uid, keys[sector][0], keys[sector][1], sector, 128+(sector-32)*16, 15+128+(sector-32)*16)    
             
@@ -534,13 +515,11 @@ if __name__ == "__main__":
     reader.gain_set(7)
     
     try:
-        uid = reader.picc_scan_and_select()
-        
-        print("UID: ", end="")
-        for byte in uid:
-            print(f"{byte:02X} ", end="")
-        print()
-        
+        uid, atqa, sak = reader.picc_scan_and_select()
+        print("Card found")
+        reader.debug_print("UID", uid)
+        print(f"ATQA: {atqa:04X}")
+        print(f"SAK:  {sak:02X}")
         
 #         reader.debug = False
 #         reader.mifare_1k_dump(uid)
@@ -549,11 +528,14 @@ if __name__ == "__main__":
     except:
         print("No card")
         
-    try:
-        reader.debug = False
-        reader.mifare_1k_dump(uid)
-    except:
-        pass
+#     reader.debug = False
+#     reader.mifare_1k_dump(uid)
+        
+#     try:
+#         reader.debug = False
+#         reader.mifare_1k_dump(uid)
+#     except:
+#         pass
         
 #     reader.mifare_backdoor()
 #     key = b"\xFF\xFF\xFF\xFF\xFF\xFF"
@@ -583,3 +565,6 @@ if __name__ == "__main__":
 #     reader.mifare_1k_dump(uid)
 
     mem_used.print_ram_used()
+
+# A396EFA4E24F
+# A31667A8CEC1

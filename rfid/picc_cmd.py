@@ -17,7 +17,7 @@ NVB_70           = const(0x70) # Number of valid bits, byte count = 7
 CASCADE_TAG      = const(0x88) # Indicates that some more UID bytes remain to be read
 
 AUTH_KEY_A       = const(0x60) # Perform sector authentication with key A
-AUTH_KEY_B       = const(0x61) # Perform sector authentication with key A
+AUTH_KEY_B       = const(0x61) # Perform sector authentication with key B
 MIFARE_READ      = const(0x30)
 MIFARE_WRITE     = const(0xA0)
 MIFARE_DECREMENT = const(0xC0)
