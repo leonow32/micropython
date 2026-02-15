@@ -208,6 +208,11 @@ class RC522:
 
         """
         return self.transmit_7bit(picc_cmd.REQA_7bit)
+    
+    def picc_send_hlta(self):
+        cmd = bytearray([picc_cmd.HLTA, 0x00])
+        self.crc_calculate_and_append(cmd)
+        self.transmit(cmd)
         
     def picc_scan_and_select(self) -> bytearray|None:
         
@@ -490,7 +495,7 @@ if __name__ == "__main__":
 #         data = reader.mifare_read(i)
 #         reader.debug_print(f"Block {i}", data)
 
-    reader.debug = False
-    reader.mifare_1k_dump(key, uid)
+#     reader.debug = False
+#     reader.mifare_1k_dump(key, uid)
 
     mem_used.print_ram_used()
