@@ -367,6 +367,30 @@ class RC522:
         recv_buf = self.transmit(send_buf)
         self.mifare_validate_ack(recv_buf)
         
+    def mifare_value_get(self):
+        pass
+    
+    def u2_decode(value):
+        if value & 0x80000000:
+            value = (value & 0x7FFFFFFF) - 0x80000000
+            
+        return value
+
+    def u2_encode(value):
+        return value & 0xFFFFFFFF
+    
+    def mifare_value_set(self, value: int, block: int):
+        recv_buf = bytearray([0xFF, 0xFF, 0xFF, 0xFF])
+        
+        
+        pass
+    
+    def mifare_value_increment(self, block):
+        pass
+    
+    def mifare_value_decrement(self, block):
+        pass
+        
     def _mifare_block_dump(self, uid, key_ab, key_value, sector, block_start, block_end):
 #         print(f"_mifare_block_dump(sector={sector}, block_start={block_start}, block_end={block_end})")
         try:
