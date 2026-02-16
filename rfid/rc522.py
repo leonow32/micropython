@@ -367,8 +367,14 @@ class RC522:
         recv_buf = self.transmit(send_buf)
         self.mifare_validate_ack(recv_buf)
         
-    def mifare_value_get(self):
-        pass
+    def mifare_value_get(self, block_adr):
+        data = self.mifare_read(block_adr)
+        value = data[3] << 24 | data[2] << 16 | data[1] << 8 | data[0]
+        
+        if value & 0x80000000:
+            value = (value & 0x7FFFFFFF) - 0x80000000
+            
+        return value
     
     def u2_decode(value):
         if value & 0x80000000:
@@ -552,8 +558,15 @@ if __name__ == "__main__":
     except:
         print("No card")
         
+    # Memory dump test
 #     reader.debug = False
 #     reader.mifare_1k_dump(uid)
+#     reader.mifare_4k_dump(uid)
+    
+    # Value read
+    reader.mifare_auth(uid, 5, picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF")
+    value = reader.mifare_value_get(5)
+    print(f"block 5 value = {value}")
         
 #     try:
 #         reader.debug = False
