@@ -653,17 +653,12 @@ if __name__ == "__main__":
         reader.debug_print("UID", uid)
         print(f"ATQA: {atqa:04X}")
         print(f"SAK:  {sak:02X}")
-        
-#         reader.debug = False
-#         reader.mifare_1k_dump(uid)
-#         reader.mifare_4k_dump(uid)
-    
     except:
         print("No card")
         
     # Memory dump test
-#     reader.debug = False
-#     reader.mifare_1k_dump(uid)
+    reader.debug = False
+    reader.mifare_1k_dump(uid)
 #     reader.mifare_4k_dump(uid)
     
     # Value read
