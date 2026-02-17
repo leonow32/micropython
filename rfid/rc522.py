@@ -368,34 +368,137 @@ class RC522:
         self.mifare_validate_ack(recv_buf)
         
     def mifare_value_get(self, block_adr):
+        """
+        Reads and returns a value from a memory block. The value is a signed 32-bit variable.
+        """
         data = self.mifare_read(block_adr)
         value = data[3] << 24 | data[2] << 16 | data[1] << 8 | data[0]
         
+        # Convert binary to U2
         if value & 0x80000000:
             value = (value & 0x7FFFFFFF) - 0x80000000
             
         return value
     
-    def u2_decode(value):
-        if value & 0x80000000:
-            value = (value & 0x7FFFFFFF) - 0x80000000
-            
-        return value
-
-    def u2_encode(value):
-        return value & 0xFFFFFFFF
-    
-    def mifare_value_set(self, value: int, block: int):
-        recv_buf = bytearray([0xFF, 0xFF, 0xFF, 0xFF])
+    def mifare_value_set(self, block_adr: int, value: int) -> None:
+        """
+        Formats a block of memory to hold a 32-bit signed variable. Blocks formatted in this way can be manipulated using
+        the mifare_value_increment, mifare_value_decrement, mifare_value_decrement, mifare_value_restore, and, of course,
+        mifare_value_get functions.
+        """
         
+        # Convert value to bytearray
+        x = bytearray(4)
+        value = value & 0xFFFFFFFF
+        x[0] = value & 0xFF
+        x[1] = (value >> 8) & 0xFF
+        x[2] = (value >> 16) & 0xFF
+        x[3] = (value >> 24) & 0xFF
         
-        pass
+        send_buf = bytearray(16)
+        send_buf[0]  = x[0]
+        send_buf[1]  = x[1]
+        send_buf[2]  = x[2]
+        send_buf[3]  = x[3]
+        send_buf[4]  = ~x[0] & 0xFF
+        send_buf[5]  = ~x[1] & 0xFF
+        send_buf[6]  = ~x[2] & 0xFF
+        send_buf[7]  = ~x[3] & 0xFF
+        send_buf[8]  = x[0]
+        send_buf[9]  = x[1]
+        send_buf[10] = x[2]
+        send_buf[11] = x[3]
+        send_buf[12] = block_adr
+        send_buf[13] = ~block_adr & 0xFF
+        send_buf[14] = block_adr
+        send_buf[15] = ~block_adr & 0xFF
+        
+        self.mifare_write(block_adr, send_buf)
     
-    def mifare_value_increment(self, block):
-        pass
+    def mifare_value_increment(self, block_adr: int, value: int) -> None:
+        """
+        This command increments the number in the specified block by the given value. The result of the operation is
+        written to the Transfer Buffer. After executing this command, you must call the mifare_value_transfer function
+        and specify the memory block where the result should be written.
+        """
+        # First step
+        send_buf = bytearray([picc_cmd.MIFARE_INCREMENT, block_adr])
+        self.crc_calculate_and_append(send_buf)
+        recv_buf = self.transmit(send_buf)
+        self.mifare_validate_ack(recv_buf)
+        
+        # Second step
+        send_buf[0] = value & 0xFF
+        send_buf[1] = (value >> 8) & 0xFF
+        send_buf[2] = (value >> 16) & 0xFF
+        send_buf[3] = (value >> 24) & 0xFF
+        self.crc_calculate_and_append(send_buf)
+        try:
+            recv_buf = self.transmit(send_buf)
+        except:
+            return              # if this command does not respond and raises a timeout error - it means SUCCESSFUL operation
+        
+        # This may happen only if something goes wrong
+        self.mifare_validate_ack(recv_buf)
     
-    def mifare_value_decrement(self, block):
-        pass
+    def mifare_value_decrement(self, block_adr: int, value: int) -> None:
+        """
+        This command decrements the number in the specified block by the given value. The result of the operation is
+        written to the Transfer Buffer. After executing this command, you must call the mifare_value_transfer function
+        and specify the memory block where the result should be written.
+        """
+        # First step
+        send_buf = bytearray([picc_cmd.MIFARE_DECREMENT, block_adr])
+        self.crc_calculate_and_append(send_buf)
+        recv_buf = self.transmit(send_buf)
+        self.mifare_validate_ack(recv_buf)
+        
+        # Second step
+        send_buf[0] = value & 0xFF
+        send_buf[1] = (value >> 8) & 0xFF
+        send_buf[2] = (value >> 16) & 0xFF
+        send_buf[3] = (value >> 24) & 0xFF
+        self.crc_calculate_and_append(send_buf)
+        try:
+            recv_buf = self.transmit(send_buf)
+        except:
+            return              # if this command does not respond and raises a timeout error - it means SUCCESSFUL operation
+        
+        # This may happen only if something goes wrong
+        self.mifare_validate_ack(recv_buf)
+    
+    def mifare_value_restore(self, block_adr: int) -> None:
+        """
+        Copy the value from a memory block into the Transfer Buffer.
+        """
+        # First step
+        send_buf = bytearray([picc_cmd.MIFARE_RESTORE, block_adr])
+        self.crc_calculate_and_append(send_buf)
+        recv_buf = self.transmit(send_buf)
+        self.mifare_validate_ack(recv_buf)
+        
+        # Second step
+        send_buf[0] = 0
+        send_buf[1] = 0
+        send_buf[2] = 0
+        send_buf[3] = 0
+        self.crc_calculate_and_append(send_buf)
+        try:
+            recv_buf = self.transmit(send_buf)
+        except:
+            return              # if this command does not respond and raises a timeout error - it means SUCCESSFUL operation
+        
+        # This may happen only if something goes wrong
+        self.mifare_validate_ack(recv_buf)
+    
+    def mifare_value_transfer(self, block_adr) -> None:
+        """
+        Copy the value from Transfer Buffer into a memory block.
+        """
+        send_buf = bytearray([picc_cmd.MIFARE_TRANSFER, block_adr])
+        self.crc_calculate_and_append(send_buf)
+        recv_buf = self.transmit(send_buf)
+        self.mifare_validate_ack(recv_buf)
         
     def _mifare_block_dump(self, uid, key_ab, key_value, sector, block_start, block_end):
 #         print(f"_mifare_block_dump(sector={sector}, block_start={block_start}, block_end={block_end})")
@@ -565,8 +668,9 @@ if __name__ == "__main__":
     
     # Value read
     reader.mifare_auth(uid, 5, picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF")
-    value = reader.mifare_value_get(5)
-    print(f"block 5 value = {value}")
+    for i in range(4, 7, 1):
+        value = reader.mifare_value_get(i)
+        print(f"block {i} value = {value}")
         
 #     try:
 #         reader.debug = False

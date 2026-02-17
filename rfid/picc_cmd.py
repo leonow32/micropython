@@ -18,10 +18,9 @@ CASCADE_TAG      = const(0x88) # Indicates that some more UID bytes remain to be
 
 AUTH_KEY_A       = const(0x60) # Perform sector authentication with key A
 AUTH_KEY_B       = const(0x61) # Perform sector authentication with key B
-MIFARE_READ      = const(0x30)
-MIFARE_WRITE     = const(0xA0)
-MIFARE_DECREMENT = const(0xC0)
-MIFARE_INCREMENT = const(0xC1)
-MIFARE_RESTORE   = const(0xC2)
-MIFARE_TRANSFER  = const(0xB0)
-
+MIFARE_READ      = const(0x30) # Read 16-byte block (must be authenticated)
+MIFARE_WRITE     = const(0xA0) # Write 16-byte block (must be authenticated)
+MIFARE_DECREMENT = const(0xC0) # Decrement value of the block (must be authenticated)
+MIFARE_INCREMENT = const(0xC1) # Increment value of the block (must be authenticated)
+MIFARE_RESTORE   = const(0xC2) # Copy value from the block to transfer buffer (must be authenticated)
+MIFARE_TRANSFER  = const(0xB0) # Copy value from transfer buffer to the block (must be authenticated)
