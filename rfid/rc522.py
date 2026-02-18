@@ -158,7 +158,7 @@ class RC522:
         crc_calculated = self.crc_coprocessor(buffer[0:-2])
         crc_received   = buffer[-1] << 8 | buffer[-2]
         if crc_calculated != crc_received:
-            raise Exception("Wrong CRC")
+            raise Exception(f"Wrong CRC, received {crc_received:04X}, expected {crc_calculated:04X}")
         
     def bcc_verify(self, buffer: bytes|bytearray) -> None:
         if buffer[0] ^ buffer[1] ^ buffer[2] ^ buffer[3] != buffer[4]:
@@ -500,15 +500,15 @@ class RC522:
         recv_buf = self.transmit(send_buf)
         self.mifare_validate_ack(recv_buf)
         
-    def _mifare_block_dump(self, uid, key_ab, key_value, sector, block_start, block_end):
-#         print(f"_mifare_block_dump(sector={sector}, block_start={block_start}, block_end={block_end})")
-        try:
-            self.mifare_auth(uid, block_start, key_ab, key_value)
-        except:
-            print(f"Can't authenticate block {block_start}")
-            self.picc_send_wupa()
-            self.picc_select(uid)
-            return
+    def _mifare_block_dump(self, uid, key_ab, key_value, sector, block_start, block_end, use_authentication=True):
+        if use_authentication:
+            try:
+                self.mifare_auth(uid, block_start, key_ab, key_value)
+            except:
+                print(f"Can't authenticate block {block_start}")
+                self.picc_send_wupa()
+                self.picc_select(uid)
+                return
         
         for address in range(block_start, block_end+1):
             # Read the block
@@ -539,7 +539,7 @@ class RC522:
             
             print(" |")
             
-    def mifare_1k_dump(self, uid, keys=None):
+    def mifare_1k_dump(self, uid, keys=None, use_authentication=True):
         
         # If key list is not provided then use default keys for each sector
         if keys == None:
@@ -567,9 +567,9 @@ class RC522:
         
         # Read 16 sectors with 4 blocks each
         for sector in range(16):
-            self._mifare_block_dump(uid, keys[sector][0], keys[sector][1], sector, sector*4, sector*4+3)
+            self._mifare_block_dump(uid, keys[sector][0], keys[sector][1], sector, sector*4, sector*4+3, use_authentication)
             
-    def mifare_4k_dump(self, uid, keys=None):
+    def mifare_4k_dump(self, uid, keys=None, use_authentication=True):
         
         # If key list is not provided then use default keys for each sector
         if keys == None:
@@ -583,11 +583,11 @@ class RC522:
         
         # First, read 32 sectors with 4 blocks each
         for sector in range(32):
-            self._mifare_block_dump(uid, keys[sector][0], keys[sector][1], sector, sector*4, sector*4+3)
+            self._mifare_block_dump(uid, keys[sector][0], keys[sector][1], sector, sector*4, sector*4+3, use_authentication)
             
         # Second, read 8 sectors with 16 blocks each
         for sector in range(32, 40):
-            self._mifare_block_dump(uid, keys[sector][0], keys[sector][1], sector, 128+(sector-32)*16, 15+128+(sector-32)*16)    
+            self._mifare_block_dump(uid, keys[sector][0], keys[sector][1], sector, 128+(sector-32)*16, 15+128+(sector-32)*16, use_authentication)    
             
     def mifare_backdoor(self):
         """
@@ -604,15 +604,14 @@ class RC522:
             try:
                 self.transmit_7bit(picc_cmd.BACKDOOR_4F_7bit)
             except:
-                print("Can't execute the backdoor command")
-                return
+                raise Exception("Can't execute the backdoor command")
             
         try:
-            self.transmit_7bit(picc_cmd.GOD_MODE_7bit)
+            recv_buf = self.transmit(bytearray([picc_cmd.GOD_MODE_7bit]))
         except:
-            # God Mode command doesn't respond with any data
-            pass
+            raise Exception("Can't execute the God Mode command")
         
+        self.mifare_validate_ack(recv_buf)
         print("Backdoor enabled")
     
     def debug_print(self, caption:str, data: bytes) -> None:
@@ -641,8 +640,6 @@ if __name__ == "__main__":
 
 #     ver = reader.version_get()
 #     print(f"VERSION: {ver:02X}")
-
-#     reader.dump()
     
     reader.antenna_enable()
     reader.gain_set(7)
@@ -657,48 +654,21 @@ if __name__ == "__main__":
         print("No card")
         
     # Memory dump test
-    reader.debug = False
-    reader.mifare_1k_dump(uid)
+#     reader.debug = False
+#     reader.mifare_1k_dump(uid)
 #     reader.mifare_4k_dump(uid)
     
     # Value read
-    reader.mifare_auth(uid, 5, picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF")
-    for i in range(4, 7, 1):
-        value = reader.mifare_value_get(i)
-        print(f"block {i} value = {value}")
-        
-#     try:
-#         reader.debug = False
-#         reader.mifare_1k_dump(uid)
-#     except:
-#         pass
-        
-#     reader.mifare_backdoor()
+#     reader.mifare_auth(uid, 5, picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF")
+#     for i in range(4, 7, 1):
+#         value = reader.mifare_value_get(i)
+#         print(f"block {i} value = {value}")
+
+    reader.mifare_backdoor()
+    reader.debug = False
+    reader.mifare_1k_dump(uid, keys=None, use_authentication=False)
+
 #     key = b"\xFF\xFF\xFF\xFF\xFF\xFF"
-#     key = b"\xAA\xBB\xCC\xDD\xEE\xFF"
-#     reader.mifare_auth(uid, 1, picc_cmd.AUTH_KEY_A, key)
-#     reader.mifare_read(1)
-    
-    
-        
-
-#     print(f"Authentication result: {res}")
-    
-    
-    
-#     print("Read block 0")
-#     for i in range(4):
-#         data = reader.mifare_read(i)
-#         reader.debug_print(f"Block {i}", data)
-
-
-
-#     reader.mifare_backdoor()
-#     key = b"\xFF\xFF\xFF\xFF\xFF\xFF"
-#     res = reader.mifare_auth(uid, 1, picc_cmd.AUTH_KEY_A, key)
-#     reader.mifare_read(1)
-    
-#     reader.mifare_1k_dump(uid)
 
     mem_used.print_ram_used()
 
