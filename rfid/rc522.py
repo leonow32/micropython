@@ -543,24 +543,12 @@ class RC522:
         
         # If key list is not provided then use default keys for each sector
         if keys == None:
-            keys = [
-                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 0
-                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 1
-                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 2
-                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 3
-                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 4
-                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 5
-                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 6
-                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 7
-                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 8
-                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 9
-                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 10
-                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 11
-                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 12
-                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 13
-                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"),   # Sector 14
-                (picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF")    # Sector 15
-            ]
+            keys = list()
+            for i in range(16):
+#                 keys.append((picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"))  # Factory default key
+#                 keys.append((picc_cmd.AUTH_KEY_A, b"\xA3\x96\xEF\xA4\xE2\x4F"))  # Backdoor
+                keys.append((picc_cmd.AUTH_KEY_A, b"\xA3\x16\x67\xA8\xCE\xC1"))  # Backdoor
+#                 keys.append((picc_cmd.AUTH_KEY_A, b"\x51\x8B\x33\x54\xE7\x60"))  # Backdoor
 
         print("| Sector | Block |                       Data                      |       ASCII      |")
         print("|        |       |  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |                  |")
@@ -575,7 +563,10 @@ class RC522:
         if keys == None:
             keys = list()
             for i in range(40):
-                keys.append((picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"))
+                keys.append((picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"))  # Factory default key
+#                 keys.append((picc_cmd.AUTH_KEY_A, b"\xA3\x96\xEF\xA4\xE2\x4F"))  # Backdoor
+#                 keys.append((picc_cmd.AUTH_KEY_A, b"\xA3\x16\x67\xA8\xCE\xC1"))  # Backdoor
+#                 keys.append((picc_cmd.AUTH_KEY_A, b"\x51\x8B\x33\x54\xE7\x60"))  # Backdoor
 
         # Print header
         print("| Sector | Block |                       Data                      |       ASCII      |")
@@ -607,13 +598,42 @@ class RC522:
                 raise Exception("Can't execute the backdoor command")
             
         try:
-            recv_buf = self.transmit(bytearray([picc_cmd.GOD_MODE_7bit]))
+            send_buf = bytearray([picc_cmd.GOD_MODE_7bit])
+            self.crc_calculate_and_append(send_buf)
+            recv_buf = self.transmit(send_buf)
         except:
             raise Exception("Can't execute the God Mode command")
         
         self.mifare_validate_ack(recv_buf)
-        print("Backdoor enabled")
-    
+        
+    def mifare_try_backdoor_keys(self):
+        keys = (
+            b"\xA3\x96\xEF\xA4\xE2\x4F",
+            b"\xA3\x16\x67\xA8\xCE\xC1",
+            b"\xFF\xFF\xFF\xFF\xFF\xFF",
+            b"\x51\x8B\x33\x54\xE7\x60",
+        )
+
+        for key in keys:
+            self.crypto1_stop()
+            self.antenna_disable()
+            self.antenna_enable()
+            
+            try:
+                uid, atqa, sak = self.picc_scan_and_select()
+            except:
+                pass
+            
+            print("Testing key ", end="")
+            for byte in key:
+                print(f"{byte:02X} ", end="")
+            
+            try:
+                self.mifare_auth(uid, 4, picc_cmd.AUTH_KEY_A, key)
+                print(" - ok")
+            except:
+                print(" - fail")
+            
     def debug_print(self, caption:str, data: bytes) -> None:
         if self.debug:
             if isinstance(data, int):
@@ -654,9 +674,13 @@ if __name__ == "__main__":
         print("No card")
         
     # Memory dump test
-#     reader.debug = False
-#     reader.mifare_1k_dump(uid)
+    reader.debug = False
+    reader.mifare_1k_dump(uid)
 #     reader.mifare_4k_dump(uid)
+
+    # Backdoor key test
+#     reader.debug = False
+#     reader.mifare_try_backdoor_keys()
     
     # Value read
 #     reader.mifare_auth(uid, 5, picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF")
@@ -664,9 +688,9 @@ if __name__ == "__main__":
 #         value = reader.mifare_value_get(i)
 #         print(f"block {i} value = {value}")
 
-    reader.mifare_backdoor()
-    reader.debug = False
-    reader.mifare_1k_dump(uid, keys=None, use_authentication=False)
+#     reader.mifare_backdoor()
+#     reader.debug = False
+#     reader.mifare_1k_dump(uid, keys=None, use_authentication=False)
 
 #     key = b"\xFF\xFF\xFF\xFF\xFF\xFF"
 
