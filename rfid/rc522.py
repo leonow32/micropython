@@ -545,9 +545,9 @@ class RC522:
         if keys == None:
             keys = list()
             for i in range(16):
-#                 keys.append((picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"))  # Factory default key
+                keys.append((picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"))  # Factory default key
 #                 keys.append((picc_cmd.AUTH_KEY_A, b"\xA3\x96\xEF\xA4\xE2\x4F"))  # Backdoor
-                keys.append((picc_cmd.AUTH_KEY_A, b"\xA3\x16\x67\xA8\xCE\xC1"))  # Backdoor
+#                 keys.append((picc_cmd.AUTH_KEY_A, b"\xA3\x16\x67\xA8\xCE\xC1"))  # Backdoor
 #                 keys.append((picc_cmd.AUTH_KEY_A, b"\x51\x8B\x33\x54\xE7\x60"))  # Backdoor
 
         print("| Sector | Block |                       Data                      |       ASCII      |")
