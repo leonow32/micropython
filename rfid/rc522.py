@@ -1,5 +1,6 @@
 from machine import Pin, SPI
 import time
+from rfid.log import *
 import rfid.reg as reg
 import rfid.pcd_cmd as pcd_cmd
 import rfid.picc_cmd as picc_cmd
@@ -11,7 +12,6 @@ class RC522:
         self.cs  = cs
         self.rst = rst
 
-        self.debug = False
         self.timeout_ms = 100
         
         self.cs.init(mode=Pin.OUT, value=1)
@@ -127,7 +127,7 @@ class RC522:
         
         raise Exception("Timeout")
     
-    def crc_coprocessor(self, data: bytes|bytearray) -> int:
+    def crc_calculate(self, data: bytes|bytearray) -> int:
         """
         The function calculates the CRC from the given data buffer.
         """
@@ -145,7 +145,7 @@ class RC522:
         Calculates the CRC from given buffer and appends the result to the end of the buffer, so it can be transmitted to
         the PICC in the following line.
         """
-        crc = self.crc_coprocessor(buffer)
+        crc = self.crc_calculate(buffer)
         buffer.append(crc & 0xFF) # CRC_L
         buffer.append(crc >> 8)   # CRC_H
         
@@ -155,38 +155,34 @@ class RC522:
         The function calculates the CRC from the received data and checks whether it matches the received CRC.
         This function rises an exception in case of wrong CRC.
         """
-        crc_calculated = self.crc_coprocessor(buffer[0:-2])
+        crc_calculated = self.crc_calculate(buffer[0:-2])
         crc_received   = buffer[-1] << 8 | buffer[-2]
         if crc_calculated != crc_received:
             raise Exception(f"Wrong CRC, received {crc_received:04X}, expected {crc_calculated:04X}")
         
-    def bcc_verify(self, buffer: bytes|bytearray) -> None:
-        if buffer[0] ^ buffer[1] ^ buffer[2] ^ buffer[3] != buffer[4]:
-            raise Exception("BCC incorrect")
-        
-    def transmit(self, buffer: bytearray) -> bytearray:
+    def transmit(self, send_buf: bytearray) -> bytearray:
         """
 
         """
-        self.debug_print("Send", buffer)
+        debug("Send", send_buf)
         self.reg_write(reg.CommandReg, pcd_cmd.Idle)        # Stop any ongoing command and set RC522 to idle state
         self.reg_write(reg.ComIrqReg, 0x7F)                 # Clear interrupt flags
         self.reg_write(reg.FIFOLevelReg, 0x80)              # Clear FIFO buffer
-        self.reg_write(reg.FIFODataReg, buffer)             # Copy the buffer to FIFO buffer in RC522
+        self.reg_write(reg.FIFODataReg, send_buf)           # Copy the buffer to FIFO buffer in RC522
         self.reg_write(reg.BitFramingReg, 0)                # Set transfer length to 8 bits
         self.reg_write(reg.CommandReg, pcd_cmd.Transceive)  # Enter new command
         self.reg_set_bit(reg.BitFramingReg, 0x80)           # Start data transfer, bit StartSend=1
         self.wait_for_irq()                                 # Wait for receive interrupt flag
         length   = self.reg_read(reg.FIFOLevelReg)          # Check how many bytes are received            
         recv_buf = self.reg_reads(reg.FIFODataReg, length)  # Read the response
-        self.debug_print("Recv", recv_buf)
+        debug("Recv", recv_buf)
         return recv_buf
         
     def transmit_7bit(self, command_7bit: int) -> bytearray:
         """
 
         """
-        self.debug_print("Send[s]", command_7bit)
+        debug("Send[s]", command_7bit)
         self.reg_write(reg.CommandReg, pcd_cmd.Idle)        # Stop any ongoing command and set RC522 to idle state
         self.reg_write(reg.ComIrqReg, 0x7F)                 # Clear interrupt flags
         self.reg_write(reg.FIFOLevelReg, 0x80)              # Clear FIFO buffer
@@ -197,456 +193,8 @@ class RC522:
         self.wait_for_irq()                                 # Wait for receive interrupt flag
         length   = self.reg_read(reg.FIFOLevelReg)          # Check how many bytes are received
         recv_buf = self.reg_reads(reg.FIFODataReg, length)  # Read the response
-        self.debug_print("Recv", recv_buf)
+        debug("Recv", recv_buf)
         return recv_buf
-    
-    def picc_send_wupa(self):
-        """
-        Send WUPA (Wake Up Type A) to PICC that is in idle or power-on state.
-        PICC responds with ATQA data. This function may raise timeout exception.
-        """
-        return self.transmit_7bit(picc_cmd.WUPA_7bit)
-    
-    def picc_send_reqa(self):
-        """
-
-        """
-        return self.transmit_7bit(picc_cmd.REQA_7bit)
-            
-    def picc_send_hlta(self):
-        """
-        Send HLTA (halt) command to deselect the PICC. This command does not return any value so we don't know if it has been
-        received correctly.
-        """
-        cmd = bytearray([picc_cmd.HLTA, 0x00])
-        self.crc_calculate_and_append(cmd)
-        try:
-            self.transmit(cmd)
-        except:
-            pass
-        
-    def picc_scan_and_select(self):
-        
-        # The UID, ATQO and SAK that will be returned if operation is successful
-        uid  = bytearray()
-        atqa = 0
-        sak  = 0
-        
-        self.antenna_disable()
-        self.antenna_enable()
-        self.crypto1_stop()
-        
-        wupa_ans = self.picc_send_wupa()
-        atqa = wupa_ans[0] << 8 | wupa_ans[1]
-            
-        for loop in range(3):
-            self.debug_print(f"Anticollision loop", loop+1)
-            
-            # This operation should return 5 bytes: [uid0, uid1, uid2, uid3, BCC] or [CT, uid0, uid1, uid2, BCC]
-            # where CT is cascade tag and BCC is a check byte calculated as a XOR of first 4 bytes
-            cmd1 = bytearray([picc_cmd.SEL_CL1 + 2*loop, picc_cmd.NVB_20])
-            ans1 = self.transmit(cmd1)
-            
-            # Verification of BCC
-            self.bcc_verify(ans1)
-            
-            # Select PICC with UID that was received in the step above. This operation should return 3 bytes: [SAK, CRC_L, CRC_H]
-            cmd2 = bytearray([picc_cmd.SEL_CL1 + 2*loop, picc_cmd.NVB_70, ans1[0], ans1[1], ans1[2], ans1[3], ans1[4]])
-            self.crc_calculate_and_append(cmd2)
-            ans2 = self.transmit(cmd2)
-            self.crc_verify(ans2)
-
-            # Store SAK
-            sak = ans2[0]
-        
-            # If first byte of the response is Cascade Tag then we need another loop. Otherwise the process is done.
-            if ans1[0] == picc_cmd.CASCADE_TAG:
-                uid.append(ans1[1])
-                uid.append(ans1[2])
-                uid.append(ans1[3])
-            else:
-                uid.append(ans1[0])
-                uid.append(ans1[1])
-                uid.append(ans1[2])
-                uid.append(ans1[3])
-                return uid, atqa, sak
-            
-    def picc_select(self, uid: bytes|bytearray) -> None:
-        if len(uid) == 4:
-            bcc = uid[0] ^ uid[1] ^ uid[2] ^ uid[3]
-            cmd = bytearray([picc_cmd.SEL_CL1, picc_cmd.NVB_70, uid[0], uid[1], uid[2], uid[3], bcc])
-            self.crc_calculate_and_append(cmd)
-            ans = self.transmit(cmd)
-            self.crc_verify(ans)
-
-        elif len(uid) == 7:
-            bcc = picc_cmd.CASCADE_TAG ^ uid[0] ^ uid[1] ^ uid[2]
-            cmd = bytearray([picc_cmd.SEL_CL1, picc_cmd.NVB_70, picc_cmd.CASCADE_TAG, uid[0], uid[1], uid[2], bcc])
-            self.crc_calculate_and_append(cmd)
-            ans = self.transmit(cmd)
-            self.crc_verify(ans)
-            
-            bcc = uid[3] ^ uid[4] ^ uid[5] ^ uid[6]
-            cmd = bytearray([picc_cmd.SEL_CL2, picc_cmd.NVB_70, uid[3], uid[4], uid[5], uid[6], bcc])
-            self.crc_calculate_and_append(cmd)
-            ans = self.transmit(cmd)
-            self.crc_verify(ans)
-
-        else:
-            print(f"UID length {len(uid)} is not supported")
-    
-    def picc_test_all_7bit_commands(self):
-        """
-        Loop through all 128 7-bit commands. Before sending each command, the antenna is
-        turned off and on to reset the PICC. If the card responds to any comments, the
-        response is printed to the console.
-        """
-        self.debug = False
-        for i in range(128):
-            try:
-                self.antenna_disable()
-                self.antenna_enable()
-                response = self.transmit_7bit(i)
-                
-                self.debug = True
-                self.debug_print(f"cmd: {i:02X} -> response", response)
-                self.debug = False
-            except:
-                pass
-        self.debug = True
-            
-    ###################
-    # MIFARE Commands #
-    ###################
-    
-    def mifare_validate_ack(self, recv_buf):
-        if recv_buf[0] == 0x0A:
-            return
-        elif recv_buf[0] == 0x00:
-            raise Exception("buffer valid, operation invalid")
-        elif recv_buf[0] == 0x01:
-            raise Exception("buffer valid, parity or CRC error")
-        elif recv_buf[0] == 0x04:
-            raise Exception("buffer invalid, operation invalid")
-        elif recv_buf[0] == 0x05:
-            raise Exception("buffer invalid, parity or CRC error")
-        else:
-            raise Exception(f"unsupported ack response {recv_buf[0]}")
-    
-    def mifare_auth(self, uid, block_adr, auth_cmd, key):
-        buffer = bytes([auth_cmd, block_adr]) + key + uid
-        self.reg_write(reg.CommandReg, pcd_cmd.Idle)        # Stop any ongoing command and set RC522 to idle state
-        self.reg_write(reg.ComIrqReg, 0x7F)                 # Clear interrupt flags
-        self.reg_write(reg.FIFOLevelReg, 0x80)              # Clear FIFO buffer
-        self.reg_write(reg.FIFODataReg, buffer)             # Store data to FIFO buffer
-        self.reg_write(reg.CommandReg, pcd_cmd.MFAuthent)   # Enter new command
-        self.wait_for_irq()
-        
-        if self.reg_read(reg.Status2Reg) & 0b00001000:      # Check bit MFCrypto1On
-            return True
-        else:
-            return False
-        
-    def mifare_read(self, block_adr):
-        send_buf = bytearray([picc_cmd.MIFARE_READ, block_adr])
-        self.crc_calculate_and_append(send_buf)
-        recv_buf = self.transmit(send_buf)
-        self.crc_verify(recv_buf)
-        return recv_buf[:-2]
-        
-    def mifare_write(self, block_adr, data):
-        # First step
-        send_buf = bytearray([picc_cmd.MIFARE_WRITE, block_adr])
-        self.crc_calculate_and_append(send_buf)
-        recv_buf = self.transmit(send_buf)
-        self.mifare_validate_ack(recv_buf)
-        
-        # Second step
-        send_buf = bytearray(data)
-        self.crc_calculate_and_append(send_buf)
-        recv_buf = self.transmit(send_buf)
-        self.mifare_validate_ack(recv_buf)
-        
-    def mifare_value_get(self, block_adr):
-        """
-        Reads and returns a value from a memory block. The value is a signed 32-bit variable.
-        """
-        data = self.mifare_read(block_adr)
-        value = data[3] << 24 | data[2] << 16 | data[1] << 8 | data[0]
-        
-        # Convert binary to U2
-        if value & 0x80000000:
-            value = (value & 0x7FFFFFFF) - 0x80000000
-            
-        return value
-    
-    def mifare_value_set(self, block_adr: int, value: int) -> None:
-        """
-        Formats a block of memory to hold a 32-bit signed variable. Blocks formatted in this way can be manipulated using
-        the mifare_value_increment, mifare_value_decrement, mifare_value_decrement, mifare_value_restore, and, of course,
-        mifare_value_get functions.
-        """
-        
-        # Convert value to bytearray
-        x = bytearray(4)
-        value = value & 0xFFFFFFFF
-        x[0] = value & 0xFF
-        x[1] = (value >> 8) & 0xFF
-        x[2] = (value >> 16) & 0xFF
-        x[3] = (value >> 24) & 0xFF
-        
-        send_buf = bytearray(16)
-        send_buf[0]  = x[0]
-        send_buf[1]  = x[1]
-        send_buf[2]  = x[2]
-        send_buf[3]  = x[3]
-        send_buf[4]  = ~x[0] & 0xFF
-        send_buf[5]  = ~x[1] & 0xFF
-        send_buf[6]  = ~x[2] & 0xFF
-        send_buf[7]  = ~x[3] & 0xFF
-        send_buf[8]  = x[0]
-        send_buf[9]  = x[1]
-        send_buf[10] = x[2]
-        send_buf[11] = x[3]
-        send_buf[12] = block_adr
-        send_buf[13] = ~block_adr & 0xFF
-        send_buf[14] = block_adr
-        send_buf[15] = ~block_adr & 0xFF
-        
-        self.mifare_write(block_adr, send_buf)
-    
-    def mifare_value_increment(self, block_adr: int, value: int) -> None:
-        """
-        This command increments the number in the specified block by the given value. The result of the operation is
-        written to the Transfer Buffer. After executing this command, you must call the mifare_value_transfer function
-        and specify the memory block where the result should be written.
-        """
-        # First step
-        send_buf = bytearray([picc_cmd.MIFARE_INCREMENT, block_adr])
-        self.crc_calculate_and_append(send_buf)
-        recv_buf = self.transmit(send_buf)
-        self.mifare_validate_ack(recv_buf)
-        
-        # Second step
-        send_buf[0] = value & 0xFF
-        send_buf[1] = (value >> 8) & 0xFF
-        send_buf[2] = (value >> 16) & 0xFF
-        send_buf[3] = (value >> 24) & 0xFF
-        self.crc_calculate_and_append(send_buf)
-        try:
-            recv_buf = self.transmit(send_buf)
-        except:
-            return              # if this command does not respond and raises a timeout error - it means SUCCESSFUL operation
-        
-        # This may happen only if something goes wrong
-        self.mifare_validate_ack(recv_buf)
-    
-    def mifare_value_decrement(self, block_adr: int, value: int) -> None:
-        """
-        This command decrements the number in the specified block by the given value. The result of the operation is
-        written to the Transfer Buffer. After executing this command, you must call the mifare_value_transfer function
-        and specify the memory block where the result should be written.
-        """
-        # First step
-        send_buf = bytearray([picc_cmd.MIFARE_DECREMENT, block_adr])
-        self.crc_calculate_and_append(send_buf)
-        recv_buf = self.transmit(send_buf)
-        self.mifare_validate_ack(recv_buf)
-        
-        # Second step
-        send_buf[0] = value & 0xFF
-        send_buf[1] = (value >> 8) & 0xFF
-        send_buf[2] = (value >> 16) & 0xFF
-        send_buf[3] = (value >> 24) & 0xFF
-        self.crc_calculate_and_append(send_buf)
-        try:
-            recv_buf = self.transmit(send_buf)
-        except:
-            return              # if this command does not respond and raises a timeout error - it means SUCCESSFUL operation
-        
-        # This may happen only if something goes wrong
-        self.mifare_validate_ack(recv_buf)
-    
-    def mifare_value_restore(self, block_adr: int) -> None:
-        """
-        Copy the value from a memory block into the Transfer Buffer.
-        """
-        # First step
-        send_buf = bytearray([picc_cmd.MIFARE_RESTORE, block_adr])
-        self.crc_calculate_and_append(send_buf)
-        recv_buf = self.transmit(send_buf)
-        self.mifare_validate_ack(recv_buf)
-        
-        # Second step
-        send_buf[0] = 0
-        send_buf[1] = 0
-        send_buf[2] = 0
-        send_buf[3] = 0
-        self.crc_calculate_and_append(send_buf)
-        try:
-            recv_buf = self.transmit(send_buf)
-        except:
-            return              # if this command does not respond and raises a timeout error - it means SUCCESSFUL operation
-        
-        # This may happen only if something goes wrong
-        self.mifare_validate_ack(recv_buf)
-    
-    def mifare_value_transfer(self, block_adr) -> None:
-        """
-        Copy the value from Transfer Buffer into a memory block.
-        """
-        send_buf = bytearray([picc_cmd.MIFARE_TRANSFER, block_adr])
-        self.crc_calculate_and_append(send_buf)
-        recv_buf = self.transmit(send_buf)
-        self.mifare_validate_ack(recv_buf)
-        
-    def _mifare_block_dump(self, uid, key_ab, key_value, sector, block_start, block_end, use_authentication=True):
-        if use_authentication:
-            try:
-                self.mifare_auth(uid, block_start, key_ab, key_value)
-            except:
-                print(f"Can't authenticate block {block_start}")
-                self.picc_send_wupa()
-                self.picc_select(uid)
-                return
-        
-        for address in range(block_start, block_end+1):
-            # Read the block
-            try:
-                data = self.mifare_read(address)
-            except:
-                print(f"Can't read block {address}")
-                return
-            
-            # Print the result
-            if address == block_start:
-                print(f"| {sector:6} ", end="")
-            else:
-                print("|        ", end="")
-                
-            print(f"| {address:5} | ", end="")
-            
-            for byte in data:
-                print(f"{byte:02X} ", end="")
-            
-            print("| ", end="")
-            
-            for byte in data:
-                if byte >= 32 and byte <= 126:
-                    print(chr(byte), end="")
-                else:
-                    print(" ", end="")
-            
-            print(" |")
-            
-    def mifare_1k_dump(self, uid, keys=None, use_authentication=True):
-        
-        # If key list is not provided then use default keys for each sector
-        if keys == None:
-            keys = list()
-            for i in range(16):
-                keys.append((picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"))  # Factory default key
-#                 keys.append((picc_cmd.AUTH_KEY_A, b"\xA3\x96\xEF\xA4\xE2\x4F"))  # Backdoor
-#                 keys.append((picc_cmd.AUTH_KEY_A, b"\xA3\x16\x67\xA8\xCE\xC1"))  # Backdoor
-#                 keys.append((picc_cmd.AUTH_KEY_A, b"\x51\x8B\x33\x54\xE7\x60"))  # Backdoor
-
-        print("| Sector | Block |                       Data                      |       ASCII      |")
-        print("|        |       |  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |                  |")
-        
-        # Read 16 sectors with 4 blocks each
-        for sector in range(16):
-            self._mifare_block_dump(uid, keys[sector][0], keys[sector][1], sector, sector*4, sector*4+3, use_authentication)
-            
-    def mifare_4k_dump(self, uid, keys=None, use_authentication=True):
-        
-        # If key list is not provided then use default keys for each sector
-        if keys == None:
-            keys = list()
-            for i in range(40):
-                keys.append((picc_cmd.AUTH_KEY_A, b"\xFF\xFF\xFF\xFF\xFF\xFF"))  # Factory default key
-#                 keys.append((picc_cmd.AUTH_KEY_A, b"\xA3\x96\xEF\xA4\xE2\x4F"))  # Backdoor
-#                 keys.append((picc_cmd.AUTH_KEY_A, b"\xA3\x16\x67\xA8\xCE\xC1"))  # Backdoor
-#                 keys.append((picc_cmd.AUTH_KEY_A, b"\x51\x8B\x33\x54\xE7\x60"))  # Backdoor
-
-        # Print header
-        print("| Sector | Block |                       Data                      |       ASCII      |")
-        print("|        |       |  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |                  |")
-        
-        # First, read 32 sectors with 4 blocks each
-        for sector in range(32):
-            self._mifare_block_dump(uid, keys[sector][0], keys[sector][1], sector, sector*4, sector*4+3, use_authentication)
-            
-        # Second, read 8 sectors with 16 blocks each
-        for sector in range(32, 40):
-            self._mifare_block_dump(uid, keys[sector][0], keys[sector][1], sector, 128+(sector-32)*16, 15+128+(sector-32)*16, use_authentication)    
-            
-    def mifare_backdoor(self):
-        """
-        This function enables backdoor in some Chinese counterfeit MIFARE cards.
-        """
-        self.crypto1_stop()
-        self.antenna_disable()
-        self.antenna_enable()
-        
-        # At first try to send 40 or 4F command in 7-bit mode
-        try:
-            self.transmit_7bit(picc_cmd.BACKDOOR_40_7bit)
-        except:
-            try:
-                self.transmit_7bit(picc_cmd.BACKDOOR_4F_7bit)
-            except:
-                raise Exception("Can't execute the backdoor command")
-            
-        try:
-            send_buf = bytearray([picc_cmd.GOD_MODE_7bit])
-            self.crc_calculate_and_append(send_buf)
-            recv_buf = self.transmit(send_buf)
-        except:
-            raise Exception("Can't execute the God Mode command")
-        
-        self.mifare_validate_ack(recv_buf)
-        
-    def mifare_try_backdoor_keys(self):
-        keys = (
-            b"\xA3\x96\xEF\xA4\xE2\x4F",
-            b"\xA3\x16\x67\xA8\xCE\xC1",
-            b"\xFF\xFF\xFF\xFF\xFF\xFF",
-            b"\x51\x8B\x33\x54\xE7\x60",
-        )
-
-        for key in keys:
-            self.crypto1_stop()
-            self.antenna_disable()
-            self.antenna_enable()
-            
-            try:
-                uid, atqa, sak = self.picc_scan_and_select()
-            except:
-                pass
-            
-            print("Testing key ", end="")
-            for byte in key:
-                print(f"{byte:02X} ", end="")
-            
-            try:
-                self.mifare_auth(uid, 4, picc_cmd.AUTH_KEY_A, key)
-                print(" - ok")
-            except:
-                print(" - fail")
-            
-    def debug_print(self, caption:str, data: bytes) -> None:
-        if self.debug:
-            if isinstance(data, int):
-                print(f"{caption}: {data:02X}")
-                
-            elif isinstance(data, bytearray) or isinstance(data, bytes):           
-                print(f"{caption}[{len(data)}]: ", end="")
-                for byte in data:
-                    print(f"{byte:02X} ", end="")
-                print()
-                
-            else:
-                print(f"{caption}")
         
 if __name__ == "__main__":
     import mem_used
@@ -656,26 +204,25 @@ if __name__ == "__main__":
     rst = Pin(7)
 
     reader = RC522(spi, cs, rst)
-    reader.debug = True
 
-#     ver = reader.version_get()
-#     print(f"VERSION: {ver:02X}")
+    ver = reader.version_get()
+    debug("Version", ver)
     
     reader.antenna_enable()
     reader.gain_set(7)
     
-    try:
-        uid, atqa, sak = reader.picc_scan_and_select()
-        print("Card found")
-        reader.debug_print("UID", uid)
-        print(f"ATQA: {atqa:04X}")
-        print(f"SAK:  {sak:02X}")
-    except:
-        print("No card")
+#     try:
+#         uid, atqa, sak = reader.picc_scan_and_select()
+#         print("Card found")
+#         reader.debug_print("UID", uid)
+#         print(f"ATQA: {atqa:04X}")
+#         print(f"SAK:  {sak:02X}")
+#     except:
+#         print("No card")
         
     # Memory dump test
-    reader.debug = False
-    reader.mifare_1k_dump(uid)
+#     reader.debug = False
+#     reader.mifare_1k_dump(uid)
 #     reader.mifare_4k_dump(uid)
 
     # Backdoor key test
@@ -695,6 +242,3 @@ if __name__ == "__main__":
 #     key = b"\xFF\xFF\xFF\xFF\xFF\xFF"
 
     mem_used.print_ram_used()
-
-# A396EFA4E24F
-# A31667A8CEC1
