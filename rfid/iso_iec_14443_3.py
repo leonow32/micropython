@@ -138,8 +138,6 @@ if __name__ == "__main__":
     rst = Pin(7)
 
     pcd = rfid.rc522.RC522(spi, cs, rst)
-    pcd.antenna_enable()
-    pcd.gain_set(7)
     
     iso = ISO_IEC_14443_3(pcd)
     

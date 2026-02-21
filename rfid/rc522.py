@@ -1,6 +1,19 @@
-from machine import Pin, SPI
 import time
+from machine import Pin, SPI
 from rfid.log import *
+
+# Commands for RC522 Proximity Coupling Device. Please write them to CommandReg register.
+Idle             = const(0b0000) # no action, cancels current command execution
+Mem              = const(0b0001) # stores 25 bytes into the internal buffer
+GenerateRandomID = const(0b0010) # generates a 10-byte random ID number
+CalcCRC          = const(0b0011) # activates the CRC coprocessor or performs a self test
+Transmit         = const(0b0100) # transmits data from the FIFO buffer
+NoCmdChange      = const(0b0111) # no command change, can be used to modify the CommandReg register bits without 
+                                 # affecting the command, for example, the PowerDown bit
+Receive          = const(0b1000) # activates the receiver circuits
+Transceive       = const(0b1100) # transmits data from FIFO buffer to antenna and then activates the receiver
+MFAuthent        = const(0b1110) # performs the MIFARE standard authentication as a reader
+SoftReset        = const(0b1111) # resets the MFRC522
 
 # Register addresses are shifter left by 1 bit position
 
@@ -176,7 +189,7 @@ class RC522:
         The function calculates the CRC from the given data buffer.
         """
         self.write_reg(FIFOLevelReg, 0x80);          # Clear all the data in FIFO buffer
-        self.write_reg(CommandReg, pcd_cmd.CalcCRC)  # Enable CRC coprocessor
+        self.write_reg(CommandReg, CalcCRC)          # Enable CRC coprocessor
         self.write_reg(FIFODataReg, data)            # Transmit the data to FIFO buffer
         # The CRC result is ready almost instantly, so there is no need to wait or check anything
         crc_h  = self.read_reg(CRCResultRegH)
@@ -210,14 +223,14 @@ class RC522:
         This function rises an exception in case there's no response from the card.
         """
         debug("Send", send_buf)
-        self.write_reg(CommandReg, pcd_cmd.Idle)        # Stop any ongoing command and set RC522 to idle state
+        self.write_reg(CommandReg, Idle)                # Stop any ongoing command and set RC522 to idle state
         self.write_reg(ComIrqReg, 0x7F)                 # Clear interrupt flags
         self.write_reg(FIFOLevelReg, 0x80)              # Clear FIFO buffer
         self.write_reg(FIFODataReg, send_buf)           # Copy the buffer to FIFO buffer in RC522
         self.write_reg(BitFramingReg, 0)                # Set transfer length to 8 bits
-        self.write_reg(CommandReg, pcd_cmd.Transceive)  # Enter new command
+        self.write_reg(CommandReg, Transceive)          # Enter new command
         self.set_bits(BitFramingReg, 0x80)              # Start data transfer, bit StartSend=1
-        self.wait_for_irq()                                 # Wait for receive interrupt flag
+        self.wait_for_irq()                             # Wait for receive interrupt flag
         length   = self.read_reg(FIFOLevelReg)          # Check how many bytes are received            
         recv_buf = self.read_regs(FIFODataReg, length)  # Read the response
         debug("Recv", recv_buf)
@@ -229,14 +242,14 @@ class RC522:
         This function rises an exception in case there's no response from the card.
         """
         debug("Send[s]", command_7bit)
-        self.write_reg(CommandReg, pcd_cmd.Idle)        # Stop any ongoing command and set RC522 to idle state
+        self.write_reg(CommandReg, Idle)                # Stop any ongoing command and set RC522 to idle state
         self.write_reg(ComIrqReg, 0x7F)                 # Clear interrupt flags
         self.write_reg(FIFOLevelReg, 0x80)              # Clear FIFO buffer
         self.write_reg(FIFODataReg, command_7bit)       # Store data to FIFO buffer
         self.write_reg(BitFramingReg, 7)                # Set transfer length to 7 bits instead of 8
-        self.write_reg(CommandReg, pcd_cmd.Transceive)  # Enter new command
-        self.set_bits(BitFramingReg, 0x80)           # Start data transfer, bit StartSend=1
-        self.wait_for_irq()                                 # Wait for receive interrupt flag
+        self.write_reg(CommandReg, Transceive)          # Enter new command
+        self.set_bits(BitFramingReg, 0x80)              # Start data transfer, bit StartSend=1
+        self.wait_for_irq()                             # Wait for receive interrupt flag
         length   = self.read_reg(FIFOLevelReg)          # Check how many bytes are received
         recv_buf = self.read_regs(FIFODataReg, length)  # Read the response
         debug("Recv", recv_buf)
