@@ -254,4 +254,19 @@ class RC522:
         recv_buf = self.read_regs(FIFODataReg, length)  # Read the response
         debug("Recv", recv_buf)
         return recv_buf
+    
+    def authenticate(self, uid: bytes|bytearray, block_adr:int, auth_cmd:int, key: bytes|bytearray) -> None:
+        """
+        Perform authentication of a selected block in MIFARE Classic cards. For `auth_cmd` use AUTH_KEY_A (0x60) or
+        AUTH_KEY_B (0x61). This function rises an exception in case of failure.
+        """
+        buffer = bytes([auth_cmd, block_adr]) + key + uid
+        self.write_reg(CommandReg, Idle)                # Stop any ongoing command and set RC522 to idle state
+        self.write_reg(ComIrqReg, 0x7F)                 # Clear interrupt flags
+        self.write_reg(FIFOLevelReg, 0x80)              # Clear FIFO buffer
+        self.write_reg(FIFODataReg, buffer)             # Store data to FIFO buffer
+        self.write_reg(CommandReg, MFAuthent)           # Enter new command
+        self.wait_for_irq()
         
+        if not self.read_reg(Status2Reg) & 0b00001000:  # Check bit MFCrypto1On
+            raise Exception("Authentication failed")

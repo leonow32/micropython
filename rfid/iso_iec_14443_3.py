@@ -104,13 +104,9 @@ class ISO_IEC_14443_3():
             
     def select(self, uid: bytes|bytearray) -> None:
         """
-        This function resets RF field and then selects a card with UID given. In case there's no card with this UID this
-        function rises an exception.
+        This function selects a card with UID given. The card must receive WUPA first!
+        In case there's no card with this UID this function rises an exception.
         """
-        self.pcd.antenna_disable()
-        self.pcd.antenna_enable()
-        self.pcd.crypto1_stop()
-        self.wupa()
         
         if len(uid) == 4:
             bcc = uid[0] ^ uid[1] ^ uid[2] ^ uid[3]
