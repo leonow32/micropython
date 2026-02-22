@@ -292,7 +292,7 @@ class MifareClassic():
                 raise Exception("Can't execute the backdoor command")
             
         try:
-            send_buf = bytearray([picc_cmd.GOD_MODE_7bit])
+            send_buf = bytearray([picc_cmd.GOD_MODE])
             self.pcd.crc_calculate_and_append(send_buf)
             recv_buf = self.pcd.transmit(send_buf)
         except:
