@@ -18,6 +18,5 @@ uid, _, _ = iso.scan_and_select()
 mif.authenticate(uid, adr, "A", key)
 data = mif.read_block(adr)
 
-disable()
 debug(f"Block {adr} data", data)
 print(data)
