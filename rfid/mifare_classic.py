@@ -58,18 +58,40 @@ class MifareClassic():
         recv_buf = self.pcd.transmit(send_buf)
         self.validate_ack(recv_buf)
         
+    def check_value(self, data: bytes|bytearray, ) -> bool:
+        """
+        Checks if a 16-byte data read from a block is formatted as a value. If so, it returns value of the block.
+        Otherwise returns False.
+        """
+        value1 =   data[3]  << 24 | data[2]  << 16 | data[1] << 8 | data[0]
+        value2 = ~(data[7]  << 24 | data[6]  << 16 | data[5] << 8 | data[4]) & 0xFFFFFFFF
+        value3 = data[11] << 24 | data[10] << 16 | data[9] << 8 | data[8]
+        
+        adr1 =  data[12]
+        adr2 = ~data[13] & 0xFF
+        adr3 =  data[14]
+        adr4 = ~data[15] & 0xFF
+        
+        if value1 == value2 == value3 and adr1 == adr2 == adr3 == adr4:
+            # Convert binary to U2
+            if value1 & 0x80000000:
+                value1 = (value1 & 0x7FFFFFFF) - 0x80000000
+            return value1
+        else:
+            return False
+    
     def get_value(self, block_adr):
         """
         Reads and returns a value from a memory block. The value is a signed 32-bit variable.
         """
         data = self.read_block(block_adr)
-        value = data[3] << 24 | data[2] << 16 | data[1] << 8 | data[0]
+#         value = data[3] << 24 | data[2] << 16 | data[1] << 8 | data[0]
         
         # Convert binary to U2
-        if value & 0x80000000:
-            value = (value & 0x7FFFFFFF) - 0x80000000
+#         if value & 0x80000000:
+#             value = (value & 0x7FFFFFFF) - 0x80000000
             
-        return value
+        return self.check_value(data)
     
     def set_value(self, block_adr: int, value: int) -> None:
         """
@@ -228,7 +250,13 @@ class MifareClassic():
                 else:
                     print(" ", end="")
             
-            print(" |")
+            print(" | ", end="")
+            
+            value = self.check_value(data)
+            if(value is not False):
+                print(value)
+            else:
+                print()
             
     def dump_1k(self, uid, keys=None, use_authentication=True):
         
@@ -241,7 +269,7 @@ class MifareClassic():
 #                 keys.append((AUTH_KEY_A, b"\xA3\x16\x67\xA8\xCE\xC1"))  # Backdoor
 #                 keys.append((AUTH_KEY_A, b"\x51\x8B\x33\x54\xE7\x60"))  # Backdoor
 
-        print("| Sector | Block |                       Data                      |       ASCII      |")
+        print("| Sector | Block |                       Data                      |       ASCII      | Value")
         print("|        |       |  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F |                  |")
         
         # Read 16 sectors with 4 blocks each
@@ -354,9 +382,21 @@ if __name__ == "__main__":
 #     pcd.debug = False
 #     mif.dump_1k(uid)
     key = b"\xFF\xFF\xFF\xFF\xFF\xFF"
-    pcd.authenticate(uid, 0, AUTH_KEY_A, key)
-    data = mif.read_block(0)
-    debug("Block 0", data)
+    pcd.authenticate(uid, 4, AUTH_KEY_A, key)
+#     data = mif.read_block(0)
+#     debug("Block 0", data)
+    
+#     debug_enable()
+#     mif.set_value(5, -1)
+#     value = mif.get_value(5)
+#     print(value)
+#     
+#     data = mif.read_block(5)
+#     test = mif.check_value(data)
+#     print(test)
+    
+    debug_disable()
+    mif.dump_1k(uid)
     
     mem_used.print_ram_used()
     
