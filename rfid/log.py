@@ -1,7 +1,7 @@
-debug_enable = True
+_enabled = True
 
 def debug(caption:str, data: bytes) -> None:
-    if debug_enable:
+    if _enabled:
         if isinstance(data, int):
             print(f"{caption}: {data:02X}")
             
@@ -13,3 +13,11 @@ def debug(caption:str, data: bytes) -> None:
             
         else:
             print(f"{caption}")
+
+def debug_enable() -> None:
+    global _enabled
+    _enabled = True
+    
+def debug_disable() -> None:
+    global _enabled
+    _enabled = False

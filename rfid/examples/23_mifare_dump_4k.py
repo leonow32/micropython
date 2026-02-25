@@ -11,13 +11,6 @@ pcd = RC522(spi, cs, rst)
 iso = ISO_IEC_14443_3(pcd)
 mif = MifareClassic(pcd, iso)
 
-adr = 1
-key = b"\xFF\xFF\xFF\xFF\xFF\xFF"
-
+debug_disable()
 uid, _, _ = iso.scan_and_select()
-mif.authenticate(uid, adr, "A", key)
-data = mif.read_block(adr)
-
-disable()
-debug(f"Block {adr} data", data)
-print(data)
+mif.dump_4k(uid)
