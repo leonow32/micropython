@@ -36,16 +36,16 @@ class MifareClassic():
             raise Exception(f"unsupported ack response {recv_buf[0]}")
         
     def authenticate(self, uid: bytes|bytearray, block_adr:int, key_type:str, key: bytes|bytearray) -> None:
-        self.pcd.authenticate(uid, 0, AUTH_KEY_A if key_type=="A" else AUTH_KEY_B, key)
+        self.pcd.authenticate(uid, block_adr, AUTH_KEY_A if key_type=="A" else AUTH_KEY_B, key)
         
-    def read_block(self, block_adr: int) -> bytearray:
+    def block_read(self, block_adr: int) -> bytearray:
         send_buf = bytearray([READ, block_adr])
         self.pcd.crc_calculate_and_append(send_buf)
         recv_buf = self.pcd.transmit(send_buf)
         self.pcd.crc_verify(recv_buf)
         return recv_buf[:-2]
         
-    def write_block(self, block_adr: int, data: bytes|bytearray) -> None:
+    def block_write(self, block_adr: int, data: bytes|bytearray) -> None:
         # First step
         send_buf = bytearray([WRITE, block_adr])
         self.pcd.crc_calculate_and_append(send_buf)
@@ -58,7 +58,7 @@ class MifareClassic():
         recv_buf = self.pcd.transmit(send_buf)
         self.validate_ack(recv_buf)
         
-    def check_value(self, data: bytes|bytearray, ) -> bool:
+    def value_check(self, data: bytes|bytearray, ) -> bool:
         """
         Checks if a 16-byte data read from a block is formatted as a value. If so, it returns value of the block.
         Otherwise returns False.
@@ -80,20 +80,14 @@ class MifareClassic():
         else:
             return False
     
-    def get_value(self, block_adr):
+    def value_get(self, block_adr):
         """
         Reads and returns a value from a memory block. The value is a signed 32-bit variable.
         """
-        data = self.read_block(block_adr)
-#         value = data[3] << 24 | data[2] << 16 | data[1] << 8 | data[0]
-        
-        # Convert binary to U2
-#         if value & 0x80000000:
-#             value = (value & 0x7FFFFFFF) - 0x80000000
-            
-        return self.check_value(data)
+        data = self.block_read(block_adr)            
+        return self.value_check(data)
     
-    def set_value(self, block_adr: int, value: int) -> None:
+    def value_set(self, block_adr: int, value: int) -> None:
         """
         Formats a block of memory to hold a 32-bit signed variable. Blocks formatted in this way can be manipulated using
         the mifare_value_increment, mifare_value_decrement, mifare_value_decrement, mifare_value_restore, and, of course,
@@ -126,9 +120,9 @@ class MifareClassic():
         send_buf[14] = block_adr
         send_buf[15] = ~block_adr & 0xFF
         
-        self.write_block(block_adr, send_buf)
+        self.block_write(block_adr, send_buf)
     
-    def increment_value(self, block_adr: int, value: int) -> None:
+    def value_increment(self, block_adr: int, value: int) -> None:
         """
         This command increments the number in the specified block by the given value. The result of the operation is
         written to the Transfer Buffer. After executing this command, you must call the mifare_value_transfer function
@@ -154,7 +148,7 @@ class MifareClassic():
         # This may happen only if something goes wrong
         self.validate_ack(recv_buf)
     
-    def decrement_value(self, block_adr: int, value: int) -> None:
+    def value_decrement(self, block_adr: int, value: int) -> None:
         """
         This command decrements the number in the specified block by the given value. The result of the operation is
         written to the Transfer Buffer. After executing this command, you must call the mifare_value_transfer function
@@ -180,7 +174,7 @@ class MifareClassic():
         # This may happen only if something goes wrong
         self.validate_ack(recv_buf)
     
-    def restore_value(self, block_adr: int) -> None:
+    def value_restore(self, block_adr: int) -> None:
         """
         Copy the value from a memory block into the Transfer Buffer.
         """
@@ -204,7 +198,7 @@ class MifareClassic():
         # This may happen only if something goes wrong
         self.validate_ack(recv_buf)
     
-    def transfer_value(self, block_adr) -> None:
+    def value_transfer(self, block_adr) -> None:
         """
         Copy the value from Transfer Buffer into a memory block.
         """
@@ -226,7 +220,7 @@ class MifareClassic():
         for address in range(block_start, block_end+1):
             # Read the block
             try:
-                data = self.read_block(address)
+                data = self.block_read(address)
             except:
                 print(f"Can't read block {address}")
                 return
@@ -252,7 +246,7 @@ class MifareClassic():
             
             print(" | ", end="")
             
-            value = self.check_value(data)
+            value = self.value_check(data)
             if(value is not False):
                 print(value)
             else:
@@ -383,20 +377,39 @@ if __name__ == "__main__":
 #     mif.dump_1k(uid)
     key = b"\xFF\xFF\xFF\xFF\xFF\xFF"
     pcd.authenticate(uid, 4, AUTH_KEY_A, key)
-#     data = mif.read_block(0)
+#     data = mif.block_read(0)
 #     debug("Block 0", data)
     
 #     debug_enable()
-#     mif.set_value(5, -1)
-#     value = mif.get_value(5)
+#     mif.value_set(5, -1)
+#     value = mif.value_get(5)
 #     print(value)
 #     
-#     data = mif.read_block(5)
-#     test = mif.check_value(data)
+#     data = mif.block_read(5)
+#     test = mif.value_check(data)
 #     print(test)
+
+    mif.authenticate(uid, 5, "A", b"\xFF\xFF\xFF\xFF\xFF\xFF")
+#     mif.value_set(5, 12345678)
+#     mif.value_set(5, -123)
+#     mif.value_set(6, 0)
     
-    debug_disable()
-    mif.dump_1k(uid)
+#     mif.value_restore(5)
+#     mif.value_transfer(5)
+    
+    
+    val4 = mif.value_get(4)
+    val5 = mif.value_get(5)
+    val6 = mif.value_get(6)
+
+    print(f"value of block 4 is {val4}")
+    print(f"value of block 5 is {val5}")
+    print(f"value of block 6 is {val6}")
+    
+#     debug_disable()
+#     mif.dump_1k(uid)
+
+
     
     mem_used.print_ram_used()
     

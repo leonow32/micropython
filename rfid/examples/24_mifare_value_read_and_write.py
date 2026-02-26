@@ -11,12 +11,17 @@ pcd = RC522(spi, cs, rst)
 iso = ISO_IEC_14443_3(pcd)
 mif = MifareClassic(pcd, iso)
 
-adr = 1
-key = b"\xFF\xFF\xFF\xFF\xFF\xFF"
-
 uid, _, _ = iso.scan_and_select()
-mif.authenticate(uid, adr, "A", key)
-data = mif.block_read(adr)
 
-debug(f"Block {adr} data", data)
-print(data)
+mif.authenticate(uid, 5, "A", b"\xFF\xFF\xFF\xFF\xFF\xFF")
+mif.value_set(4, 12345678)
+mif.value_set(5, -123)
+mif.value_set(6, 0)
+
+val4 = mif.value_get(4)
+val5 = mif.value_get(5)
+val6 = mif.value_get(6)
+
+print(f"value of block 4 is {val4}")
+print(f"value of block 5 is {val5}")
+print(f"value of block 6 is {val6}")

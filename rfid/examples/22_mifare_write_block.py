@@ -16,6 +16,6 @@ key = b"\xFF\xFF\xFF\xFF\xFF\xFF"
 
 uid, _, _ = iso.scan_and_select()
 mif.authenticate(uid, adr, "A", key)
-mif.write_block(adr, b"Some new data...")
+mif.block_write(adr, b"Some new data...")
 
 print(f"Block {adr} saved")

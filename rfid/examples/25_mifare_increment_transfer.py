@@ -11,12 +11,16 @@ pcd = RC522(spi, cs, rst)
 iso = ISO_IEC_14443_3(pcd)
 mif = MifareClassic(pcd, iso)
 
-adr = 1
-key = b"\xFF\xFF\xFF\xFF\xFF\xFF"
-
 uid, _, _ = iso.scan_and_select()
-mif.authenticate(uid, adr, "A", key)
-data = mif.block_read(adr)
 
-debug(f"Block {adr} data", data)
-print(data)
+mif.authenticate(uid, 5, "A", b"\xFF\xFF\xFF\xFF\xFF\xFF")
+
+# Increment value from block 4 by 1 and store the result in block 5
+mif.value_increment(4, 1)
+mif.value_transfer(5)
+
+val4 = mif.value_get(4)
+val5 = mif.value_get(5)
+
+print(f"value of block 4 is {val4}")
+print(f"value of block 5 is {val5}")
