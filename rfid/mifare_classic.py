@@ -32,8 +32,11 @@ class MifareClassic():
             raise Exception("buffer invalid, operation invalid")
         elif recv_buf[0] == 0x05:
             raise Exception("buffer invalid, parity or CRC error")
+        elif recv_buf[0] == 0x06:
+            return
+#             raise Exception("buffer invalid, parity or CRC error")
         else:
-            raise Exception(f"unsupported ack response {recv_buf[0]}")
+            raise Exception(f"unsupported ack response {recv_buf[0]:02X}")
         
     def authenticate(self, uid: bytes|bytearray, block_adr:int, key_type:str, key: bytes|bytearray) -> None:
         self.pcd.authenticate(uid, block_adr, AUTH_KEY_A if key_type=="A" else AUTH_KEY_B, key)
@@ -318,6 +321,33 @@ class MifareClassic():
         
         self.validate_ack(recv_buf)
         
+    def backdoor_change_uid(self, new_uid: bytes|bytearray, new_atqa: bytes|bytearray, new_sak: int, manufacturer_data: bytes|bytearray) -> None:
+        """
+        This function writes block 0 of MIFARE Classic card. The card must be selected and backdoor must be enabled.
+        - new_uid - 4 bytes
+        - new_atqa - 2 bytes
+        - new_sak - integer 0x00...0xFF
+        - manufacturer_data - 8 bytes
+        """
+        buffer = bytearray(16)
+        buffer[0]  = new_uid[0]
+        buffer[1]  = new_uid[1]
+        buffer[2]  = new_uid[2]
+        buffer[3]  = new_uid[3]
+        buffer[4]  = new_uid[0] ^ new_uid[1] ^ new_uid[2] ^ new_uid[3]
+        buffer[5]  = new_sak & 0xFF
+        buffer[6]  = new_atqa[0]
+        buffer[7]  = new_atqa[1]
+        buffer[8]  = manufacturer_data[0]
+        buffer[9]  = manufacturer_data[1]
+        buffer[10] = manufacturer_data[2]
+        buffer[11] = manufacturer_data[3]
+        buffer[12] = manufacturer_data[4]
+        buffer[13] = manufacturer_data[5]
+        buffer[14] = manufacturer_data[6]
+        buffer[15] = manufacturer_data[7]
+        self.block_write(0, buffer)
+        
     def backdoor_try_keys(self):
         keys = (
             b"\xA3\x96\xEF\xA4\xE2\x4F",
@@ -409,6 +439,15 @@ if __name__ == "__main__":
 #     mif.dump_1k(uid)
 
     mif.backdoor_enable()
+#     mif.authenticate(uid, 0, "A", b"\xFF\xFF\xFF\xFF\xFF\xFF")
+    mif.backdoor_change_uid(b"\x11\x22\x33\x44", b"\xAB\xCD", 0xFF, b"Extronic")
+#     mif.block_write(1, b"Some new data...")
+#     mif.block_write(1, b"ABCDEFGHIJKLMNOP")
+    
+    data = mif.block_read(1)
+    debug_enable()
+    debug("Block 1", data)
+    print(data)
     
     mem_used.print_ram_used()
     
