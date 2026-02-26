@@ -312,7 +312,6 @@ class MifareClassic():
             
         try:
             send_buf = bytearray([GOD_MODE])
-            self.pcd.crc_calculate_and_append(send_buf)
             recv_buf = self.pcd.transmit(send_buf)
         except:
             raise Exception("Can't execute the God Mode command")
@@ -375,8 +374,8 @@ if __name__ == "__main__":
     
 #     pcd.debug = False
 #     mif.dump_1k(uid)
-    key = b"\xFF\xFF\xFF\xFF\xFF\xFF"
-    pcd.authenticate(uid, 4, AUTH_KEY_A, key)
+#     key = b"\xFF\xFF\xFF\xFF\xFF\xFF"
+#     pcd.authenticate(uid, 4, AUTH_KEY_A, key)
 #     data = mif.block_read(0)
 #     debug("Block 0", data)
     
@@ -389,7 +388,7 @@ if __name__ == "__main__":
 #     test = mif.value_check(data)
 #     print(test)
 
-    mif.authenticate(uid, 5, "A", b"\xFF\xFF\xFF\xFF\xFF\xFF")
+#     mif.authenticate(uid, 5, "A", b"\xFF\xFF\xFF\xFF\xFF\xFF")
 #     mif.value_set(5, 12345678)
 #     mif.value_set(5, -123)
 #     mif.value_set(6, 0)
@@ -398,18 +397,18 @@ if __name__ == "__main__":
 #     mif.value_transfer(5)
     
     
-    val4 = mif.value_get(4)
-    val5 = mif.value_get(5)
-    val6 = mif.value_get(6)
-
-    print(f"value of block 4 is {val4}")
-    print(f"value of block 5 is {val5}")
-    print(f"value of block 6 is {val6}")
+#     val4 = mif.value_get(4)
+#     val5 = mif.value_get(5)
+#     val6 = mif.value_get(6)
+# 
+#     print(f"value of block 4 is {val4}")
+#     print(f"value of block 5 is {val5}")
+#     print(f"value of block 6 is {val6}")
     
 #     debug_disable()
 #     mif.dump_1k(uid)
 
-
+    mif.backdoor_enable()
     
     mem_used.print_ram_used()
     

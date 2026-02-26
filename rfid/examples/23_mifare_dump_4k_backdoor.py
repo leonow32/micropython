@@ -12,16 +12,7 @@ iso = ISO_IEC_14443_3(pcd)
 mif = MifareClassic(pcd, iso)
 
 uid, _, _ = iso.scan_and_select()
+mif.backdoor_enable()
 
-mif.authenticate(uid, 5, "A", b"\xFF\xFF\xFF\xFF\xFF\xFF")
-
-# Read the value from block 6 into transfer buffer and store it to block 5
-mif.value_restore(6)
-mif.value_transfer(6)
-
-val5 = mif.value_get(5)
-val6 = mif.value_get(6)
-
-print(f"value of block 5 is {val5}")
-print(f"value of block 6 is {val6}")
-
+debug_disable()
+mif.dump_4k(uid, keys=None, use_authentication=False)
