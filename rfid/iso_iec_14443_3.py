@@ -21,8 +21,11 @@ class ISO_IEC_14443_3():
     def bcc_verify(self, buffer: bytes|bytearray) -> None:
         """
         Verify BCC byte of the respinse after sending CL command. This byte shoudl be equal to XOR of byte[0...3].
-        This function rises an exception in case of BCC is nor correct.
+        This function raises an exception in case of BCC is nor correct.
         """
+        if len(buffer) != 5:
+            raise Exception(f"Wrong response length ({len(buffer)}), should be 5")
+        
         if buffer[0] ^ buffer[1] ^ buffer[2] ^ buffer[3] != buffer[4]:
             raise Exception("BCC incorrect")    
     
@@ -105,7 +108,7 @@ class ISO_IEC_14443_3():
     def select(self, uid: bytes|bytearray) -> None:
         """
         This function selects a card with UID given. The card must receive WUPA first!
-        In case there's no card with this UID this function rises an exception.
+        In case there's no card with this UID this function raises an exception.
         """
         
         if len(uid) == 4:
@@ -137,16 +140,16 @@ class ISO_IEC_14443_3():
         If the card responds to any commands, the response is printed to the console. The card should respond only to 0x26
         (REQA) and 0x52 (WUPA) commands. If it responds to anything else it might be a backdoor command.
         """
-        debug_enable = False
+        debug_disable()
         for i in range(128):
             try:
                 self.pcd.antenna_disable()
                 self.pcd.antenna_enable()
                 response = self.pcd.transmit_7bit(i)
                 
-                debug_enable = True
+                debug_enable()
                 debug(f"cmd: {i:02X} -> response", response)
-                debug_enable = False
+                debug_disable()
             except:
                 pass
-        debug_enable = True
+        debug_enable()

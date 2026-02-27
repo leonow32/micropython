@@ -22,6 +22,9 @@ class MifareClassic():
         self.pcd = pcd
     
     def validate_ack(self, recv_buf):
+        if len(recv_buf) != 1:
+            raise Exception(f"Wrong response length ({len(recv_buf)}), should be 1")
+        
         if recv_buf[0] == 0x0A:
             return
         elif recv_buf[0] == 0x00:
@@ -32,16 +35,23 @@ class MifareClassic():
             raise Exception("buffer invalid, operation invalid")
         elif recv_buf[0] == 0x05:
             raise Exception("buffer invalid, parity or CRC error")
-        elif recv_buf[0] == 0x06:
-            return
-#             raise Exception("buffer invalid, parity or CRC error")
         else:
             raise Exception(f"unsupported ack response {recv_buf[0]:02X}")
         
     def authenticate(self, uid: bytes|bytearray, block_adr:int, key_type:str, key: bytes|bytearray) -> None:
-        self.pcd.authenticate(uid, block_adr, AUTH_KEY_A if key_type=="A" else AUTH_KEY_B, key)
+        if key_type == "A":
+            cmd = AUTH_KEY_A
+        elif key_type == "B":
+            cmd = AUTH_KEY_B
+        else:
+            raise Exception(f"Key {key_type} is not supported, should be A or B")
+        
+        self.pcd.authenticate(uid, block_adr, cmd, key)
         
     def block_read(self, block_adr: int) -> bytearray:
+        """
+        Read 16-byte block. It must be authenticated before calling this function.
+        """
         send_buf = bytearray([READ, block_adr])
         self.pcd.crc_calculate_and_append(send_buf)
         recv_buf = self.pcd.transmit(send_buf)
@@ -49,6 +59,9 @@ class MifareClassic():
         return recv_buf[:-2]
         
     def block_write(self, block_adr: int, data: bytes|bytearray) -> None:
+        """
+        Write 16-byte block. It must be authenticated before calling this function.
+        """
         # First step
         send_buf = bytearray([WRITE, block_adr])
         self.pcd.crc_calculate_and_append(send_buf)
@@ -66,6 +79,9 @@ class MifareClassic():
         Checks if a 16-byte data read from a block is formatted as a value. If so, it returns value of the block.
         Otherwise returns False.
         """
+        if len(data) != 16:
+            raise Exception(f"Wrong data length ({len(data)}), should be 16")
+        
         value1 =   data[3]  << 24 | data[2]  << 16 | data[1] << 8 | data[0]
         value2 = ~(data[7]  << 24 | data[6]  << 16 | data[5] << 8 | data[4]) & 0xFFFFFFFF
         value3 = data[11] << 24 | data[10] << 16 | data[9] << 8 | data[8]
@@ -78,7 +94,7 @@ class MifareClassic():
         if value1 == value2 == value3 and adr1 == adr2 == adr3 == adr4:
             # Convert binary to U2
             if value1 & 0x80000000:
-                value1 = (value1 & 0x7FFFFFFF) - 0x80000000
+                value1 -= 0x100000000
             return value1
         else:
             return False
@@ -138,6 +154,7 @@ class MifareClassic():
         self.validate_ack(recv_buf)
         
         # Second step
+        send_buf = bytearray(4)
         send_buf[0] = value & 0xFF
         send_buf[1] = (value >> 8) & 0xFF
         send_buf[2] = (value >> 16) & 0xFF
@@ -164,6 +181,7 @@ class MifareClassic():
         self.validate_ack(recv_buf)
         
         # Second step
+        send_buf = bytearray(4)
         send_buf[0] = value & 0xFF
         send_buf[1] = (value >> 8) & 0xFF
         send_buf[2] = (value >> 16) & 0xFF
@@ -362,7 +380,7 @@ class MifareClassic():
             self.pcd.antenna_enable()
             
             try:
-                uid, atqa, sak = self.picc_scan_and_select()
+                uid, atqa, sak = self.iso.scan_and_select()
             except:
                 pass
             
@@ -375,79 +393,3 @@ class MifareClassic():
                 print(" - ok")
             except:
                 print(" - fail")
-                
-if __name__ == "__main__":
-    import mem_used
-    import measure_time
-    from machine import Pin, SPI
-    import rfid.rc522
-    import rfid.iso_iec_14443_3
-    from rfid.log import *
-    
-    spi = SPI(0, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
-    cs  = Pin(5)
-    rst = Pin(7)
-
-    pcd = rfid.rc522.RC522(spi, cs, rst)
-    
-    iso = rfid.iso_iec_14443_3.ISO_IEC_14443_3(pcd)
-    
-    mif = MifareClassic(pcd, iso)
-    
-    uid, atqa, sak = iso.scan_and_select()
-    print("Card found")
-    debug("UID", uid)
-    print(f"ATQA: {atqa:04X}")
-    print(f"SAK:  {sak:02X}")
-
-        
-    
-#     pcd.debug = False
-#     mif.dump_1k(uid)
-#     key = b"\xFF\xFF\xFF\xFF\xFF\xFF"
-#     pcd.authenticate(uid, 4, AUTH_KEY_A, key)
-#     data = mif.block_read(0)
-#     debug("Block 0", data)
-    
-#     debug_enable()
-#     mif.value_set(5, -1)
-#     value = mif.value_get(5)
-#     print(value)
-#     
-#     data = mif.block_read(5)
-#     test = mif.value_check(data)
-#     print(test)
-
-#     mif.authenticate(uid, 5, "A", b"\xFF\xFF\xFF\xFF\xFF\xFF")
-#     mif.value_set(5, 12345678)
-#     mif.value_set(5, -123)
-#     mif.value_set(6, 0)
-    
-#     mif.value_restore(5)
-#     mif.value_transfer(5)
-    
-    
-#     val4 = mif.value_get(4)
-#     val5 = mif.value_get(5)
-#     val6 = mif.value_get(6)
-# 
-#     print(f"value of block 4 is {val4}")
-#     print(f"value of block 5 is {val5}")
-#     print(f"value of block 6 is {val6}")
-    
-#     debug_disable()
-#     mif.dump_1k(uid)
-
-    mif.backdoor_enable()
-#     mif.authenticate(uid, 0, "A", b"\xFF\xFF\xFF\xFF\xFF\xFF")
-    mif.backdoor_change_uid(b"\x11\x22\x33\x44", b"\xAB\xCD", 0xFF, b"Extronic")
-#     mif.block_write(1, b"Some new data...")
-#     mif.block_write(1, b"ABCDEFGHIJKLMNOP")
-    
-    data = mif.block_read(1)
-    debug_enable()
-    debug("Block 1", data)
-    print(data)
-    
-    mem_used.print_ram_used()
-    

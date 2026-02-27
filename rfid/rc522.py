@@ -82,7 +82,7 @@ class RC522:
         self.cs  = cs
         self.rst = rst
 
-        self.timeout_ms = 100
+        self.timeout_ms = 20
         
         self.cs.init(mode=Pin.OUT, value=1)
         self.rst.init(mode=Pin.OUT, value=0)
@@ -174,13 +174,13 @@ class RC522:
     def wait_for_irq(self) -> None:
         """
         Check ComIrqReg register periodically every 10ms. Finish when RxIRq or IdleIRq bits are 1.
-        This function rises an exception in case of timeout.
+        This function raises an exception in case of timeout.
         """
-        for i in range(self.timeout_ms // 10):
+        for i in range(self.timeout_ms):
             if self.read_reg(ComIrqReg) & 0b00110000: # check RxIRq and IdleIRq
                 return
             else:
-                time.sleep_ms(10)
+                time.sleep_ms(1)
         
         raise Exception("Timeout")
     
@@ -210,8 +210,11 @@ class RC522:
         """
         The function checks the buffer returned by PICC, which contains some data and the CRC at the end of the buffer.
         The function calculates the CRC from the received data and checks whether it matches the received CRC.
-        This function rises an exception in case of wrong CRC.
+        This function raises an exception in case of wrong CRC.
         """
+        if len(buffer) < 3:
+            raise Exception(f"Data buffer too short ({len(buffer) bytes) to calculate CRC")
+        
         crc_calculated = self.crc_calculate(buffer[0:-2])
         crc_received   = buffer[-1] << 8 | buffer[-2]
         if crc_calculated != crc_received:
@@ -220,7 +223,7 @@ class RC522:
     def transmit(self, send_buf: bytearray) -> bytearray:
         """
         Transmit a bytearray buffer to the card, wait for the response, read it and return as a bytearray.
-        This function rises an exception in case there's no response from the card.
+        This function raises an exception in case there's no response from the card.
         """
         debug("Send", send_buf)
         self.write_reg(CommandReg, Idle)                # Stop any ongoing command and set RC522 to idle state
@@ -239,7 +242,7 @@ class RC522:
     def transmit_7bit(self, command_7bit: int) -> bytearray:
         """
         Transmit a 7-bit command to the card, wait for the response, read it and return as a bytearray.
-        This function rises an exception in case there's no response from the card.
+        This function raises an exception in case there's no response from the card.
         """
         debug("Send[s]", command_7bit)
         self.write_reg(CommandReg, Idle)                # Stop any ongoing command and set RC522 to idle state
@@ -258,7 +261,7 @@ class RC522:
     def authenticate(self, uid: bytes|bytearray, block_adr:int, auth_cmd:int, key: bytes|bytearray) -> None:
         """
         Perform authentication of a selected block in MIFARE Classic cards. For `auth_cmd` use AUTH_KEY_A (0x60) or
-        AUTH_KEY_B (0x61). This function rises an exception in case of failure.
+        AUTH_KEY_B (0x61). This function raises an exception in case of failure.
         """
         buffer = bytes([auth_cmd, block_adr]) + key + uid
         self.write_reg(CommandReg, Idle)                # Stop any ongoing command and set RC522 to idle state
