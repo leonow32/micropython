@@ -36,7 +36,7 @@ class MifareClassic():
         elif recv_buf[0] == 0x05:
             raise Exception("buffer invalid, parity or CRC error")
         else:
-            raise Exception(f"unsupported ack response {recv_buf[0]:02X}")
+            raise Exception(f"Unsupported ACK response {recv_buf[0]:02X}")
         
     def authenticate(self, uid: bytes|bytearray, block_adr:int, key_type:str, key: bytes|bytearray) -> None:
         if key_type == "A":
