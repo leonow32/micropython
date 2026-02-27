@@ -213,7 +213,7 @@ class RC522:
         This function raises an exception in case of wrong CRC.
         """
         if len(buffer) < 3:
-            raise Exception(f"Data buffer too short ({len(buffer) bytes) to calculate CRC")
+            raise Exception(f"Data buffer too short ({len(buffer)} bytes) to calculate CRC")
         
         crc_calculated = self.crc_calculate(buffer[0:-2])
         crc_received   = buffer[-1] << 8 | buffer[-2]

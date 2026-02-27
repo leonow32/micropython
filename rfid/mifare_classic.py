@@ -366,30 +366,38 @@ class MifareClassic():
         buffer[15] = manufacturer_data[7]
         self.block_write(0, buffer)
         
-    def backdoor_try_keys(self):
+    def backdoor_try_keys(self, block_count):
         keys = (
             b"\xA3\x96\xEF\xA4\xE2\x4F",
             b"\xA3\x16\x67\xA8\xCE\xC1",
             b"\xFF\xFF\xFF\xFF\xFF\xFF",
             b"\x51\x8B\x33\x54\xE7\x60",
+            b"\xA0\xA1\xA2\xA3\xA4\xA5",
+            b"\xD3\xF7\xD3\xF7\xD3\xF7",
+            b"\x00\x01\x02\x03\x04\x05",
         )
 
-        for key in keys:
-            self.pcd.crypto1_stop()
-            self.pcd.antenna_disable()
-            self.pcd.antenna_enable()
-            
-            try:
-                uid, atqa, sak = self.iso.scan_and_select()
-            except:
-                pass
-            
-            print("Testing key ", end="")
-            for byte in key:
-                print(f"{byte:02X} ", end="")
-            
-            try:
-                self.pcd.authenticate(uid, 4, AUTH_KEY_A, key)
-                print(" - ok")
-            except:
-                print(" - fail")
+        for block in range(0, block_count, 4):
+            print(f"Block {block}: ", end="")
+        
+            for key in keys:
+                self.pcd.crypto1_stop()
+                self.pcd.antenna_disable()
+                self.pcd.antenna_enable()
+                
+                valid_key = None
+                
+                try:
+                    uid, _, _ = self.iso.scan_and_select()
+                    self.pcd.authenticate(uid, block, AUTH_KEY_A, key)
+                    valid_key = key
+                    break
+                except:
+                    pass
+                
+            if valid_key:
+                for byte in valid_key:
+                    print(f"{byte:02X} ", end="")
+                print()
+            else:
+                print("key not found")
