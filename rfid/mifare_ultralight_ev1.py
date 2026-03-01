@@ -4,7 +4,7 @@ from rfid.log import *
 READ  = const(0x30) # Read 16 bytes = 4 blocks
 WRITE = const(0xA2) # Write 4 bytes = 1 block
 
-BLOCK_COUNT  = const(16)
+BLOCK_COUNT  = const(20)
 BLOCK_LENGTH = const(4)
    
 class MifareUltralight():
@@ -69,10 +69,14 @@ class MifareUltralight():
         """
         
         block_info = {
-            0: "UID[0:2], BCC[0]",
-            1: "UID[3:6]",
-            2: "BCC[1], INT, LOCK[0:1]",
-            3: "OTP[0:3]",
+            0:  "UID[0:2], BCC[0]",
+            1:  "UID[3:6]",
+            2:  "BCC[1], INT, LOCK[0:1]",
+            3:  "OTP[0:3]",
+            16: "MOD, RFUI, RFUI, AUTH[0]",
+            17: "ACCESS, VCTID, RFUI, RFUI",
+            18: "PWD",
+            19: "PACK[0:1], RFUI, RFUI",
         }
         
         def print_block(block_adr: int, data: bytearray) -> None:
