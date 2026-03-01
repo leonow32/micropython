@@ -1,13 +1,23 @@
 from rfid.log import *
 
-# MIFARE Ultralight commands
-READ  = const(0x30) # Read 16 bytes = 4 blocks
-WRITE = const(0xA2) # Write 4 bytes = 1 block
+# Driver for MF0UL11 and MF0UL21
+
+# MIFARE Ultralight EV1 commands
+GET_VERSION = const(0x60)
+READ        = const(0x30) # Read 16 bytes = 4 blocks
+FAST_READ   = const(0x3A)
+WRITE       = const(0xA2) # Write 4 bytes = 1 block
+READ_CNT    = const(0x39)
+INCR_CNT    = const(0xA5)
+PWD_AUTH    = const(0x1B)
+READ_SIG    = const(0x3C)
+CHECK_T_EV  = const(0x3E) # Chech teating even
+VCSL        = const(0x4B)
 
 BLOCK_COUNT  = const(20)
 BLOCK_LENGTH = const(4)
    
-class MifareUltralight():
+class MifareUltralightEV1():
     
     def __init__(self, pcd):
         self.pcd = pcd
@@ -31,6 +41,20 @@ class MifareUltralight():
         else:
             raise Exception(f"Unsupported ACK response {recv_buf[0]:02X}")
         
+    def version_get(self):
+        """
+        This function sends GET_VERSION to the card and returns 8-byte bytearray object with detailed information about the
+        card. See explanation in Table 15 of the MF0ULx1 datasheet for more details.
+        Try example 40_mifare_ultralight_ev1_version.py
+        """
+        send_buf = bytearray([GET_VERSION])
+        self.pcd.crc_calculate_and_append(send_buf)
+        recv_buf = self.pcd.transmit(send_buf)
+        if len(recv_buf) != 10:
+            raise Exception(f"version_get - wrong response length {len(recv_buf)}")
+        self.pcd.crc_verify(recv_buf)
+        return recv_buf[:-2]
+    
     def block_read(self, block_adr: int) -> bytearray:
         """
         Read 16 bytes of data (4 blocks).
@@ -117,10 +141,13 @@ if __name__ == "__main__":
     rst = Pin(7)
     pcd = RC522(spi, cs, rst)
     iso = ISO_IEC_14443_3(pcd)
-    mif = MifareUltralight(pcd)
+    mif = MifareUltralightEV1(pcd)
     
     iso.scan_and_select()
     
-    debug_disable()
-    mif.dump()
+    # dump
+#     debug_disable()
+#     mif.dump()
+
+    mif.version_get()
     
