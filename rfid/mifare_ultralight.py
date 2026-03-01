@@ -90,7 +90,7 @@ class MifareUltralight():
                     print(" ", end="")
             
             print("  | ", end="")
-            print(block_info.get(block_adr, "user data"))
+            print(block_info.get(block_adr, "User data"))
         
         print("Block | Data        | ASCII | Comment")
         
