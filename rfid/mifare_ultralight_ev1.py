@@ -69,6 +69,18 @@ class MifareUltralightEV1():
             raise Exception(f"block_read - wrong response length {len(recv_buf)}")
         self.pcd.crc_verify(recv_buf)
         return recv_buf[:-2]
+    
+    def block_read_fast(self, begin_adr: int, end_adr: int) -> bytearray:
+        """
+
+        """
+        send_buf = bytearray([FAST_READ, begin_adr, end_adr])
+        self.pcd.crc_calculate_and_append(send_buf)
+        recv_buf = self.pcd.transmit(send_buf)
+        if len(recv_buf) == 1:
+            self.validate_ack(recv_buf)
+        self.pcd.crc_verify(recv_buf)
+        return recv_buf[:-2]
         
     def block_write(self, block_adr: int, data: bytes|bytearray) -> None:
         """
@@ -149,5 +161,8 @@ if __name__ == "__main__":
 #     debug_disable()
 #     mif.dump()
 
-    mif.version_get()
+#     mif.version_get()
+
+    data = mif.block_read_fast(1, 0)
+    debug("data", data)
     
