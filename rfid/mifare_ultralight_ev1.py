@@ -65,6 +65,8 @@ class MifareUltralightEV1():
         send_buf = bytearray([READ, block_adr])
         self.pcd.crc_calculate_and_append(send_buf)
         recv_buf = self.pcd.transmit(send_buf)
+        if len(recv_buf) == 1:
+            self.validate_ack(recv_buf)
         if len(recv_buf) != 18:
             raise Exception(f"block_read - wrong response length {len(recv_buf)}")
         self.pcd.crc_verify(recv_buf)
@@ -129,6 +131,21 @@ class MifareUltralightEV1():
         self.pcd.crc_calculate_and_append(send_buf)
         recv_buf = self.pcd.transmit(send_buf)
         self.validate_ack(recv_buf)
+        
+    def signature_read(self) -> bytearray:
+        """
+        This function returns an IC-specific, 32-byte ECC signature, to verify NXP Semiconductors as the silicon vendor
+        """
+        send_buf = bytearray([READ_SIG, 0x00])
+        self.pcd.crc_calculate_and_append(send_buf)
+        recv_buf = self.pcd.transmit(send_buf)
+        if len(recv_buf) == 1:
+            self.validate_ack(recv_buf)
+        elif len(recv_buf) == 34:
+            self.pcd.crc_verify(recv_buf)
+            return recv_buf[0:-2]
+        else:
+            raise Exception(f"signature_read - wrong response length {len(recv_buf)}")
         
     def dump(self) -> None:
         """
@@ -202,12 +219,16 @@ if __name__ == "__main__":
 #     mif.version_get()
 
 #     # Counters
-    print("Counter demo")
-    data = mif.counter_read(0)
-    print(f"Counter0: {data}")
-    data = mif.counter_read(1)
-    print(f"Counter1: {data}")
-    data = mif.counter_read(2)
-    print(f"Counter2: {data}")
+#     print("Counter demo")
+#     data = mif.counter_read(0)
+#     print(f"Counter0: {data}")
+#     data = mif.counter_read(1)
+#     print(f"Counter1: {data}")
+#     data = mif.counter_read(2)
+#     print(f"Counter2: {data}")
+    
+    # ECC Signature
+    data = mif.signature_read()
+    debug("Signature", data)
 
     
