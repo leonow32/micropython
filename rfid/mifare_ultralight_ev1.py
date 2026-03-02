@@ -72,7 +72,7 @@ class MifareUltralightEV1():
     
     def block_read_fast(self, begin_adr: int, end_adr: int) -> bytearray:
         """
-
+        Read multiple blocks of memory. You can read up to 15 blocks = 60 bytes.
         """
         send_buf = bytearray([FAST_READ, begin_adr, end_adr])
         self.pcd.crc_calculate_and_append(send_buf)
@@ -98,7 +98,38 @@ class MifareUltralightEV1():
         if len(recv_buf) != 1:
             raise Exception(f"block_write - wrong response length {len(recv_buf)}")
         self.validate_ack(recv_buf)
-                
+    
+    def counter_read(self, num: int) -> int:
+        """
+        Read value of the counter 0, 1 or 2.
+        """
+        send_buf = bytearray([READ_CNT, num])
+        self.pcd.crc_calculate_and_append(send_buf)
+        recv_buf = self.pcd.transmit(send_buf)
+        if len(recv_buf) == 1:
+            self.validate_ack(recv_buf)
+        elif len(recv_buf) == 5:
+            self.pcd.crc_verify(recv_buf)
+            value = recv_buf[2]  << 16 | recv_buf[1] << 8 | recv_buf[0]
+            return value
+        else:
+            raise Exception(f"counter_read - wrong response length {len(recv_buf)}")
+        
+    def counter_increment(self, num: int, value: int) -> None:
+        """
+        Increment selected counter by the given value. Important - counters are one way and can't be cleared.
+        """
+        send_buf = bytearray(6)
+        send_buf[0] = INCR_CNT
+        send_buf[1] = num
+        send_buf[2] = value & 0xFF
+        send_buf[3] = (value >> 8) & 0xFF
+        send_buf[4] = (value >> 16) & 0xFF
+        send_buf[5] = 0x00 # dummy byte
+        self.pcd.crc_calculate_and_append(send_buf)
+        recv_buf = self.pcd.transmit(send_buf)
+        self.validate_ack(recv_buf)
+        
     def dump(self) -> None:
         """
         Read the whole memory and print it in HEX and ASCII format.
@@ -141,6 +172,13 @@ class MifareUltralightEV1():
             a = (block_adr % 4) * 4
             b = a+4
             print_block(block_adr, data[a:b])
+            
+        data = mif.counter_read(0)
+        print(f"Counter 0: {data}")
+        data = mif.counter_read(1)
+        print(f"Counter 1: {data}")
+        data = mif.counter_read(2)
+        print(f"Counter 2: {data}")
                 
 if __name__ == "__main__":
     from machine import Pin, SPI
@@ -163,6 +201,13 @@ if __name__ == "__main__":
 
 #     mif.version_get()
 
-    data = mif.block_read_fast(1, 0)
-    debug("data", data)
+#     # Counters
+    print("Counter demo")
+    data = mif.counter_read(0)
+    print(f"Counter0: {data}")
+    data = mif.counter_read(1)
+    print(f"Counter1: {data}")
+    data = mif.counter_read(2)
+    print(f"Counter2: {data}")
+
     
