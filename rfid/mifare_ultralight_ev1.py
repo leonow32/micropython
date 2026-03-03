@@ -88,8 +88,8 @@ class MifareUltralightEV1():
         """
         Write 4 bytes of data (1 block).
         """
-        if block_adr >= BLOCK_COUNT:
-            raise Exception(f"block_write({block_adr}, {data}) - block_adr over limit {BLOCK_COUNT-1}")
+#         if block_adr >= BLOCK_COUNT:
+#             raise Exception(f"block_write({block_adr}, {data}) - block_adr over limit {BLOCK_COUNT-1}")
         
         if len(data) != BLOCK_LENGTH:
             raise Exception(f"block_write({block_adr}, {data}) - wrong data length {len(data)}, should be {BLOCK_LENGTH}")
@@ -121,6 +121,9 @@ class MifareUltralightEV1():
         """
         Increment selected counter by the given value. Important - counters are one way and can't be cleared.
         """
+        if value > 0xFFFFFF:
+            raise Exception(f"counter_increment - value {value} over range")
+        
         send_buf = bytearray(6)
         send_buf[0] = INCR_CNT
         send_buf[1] = num
@@ -146,6 +149,58 @@ class MifareUltralightEV1():
             return recv_buf[0:-2]
         else:
             raise Exception(f"signature_read - wrong response length {len(recv_buf)}")
+        
+    def authenticate(self, key: bytes|bytearray) -> bytearray:
+        """
+        Perfrom an authentication with 4-byte password. After successful authentication, the card responds with
+        2-byte PACK (password acknowledge) which is stored in EEPROM memory of the card and can be changed with
+        `write` command. Default password is b"\xFF\xFF\xFF\xFF" and default PACK is b"\x00\x00".
+        """
+        if len(key) != 4:
+            raise Exception(f"authenticate - wrong key length {len(key)}, must be 4")
+        
+        send_buf = bytearray([PWD_AUTH]) + key
+        self.pcd.crc_calculate_and_append(send_buf)
+        recv_buf = self.pcd.transmit(send_buf)
+        if len(recv_buf) == 1:
+            self.validate_ack(recv_buf)
+        elif len(recv_buf) == 4:
+            self.pcd.crc_verify(recv_buf)
+            return recv_buf[0:-2]
+        else:
+            raise Exception(f"authenticate - wrong response length {len(recv_buf)}")
+        
+    def uid_change(self, new_uid: bytes|bytearray) -> None:
+        """
+
+        """
+        if len(new_uid) != 7:
+            raise Exception(f"change_uid - wrong length {len(new_uid)}, must be 7")
+        
+        # Step 1
+        buf = bytearray(4)
+        buf[0] = new_uid[0]
+        buf[1] = new_uid[1]
+        buf[2] = new_uid[2]
+        buf[3] = 0x88 ^ new_uid[0] ^ new_uid[1] ^ new_uid[2]
+        self.block_write(0, buf)
+        
+        # Step 2
+        print(f"len(buf) = {len(buf)}")
+        buf[0] = new_uid[3]
+        buf[1] = new_uid[4]
+        buf[2] = new_uid[5]
+        buf[3] = new_uid[6]
+        self.block_write(1, buf)
+        
+        # Step 3
+        buf = self.block_read(2)[0:4]
+        debug("Buffer after step 3", buf)
+        
+        # Step 4
+        buf[0] = new_uid[3] ^ new_uid[4] ^ new_uid[5] ^ new_uid[6]
+        self.block_write(2, buf)
+        
         
     def dump(self) -> None:
         """
@@ -228,7 +283,13 @@ if __name__ == "__main__":
 #     print(f"Counter2: {data}")
     
     # ECC Signature
-    data = mif.signature_read()
-    debug("Signature", data)
+#     data = mif.signature_read()
+#     debug("Signature", data)
 
+    print("Authentication")
+#     data = mif.authenticate(b"\xFF\xFF\xFF\xFF")
+#     data = mif.authenticate(b"\x00\x11\x22\x33")
+    
+    print("Change UID")
+    mif.uid_change(b"\x12\x34\x56\x78\x9A\xBC\xDE")
     
