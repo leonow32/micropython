@@ -164,6 +164,20 @@ class MifareUltralightEV1():
         else:
             raise Exception(f"authenticate - wrong response length {len(recv_buf)}")
         
+    def configure_security(self, password, pack, try_times, address, mode):
+        """
+        `password` - 4 bytes.
+        `pack` - 2 bytes, this is the response of the card after successful authentication with password.
+        `try_times` - Number of failed authentications after which authentication will never be possible again. Max 7.
+        If set to zero, brute force is possible and the card will not lock after unsuccessful authentication.
+        `address` - the page address from which the password verification is required. Valid range is from 0x00 to 0xFF.
+        If address is set to a page address which is higher than the last configuration page, the password protection
+        is effectively disabled.
+        `mode` - 0: write access is protected by the password verification, 1: read and write access is protected.
+        """
+        
+        pass
+        
     def uid_change(self, new_uid: bytes|bytearray) -> None:
         """
         This command works only with some Chinese clones of MF0UL11 that allow write operations on blocks 0-3.
@@ -194,7 +208,6 @@ class MifareUltralightEV1():
         # Step 4
         buf[0] = new_uid[3] ^ new_uid[4] ^ new_uid[5] ^ new_uid[6]
         self.block_write(2, buf)
-        
         
     def dump(self) -> None:
         """
@@ -280,23 +293,8 @@ if __name__ == "__main__":
     iso.scan_and_select()
     
     # dump
-    debug_disable()
-    mif.dump()
-
-#     mif.version_get()
-
-#     # Counters
-#     print("Counter demo")
-#     data = mif.counter_read(0)
-#     print(f"Counter0: {data}")
-#     data = mif.counter_read(1)
-#     print(f"Counter1: {data}")
-#     data = mif.counter_read(2)
-#     print(f"Counter2: {data}")
-    
-    # ECC Signature
-#     data = mif.signature_read()
-#     debug("Signature", data)
+#     debug_disable()
+#     mif.dump()
 
 #     print("Authentication")
 #     data = mif.authenticate(b"\xFF\xFF\xFF\xFF")
