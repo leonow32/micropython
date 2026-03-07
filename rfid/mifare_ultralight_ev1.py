@@ -5,16 +5,15 @@ from rfid.log import *
 # MIFARE Ultralight EV1 commands
 GET_VERSION = const(0x60)
 READ        = const(0x30) # Read 16 bytes = 4 blocks
-FAST_READ   = const(0x3A)
+FAST_READ   = const(0x3A) # Read selected blocks, max 15 blocks in single operation
 WRITE       = const(0xA2) # Write 4 bytes = 1 block
 READ_CNT    = const(0x39)
 INCR_CNT    = const(0xA5)
 PWD_AUTH    = const(0x1B)
 READ_SIG    = const(0x3C)
-CHECK_T_EV  = const(0x3E) # Chech teating even
+CHECK_T_EV  = const(0x3E) # Check teating even
 VCSL        = const(0x4B)
 
-BLOCK_COUNT  = const(20)
 BLOCK_LENGTH = const(4)
    
 class MifareUltralightEV1():
@@ -59,9 +58,6 @@ class MifareUltralightEV1():
         """
         Read 16 bytes of data (4 blocks).
         """
-        if block_adr >= BLOCK_COUNT:
-            raise Exception(f"block_read({block_adr}) - block_adr over limit {BLOCK_COUNT-1}")
-            
         send_buf = bytearray([READ, block_adr])
         self.pcd.crc_calculate_and_append(send_buf)
         recv_buf = self.pcd.transmit(send_buf)
@@ -88,8 +84,6 @@ class MifareUltralightEV1():
         """
         Write 4 bytes of data (1 block).
         """
-#         if block_adr >= BLOCK_COUNT:
-#             raise Exception(f"block_write({block_adr}, {data}) - block_adr over limit {BLOCK_COUNT-1}")
         
         if len(data) != BLOCK_LENGTH:
             raise Exception(f"block_write({block_adr}, {data}) - wrong data length {len(data)}, should be {BLOCK_LENGTH}")
@@ -172,7 +166,7 @@ class MifareUltralightEV1():
         
     def uid_change(self, new_uid: bytes|bytearray) -> None:
         """
-
+        This command works only with some Chinese clones of MF0UL11 that allow write operations on blocks 0-3.
         """
         if len(new_uid) != 7:
             raise Exception(f"change_uid - wrong length {len(new_uid)}, must be 7")
@@ -207,16 +201,34 @@ class MifareUltralightEV1():
         Read the whole memory and print it in HEX and ASCII format.
         """
         
-        block_info = {
-            0:  "UID[0:2], BCC[0]",
-            1:  "UID[3:6]",
-            2:  "BCC[1], INT, LOCK[0:1]",
-            3:  "OTP[0:3]",
-            16: "MOD, RFUI, RFUI, AUTH[0]",
-            17: "ACCESS, VCTID, RFUI, RFUI",
-            18: "PWD",
-            19: "PACK[0:1], RFUI, RFUI",
-        }
+        version = self.version_get()
+        if version[6] == 0x0B:
+            block_count = 20
+            block_info = {
+                0:  "UID[0:2], BCC[0]",
+                1:  "UID[3:6]",
+                2:  "BCC[1], INT, LOCK[0:1]",
+                3:  "OTP[0:3]",
+                16: "MOD, RFUI, RFUI, AUTH[0]",
+                17: "ACCESS, VCTID, RFUI, RFUI",
+                18: "PWD",
+                19: "PACK[0:1], RFUI, RFUI",
+            }
+        elif version[6] == 0x0E:
+            block_count = 41
+            block_info = {
+                0:  "UID[0:2], BCC[0]",
+                1:  "UID[3:6]",
+                2:  "BCC[1], INT, LOCK[0:1]",
+                3:  "OTP[0:3]",
+                36: "LOCK[2:4], FRUI",
+                37: "MOD, RFUI, RFUI, AUTH[0]",
+                38: "ACCESS, VCTID, RFUI, RFUI",
+                39: "PWD",
+                40: "PACK[0:1], RFUI, RFUI",
+            }
+        else:
+            raise Exception(f"Unknown storage descriptor {version[6]:02X} in version data")
         
         def print_block(block_adr: int, data: bytearray) -> None:
             print(f"{block_adr:5} | ", end="")
@@ -237,7 +249,7 @@ class MifareUltralightEV1():
         
         print("Block | Data        | ASCII | Comment")
         
-        for block_adr in range(BLOCK_COUNT):
+        for block_adr in range(block_count):
             if block_adr%4 == 0:
                 data = self.block_read(block_adr)
                 
@@ -245,11 +257,11 @@ class MifareUltralightEV1():
             b = a+4
             print_block(block_adr, data[a:b])
             
-        data = mif.counter_read(0)
+        data = self.counter_read(0)
         print(f"Counter 0: {data}")
-        data = mif.counter_read(1)
+        data = self.counter_read(1)
         print(f"Counter 1: {data}")
-        data = mif.counter_read(2)
+        data = self.counter_read(2)
         print(f"Counter 2: {data}")
                 
 if __name__ == "__main__":
@@ -268,8 +280,8 @@ if __name__ == "__main__":
     iso.scan_and_select()
     
     # dump
-#     debug_disable()
-#     mif.dump()
+    debug_disable()
+    mif.dump()
 
 #     mif.version_get()
 
@@ -286,10 +298,10 @@ if __name__ == "__main__":
 #     data = mif.signature_read()
 #     debug("Signature", data)
 
-    print("Authentication")
+#     print("Authentication")
 #     data = mif.authenticate(b"\xFF\xFF\xFF\xFF")
 #     data = mif.authenticate(b"\x00\x11\x22\x33")
     
-    print("Change UID")
-    mif.uid_change(b"\x12\x34\x56\x78\x9A\xBC\xDE")
+#     print("Change UID")
+#     mif.uid_change(b"\x12\x34\x56\x78\x9A\xBC\xDE")
     
