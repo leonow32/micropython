@@ -17,4 +17,3 @@ print("Read ECC sigature")
 data = mif.signature_read()
 
 debug("Signature", data)
-

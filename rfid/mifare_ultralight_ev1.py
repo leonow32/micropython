@@ -302,4 +302,3 @@ class MifareUltralightEV1():
         print(f"Counter 1: {data}")
         data = self.counter_read(2)
         print(f"Counter 2: {data}")
-    
