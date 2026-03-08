@@ -13,5 +13,9 @@ mif = MifareUltralightEV1(pcd)
 
 iso.scan_and_select()
 
+# If the card is secured, you may need to perform the authetication first
+# mif.authenticate(b"\xFF\xFF\xFF\xFF") # Default password
+# mif.authenticate(b"\x11\x22\x33\x44") # Password from security_configure.py
+
 debug_disable()
 mif.dump()

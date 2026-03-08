@@ -11,7 +11,7 @@ READ_CNT    = const(0x39)
 INCR_CNT    = const(0xA5)
 PWD_AUTH    = const(0x1B)
 READ_SIG    = const(0x3C)
-CHECK_T_EV  = const(0x3E) # Check teating even
+CHECK_T_EV  = const(0x3E) # Check tearing even
 VCSL        = const(0x4B)
 
 BLOCK_LENGTH = const(4)
@@ -144,16 +144,16 @@ class MifareUltralightEV1():
         else:
             raise Exception(f"signature_read - wrong response length {len(recv_buf)}")
         
-    def authenticate(self, key: bytes|bytearray) -> bytearray:
+    def authenticate(self, password: bytes|bytearray) -> bytearray:
         """
         Perfrom an authentication with 4-byte password. After successful authentication, the card responds with
         2-byte PACK (password acknowledge) which is stored in EEPROM memory of the card and can be changed with
         `write` command. Default password is b"\xFF\xFF\xFF\xFF" and default PACK is b"\x00\x00".
         """
-        if len(key) != 4:
-            raise Exception(f"authenticate - wrong key length {len(key)}, must be 4")
+        if len(password) != 4:
+            raise Exception(f"authenticate - wrong password length {len(password)}, must be 4")
         
-        send_buf = bytearray([PWD_AUTH]) + key
+        send_buf = bytearray([PWD_AUTH]) + password
         self.pcd.crc_calculate_and_append(send_buf)
         recv_buf = self.pcd.transmit(send_buf)
         if len(recv_buf) == 1:
@@ -164,7 +164,7 @@ class MifareUltralightEV1():
         else:
             raise Exception(f"authenticate - wrong response length {len(recv_buf)}")
         
-    def configure_security(self, password, pack, try_times, address, mode):
+    def security_configure(self, password, pack, try_times, address, mode):
         """
         `password` - 4 bytes.
         `pack` - 2 bytes, this is the response of the card after successful authentication with password.
@@ -175,6 +175,15 @@ class MifareUltralightEV1():
         is effectively disabled.
         `mode` - 0: write access is protected by the password verification, 1: read and write access is protected.
         """
+        if len(password) != 4:
+            raise Exception(f"security_configure - wrong password length {len(password)}, must be 4")
+        if len(pack) != 2:
+            raise Exception(f"security_configure - wrong pack length {len(pack)}, must be 2")
+        if try_times > 7:
+            raise Exception(f"security_configure - wrong value of try_times {try_times}, must <= 7")
+        if mode > 1:
+            raise Exception(f"security_configure - wrong value of mode {mode}, must 0 or 1")
+        
         version = self.version_get()
         if version[6] == 0x0B:
             cfg_address = 16
@@ -212,7 +221,6 @@ class MifareUltralightEV1():
         self.block_write(0, buf)
         
         # Step 2
-        print(f"len(buf) = {len(buf)}")
         buf[0] = new_uid[3]
         buf[1] = new_uid[4]
         buf[2] = new_uid[5]
@@ -260,7 +268,7 @@ class MifareUltralightEV1():
             }
         else:
             raise Exception(f"Unknown storage descriptor {version[6]:02X} in version data")
-        
+    
         def print_block(block_adr: int, data: bytearray) -> None:
             print(f"{block_adr:5} | ", end="")
             
@@ -294,30 +302,4 @@ class MifareUltralightEV1():
         print(f"Counter 1: {data}")
         data = self.counter_read(2)
         print(f"Counter 2: {data}")
-                
-if __name__ == "__main__":
-    from machine import Pin, SPI
-    from rfid.rc522 import RC522
-    from rfid.iso_iec_14443_3 import ISO_IEC_14443_3
-    from rfid.log import *
-
-    spi = SPI(0, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
-    cs  = Pin(5)
-    rst = Pin(7)
-    pcd = RC522(spi, cs, rst)
-    iso = ISO_IEC_14443_3(pcd)
-    mif = MifareUltralightEV1(pcd)
-    
-    iso.scan_and_select()
-    
-    # dump
-#     debug_disable()
-#     mif.dump()
-
-#     print("Authentication")
-#     data = mif.authenticate(b"\xFF\xFF\xFF\xFF")
-#     data = mif.authenticate(b"\x00\x11\x22\x33")
-    
-#     print("Change UID")
-#     mif.uid_change(b"\x12\x34\x56\x78\x9A\xBC\xDE")
     
