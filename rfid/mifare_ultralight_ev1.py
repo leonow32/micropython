@@ -175,8 +175,26 @@ class MifareUltralightEV1():
         is effectively disabled.
         `mode` - 0: write access is protected by the password verification, 1: read and write access is protected.
         """
+        version = self.version_get()
+        if version[6] == 0x0B:
+            cfg_address = 16
+        elif version[6] == 0x0E:
+            cfg_address = 37
+        else:
+            raise Exception(f"Unknown storage descriptor {version[6]:02X} in version data")
         
-        pass
+        send_buf = bytearray([0x04, 0x00, 0x00, address]) # register 16/37: MOD, RFUI, RFUI, AUTH0
+        self.block_write(cfg_address, send_buf)
+        
+        send_buf = bytearray([mode << 7 | try_times, 0x05, 0x00, 0x00]) # register 17/38: ACCESS, VCTID, RFUI, RFUI
+        self.block_write(cfg_address+1, send_buf)
+        
+        self.block_write(cfg_address+2, password) # register 18/39: PWD[0:3]
+        
+        send_buf = pack + bytearray([0x00, 0x00]) # register 19/40: PACK[1:0], RFUI, RFUI
+        self.block_write(cfg_address+3, send_buf)
+        
+        
         
     def uid_change(self, new_uid: bytes|bytearray) -> None:
         """
