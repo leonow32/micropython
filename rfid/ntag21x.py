@@ -238,51 +238,32 @@ class NTAG21X():
         Read the whole memory and print it in HEX and ASCII format.
         """
         
-#         version = self.version_get()
-#         if version[6] == 0x0B:
-#             block_count = 20
-#             block_info = {
-#                 0:  "UID[0:2], BCC[0]",
-#                 1:  "UID[3:6]",
-#                 2:  "BCC[1], INT, LOCK[0:1]",
-#                 3:  "OTP[0:3]",
-#                 16: "MOD, RFUI, RFUI, AUTH[0]",
-#                 17: "ACCESS, VCTID, RFUI, RFUI",
-#                 18: "PWD",
-#                 19: "PACK[0:1], RFUI, RFUI",
-#             }
-#         elif version[6] == 0x0E:
-#             block_count = 41
-#             block_info = {
-#                 0:  "UID[0:2], BCC[0]",
-#                 1:  "UID[3:6]",
-#                 2:  "BCC[1], INT, LOCK[0:1]",
-#                 3:  "OTP[0:3]",
-#                 36: "LOCK[2:4], FRUI",
-#                 37: "MOD, RFUI, RFUI, AUTH[0]",
-#                 38: "ACCESS, VCTID, RFUI, RFUI",
-#                 39: "PWD",
-#                 40: "PACK[0:1], RFUI, RFUI",
-#             }
-#         else:
-#             raise Exception(f"Unknown storage descriptor {version[6]:02X} in version data")
+        
+        
+        version = self.version_get()
+        if version[6] == 0x0F: # NTAG213
+            block_count   = 45
+            config_offset = 40
+        elif version[6] == 0x11: # NTAG215
+            block_count   = 135
+            config_offset = 130
+        elif version[6] == 0x13: # NTAG216
+            block_count   = 231
+            config_offset = 226
+        else:
+            raise Exception(f"Unknown storage descriptor {version[6]:02X} in version data")
     
-    
-        block_count = 20
         block_info = {
             0:  "UID[0:2], BCC[0]",
             1:  "UID[3:6]",
             2:  "BCC[1], INT, LOCK[0:1]",
-            3:  "OTP[0:3]",
-            16: "MOD, RFUI, RFUI, AUTH[0]",
-            17: "ACCESS, VCTID, RFUI, RFUI",
-            18: "PWD",
-            19: "PACK[0:1], RFUI, RFUI",
+            3:  "CC[0:3]",
+            config_offset:   "LOCK[2:4], CHK",
+            config_offset+1: "MIRROR, RFUI, MIRROR_PAGE, AUTH0", # tu powinny byc 4 bajty
+            config_offset+2: "ACCESS, RFUI, RFUI, RFUI",
+            config_offset+3: "PWD[0:3]",
+            config_offset+4: "PACK[0:1], RFUI, RFUI",
         }
-        
-        
-        
-        
         
         def print_block(block_adr: int, data: bytearray) -> None:
             print(f"{block_adr:5} | ", end="")
