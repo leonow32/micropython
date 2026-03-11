@@ -238,9 +238,8 @@ class NTAG21X():
         Read the whole memory and print it in HEX and ASCII format.
         """
         
-        
-        
         version = self.version_get()
+        
         if version[6] == 0x0F: # NTAG213
             block_count   = 45
             config_offset = 40
