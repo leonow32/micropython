@@ -183,25 +183,28 @@ class NTAG21X():
             raise Exception(f"security_configure - wrong value of mode {mode}, must 0 or 1")
         
         version = self.version_get()
-        if version[6] == 0x0B:
-            cfg_address = 16
-        elif version[6] == 0x0E:
-            cfg_address = 37
+        
+        if version[6] == 0x0F: # NTAG213
+            cfg_address   = 0x29
+        elif version[6] == 0x11: # NTAG215
+            cfg_address   = 0x83
+        elif version[6] == 0x13: # NTAG216
+            cfg_address   = 0xE3
         else:
             raise Exception(f"Unknown storage descriptor {version[6]:02X} in version data")
         
-        send_buf = bytearray([0x04, 0x00, 0x00, address]) # register 16/37: MOD, RFUI, RFUI, AUTH0
+        cfg0 = self.block_read_fast(cfg_address, cfg_address)
+        
+        send_buf = bytearray([cfg0[0], cfg0[1], cfg0[2], address]) # block CFG0: MIRROR, RFUI, MIRROR_PAGE, AUTH0
         self.block_write(cfg_address, send_buf)
         
-        send_buf = bytearray([mode << 7 | try_times, 0x05, 0x00, 0x00]) # register 17/38: ACCESS, VCTID, RFUI, RFUI
+        send_buf = bytearray([mode << 7 | try_times, 0x05, 0x00, 0x00]) # block CFG1: ACCESS, RFUI, RFUI, RFUI
         self.block_write(cfg_address+1, send_buf)
         
-        self.block_write(cfg_address+2, password) # register 18/39: PWD[0:3]
+        self.block_write(cfg_address+2, password) # block 18/39: PWD[0:3]
         
-        send_buf = pack + bytearray([0x00, 0x00]) # register 19/40: PACK[1:0], RFUI, RFUI
+        send_buf = pack + bytearray([0x00, 0x00]) # block 19/40: PACK[1:0], RFUI, RFUI
         self.block_write(cfg_address+3, send_buf)
-        
-        
         
     def uid_change(self, new_uid: bytes|bytearray) -> None:
         """
@@ -290,13 +293,6 @@ class NTAG21X():
             a = (block_adr % 4) * 4
             b = a+4
             print_block(block_adr, data[a:b])
-            
-#         data = self.counter_read(0)
-#         print(f"Counter 0: {data}")
-#         data = self.counter_read(1)
-#         print(f"Counter 1: {data}")
-#         data = self.counter_read(2)
-#         print(f"Counter 2: {data}")
 
 if __name__ == "__main__":
     from machine import Pin, SPI
