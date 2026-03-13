@@ -93,11 +93,11 @@ class NTAG21X():
             raise Exception(f"block_write - wrong response length {len(recv_buf)}")
         self.validate_ack(recv_buf)
     
-    def counter_read(self, num: int) -> int:
+    def counter_read(self) -> int:
         """
-        Read value of the counter 0, 1 or 2.
+        Read value of the counter.
         """
-        send_buf = bytearray([READ_CNT, num])
+        send_buf = bytearray([READ_CNT, 2])
         self.pcd.crc_calculate_and_append(send_buf)
         recv_buf = self.pcd.transmit(send_buf)
         if len(recv_buf) == 1:
@@ -198,13 +198,70 @@ class NTAG21X():
         send_buf = bytearray([cfg0[0], cfg0[1], cfg0[2], address]) # block CFG0: MIRROR, RFUI, MIRROR_PAGE, AUTH0
         self.block_write(cfg_address, send_buf)
         
-        send_buf = bytearray([mode << 7 | try_times, 0x05, 0x00, 0x00]) # block CFG1: ACCESS, RFUI, RFUI, RFUI
+        send_buf = bytearray([(cfg[1] & 0b01111000) | (mode << 7) | try_times, 0x00, 0x00, 0x00]) # block CFG1: ACCESS, RFUI, RFUI, RFUI
         self.block_write(cfg_address+1, send_buf)
         
         self.block_write(cfg_address+2, password) # block 18/39: PWD[0:3]
         
         send_buf = pack + bytearray([0x00, 0x00]) # block 19/40: PACK[1:0], RFUI, RFUI
         self.block_write(cfg_address+3, send_buf)
+        
+    def mirror_configure(self, mode, page, byte) -> None:
+        """
+        Configure the mirror feature. It can copy some data into memory of the card in ASCII format to let it be readable
+        as a NDEF message by a smartphone.
+        - mode - 0b00 no mirror, 0x01 UID mirror, 0b10 NFC counter mirror, 0b11 UID and NFC counter mirror
+        - page - the page (block address) for the beginning of the ASCII mirroring
+        - byte - The 2 bits define the byte position within the page defined by the `page`. Range 0...3.
+        """
+        if mode > 3:
+            raise Exception("mirror_configure - mode of of range")
+        if byte > 3:
+            raise Exception("mirror_configure - byte of of range")
+        
+        version = self.version_get()
+        
+        if version[6] == 0x0F: # NTAG213
+            cfg_address   = 0x29
+        elif version[6] == 0x11: # NTAG215
+            cfg_address   = 0x83
+        elif version[6] == 0x13: # NTAG216
+            cfg_address   = 0xE3
+        else:
+            raise Exception(f"Unknown storage descriptor {version[6]:02X} in version data")
+        
+        cfg = self.block_read_fast(cfg_address, cfg_address)
+        cfg[0] = cfg[0] & 0b00001111
+        cfg[0] = cfg[0] | (mode << 6) | (byte << 4)
+        cfg[2] = page
+        
+        self.block_write(cfg_address, cfg)
+        
+    def counter_configure(self, enable: bool, protect: bool) -> None:
+        """
+
+        """
+        version = self.version_get()
+        
+        if version[6] == 0x0F: # NTAG213
+            cfg_address   = 0x2A
+        elif version[6] == 0x11: # NTAG215
+            cfg_address   = 0x84
+        elif version[6] == 0x13: # NTAG216
+            cfg_address   = 0xE4
+        else:
+            raise Exception(f"Unknown storage descriptor {version[6]:02X} in version data")
+        
+        cfg = self.block_read_fast(cfg_address, cfg_address)
+    
+        cfg[0] = cfg[0] & 0b11100111
+        if enable:
+            cfg[0] |= 0b00010000
+        if protect:
+            cfg[0] |= 0b00001000
+            
+        self.block_write(cfg_address, cfg)
+        
         
     def uid_change(self, new_uid: bytes|bytearray) -> None:
         """
@@ -268,7 +325,7 @@ class NTAG21X():
         }
         
         def print_block(block_adr: int, data: bytearray) -> None:
-            print(f"{block_adr:5} | ", end="")
+            print(f"{block_adr:02X} {block_adr:3} | ", end="")
             
             for byte in data:
                 print(f"{byte:02X} ", end="")
@@ -284,7 +341,7 @@ class NTAG21X():
             print("  | ", end="")
             print(block_info.get(block_adr, "User data"))
         
-        print("Block | Data        | ASCII | Comment")
+        print("Block  | Data        | ASCII | Comment")
         
         for block_adr in range(block_count):
             if block_adr%4 == 0:
