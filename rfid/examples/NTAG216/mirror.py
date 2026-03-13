@@ -13,8 +13,13 @@ mif = NTAG21X(pcd)
 
 iso.scan_and_select()
 
-# Make sure that the counter is enabled first and possible to read without authentication.
-# See mirror.py for example.
+debug_disable()
 
-value = mif.counter_read()
-print(f"Value {value}")
+# Enables the counter and makes it possible to be read without authentication
+mif.counter_configure(enable=True, protect=False)
+
+# Enable the mirror of UID and counter. Place it byte 0 of page 200.
+mif.mirror_configure(mode=0b11, page=200, byte=0)
+
+# Check what's in page 200.
+mif.dump()
