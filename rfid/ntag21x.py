@@ -8,11 +8,8 @@ READ        = const(0x30) # Read 16 bytes = 4 blocks
 FAST_READ   = const(0x3A) # Read selected blocks, max 15 blocks in single operation
 WRITE       = const(0xA2) # Write 4 bytes = 1 block
 READ_CNT    = const(0x39)
-#INCR_CNT    = const(0xA5)
 PWD_AUTH    = const(0x1B)
 READ_SIG    = const(0x3C)
-#CHECK_T_EV  = const(0x3E) # Check tearing even
-#VCSL        = const(0x4B)
 
 BLOCK_LENGTH = const(4)
    
@@ -21,7 +18,7 @@ class NTAG21X():
     def __init__(self, pcd):
         self.pcd = pcd
     
-    def validate_ack(self, recv_buf):
+    def validate_ack(self, recv_buf: bytearray) -> None:
         if len(recv_buf) != 1:
             raise Exception(f"Wrong response length ({len(recv_buf)}), should be 1")
         
@@ -38,7 +35,7 @@ class NTAG21X():
         else:
             raise Exception(f"Unsupported ACK response {recv_buf[0]:02X}")
         
-    def version_get(self):
+    def version_get(self) -> bytearray:
         """
         This function sends GET_VERSION to the card and returns 8-byte bytearray object with detailed information about the
         card. See explanation in Table 15 of the MF0ULx1 datasheet for more details.
@@ -109,24 +106,6 @@ class NTAG21X():
         else:
             raise Exception(f"counter_read - wrong response length {len(recv_buf)}")
         
-    def counter_increment(self, num: int, value: int) -> None:
-        """
-        Increment selected counter by the given value. Important - counters are one way and can't be cleared.
-        """
-        if value > 0xFFFFFF:
-            raise Exception(f"counter_increment - value {value} over range")
-        
-        send_buf = bytearray(6)
-        send_buf[0] = INCR_CNT
-        send_buf[1] = num
-        send_buf[2] = value & 0xFF
-        send_buf[3] = (value >> 8) & 0xFF
-        send_buf[4] = (value >> 16) & 0xFF
-        send_buf[5] = 0x00 # dummy byte
-        self.pcd.crc_calculate_and_append(send_buf)
-        recv_buf = self.pcd.transmit(send_buf)
-        self.validate_ack(recv_buf)
-        
     def signature_read(self) -> bytearray:
         """
         This function returns an IC-specific, 32-byte ECC signature, to verify NXP Semiconductors as the silicon vendor
@@ -144,7 +123,7 @@ class NTAG21X():
         
     def authenticate(self, password: bytes|bytearray) -> bytearray:
         """
-        Perfrom an authentication with 4-byte password. After successful authentication, the card responds with
+        Perform an authentication with 4-byte password. After successful authentication, the card responds with
         2-byte PACK (password acknowledge) which is stored in EEPROM memory of the card and can be changed with
         `write` command. Default password is b"\xFF\xFF\xFF\xFF" and default PACK is b"\x00\x00".
         """
@@ -162,7 +141,7 @@ class NTAG21X():
         else:
             raise Exception(f"authenticate - wrong response length {len(recv_buf)}")
         
-    def security_configure(self, password, pack, try_times, address, mode):
+    def security_configure(self, password: bytes|bytearray, pack: bytes|bytearray, try_times: int, address: int, mode: int) -> None:
         """
         `password` - 4 bytes.
         `pack` - 2 bytes, this is the response of the card after successful authentication with password.
@@ -177,9 +156,9 @@ class NTAG21X():
             raise Exception(f"security_configure - wrong password length {len(password)}, must be 4")
         if len(pack) != 2:
             raise Exception(f"security_configure - wrong pack length {len(pack)}, must be 2")
-        if try_times > 7:
-            raise Exception(f"security_configure - wrong value of try_times {try_times}, must <= 7")
-        if mode > 1:
+        if try_times < 0 and try_times > 7:
+            raise Exception(f"security_configure - wrong value of try_times {try_times}, must 0...7")
+        if mode < 0 and mode > 1:
             raise Exception(f"security_configure - wrong value of mode {mode}, must 0 or 1")
         
         version = self.version_get()
@@ -193,12 +172,14 @@ class NTAG21X():
         else:
             raise Exception(f"Unknown storage descriptor {version[6]:02X} in version data")
         
-        cfg0 = self.block_read_fast(cfg_address, cfg_address)
+        read_buf = self.block_read_fast(cfg_address, cfg_address+1)
+        cfg0 = read_buf[0:4]
+        cfg1 = read_buf[4:8]
         
         send_buf = bytearray([cfg0[0], cfg0[1], cfg0[2], address]) # block CFG0: MIRROR, RFUI, MIRROR_PAGE, AUTH0
         self.block_write(cfg_address, send_buf)
         
-        send_buf = bytearray([(cfg[1] & 0b01111000) | (mode << 7) | try_times, 0x00, 0x00, 0x00]) # block CFG1: ACCESS, RFUI, RFUI, RFUI
+        send_buf = bytearray([(cfg1[0] & 0b01111000) | (mode << 7) | try_times, 0x00, 0x00, 0x00]) # block CFG1: ACCESS, RFUI, RFUI, RFUI
         self.block_write(cfg_address+1, send_buf)
         
         self.block_write(cfg_address+2, password) # block 18/39: PWD[0:3]
@@ -206,7 +187,7 @@ class NTAG21X():
         send_buf = pack + bytearray([0x00, 0x00]) # block 19/40: PACK[1:0], RFUI, RFUI
         self.block_write(cfg_address+3, send_buf)
         
-    def mirror_configure(self, mode, page, byte) -> None:
+    def mirror_configure(self, mode: int, page: int, byte: int) -> None:
         """
         Configure the mirror feature. It can copy some data into memory of the card in ASCII format to let it be readable
         as a NDEF message by a smartphone.
@@ -214,10 +195,10 @@ class NTAG21X():
         - page - the page (block address) for the beginning of the ASCII mirroring
         - byte - The 2 bits define the byte position within the page defined by the `page`. Range 0...3.
         """
-        if mode > 3:
-            raise Exception("mirror_configure - mode of of range")
-        if byte > 3:
-            raise Exception("mirror_configure - byte of of range")
+        if mode < 0 and mode > 3:
+            raise Exception("mirror_configure - mode out of range")
+        if byte < 0 and byte > 3:
+            raise Exception("mirror_configure - byte out of range")
         
         version = self.version_get()
         
@@ -230,16 +211,17 @@ class NTAG21X():
         else:
             raise Exception(f"Unknown storage descriptor {version[6]:02X} in version data")
         
-        cfg = self.block_read_fast(cfg_address, cfg_address)
-        cfg[0] = cfg[0] & 0b00001111
-        cfg[0] = cfg[0] | (mode << 6) | (byte << 4)
-        cfg[2] = page
+        cfg0 = self.block_read_fast(cfg_address, cfg_address)
+        cfg0[0] = cfg0[0] & 0b00001111
+        cfg0[0] = cfg0[0] | (mode << 6) | (byte << 4)
+        cfg0[2] = page
         
-        self.block_write(cfg_address, cfg)
+        self.block_write(cfg_address, cfg0)
         
     def counter_configure(self, enable: bool, protect: bool) -> None:
         """
-
+        Configure the counter. If enabled, the counter is incremented after first READ or FAST_READ command received after
+        the card is selected. If protected, then autentication must be performed before reading the counter.
         """
         version = self.version_get()
         
@@ -252,23 +234,22 @@ class NTAG21X():
         else:
             raise Exception(f"Unknown storage descriptor {version[6]:02X} in version data")
         
-        cfg = self.block_read_fast(cfg_address, cfg_address)
+        cfg1 = self.block_read_fast(cfg_address, cfg_address)
     
-        cfg[0] = cfg[0] & 0b11100111
+        cfg1[0] = cfg1[0] & 0b11100111
         if enable:
-            cfg[0] |= 0b00010000
+            cfg1[0] |= 0b00010000
         if protect:
-            cfg[0] |= 0b00001000
+            cfg1[0] |= 0b00001000
             
-        self.block_write(cfg_address, cfg)
-        
+        self.block_write(cfg_address, cfg1)
         
     def uid_change(self, new_uid: bytes|bytearray) -> None:
         """
-        This command works only with some Chinese clones of MF0UL11 that allow write operations on blocks 0-3.
+        This command works only with some Chinese clones that allow write operations on blocks 0-3.
         """
         if len(new_uid) != 7:
-            raise Exception(f"change_uid - wrong length {len(new_uid)}, must be 7")
+            raise Exception(f"uid_change - wrong length {len(new_uid)}, must be 7")
         
         # Step 1
         buf = bytearray(4)
@@ -286,8 +267,7 @@ class NTAG21X():
         self.block_write(1, buf)
         
         # Step 3
-        buf = self.block_read(2)[0:4]
-        debug("Buffer after step 3", buf)
+        buf = self.block_read_fast(2, 2)
         
         # Step 4
         buf[0] = new_uid[3] ^ new_uid[4] ^ new_uid[5] ^ new_uid[6]
@@ -318,7 +298,7 @@ class NTAG21X():
             2:  "BCC[1], INT, LOCK[0:1]",
             3:  "CC[0:3]",
             config_offset:   "LOCK[2:4], CHK",
-            config_offset+1: "MIRROR, RFUI, MIRROR_PAGE, AUTH0", # tu powinny byc 4 bajty
+            config_offset+1: "MIRROR, RFUI, MIRROR_PAGE, AUTH0",
             config_offset+2: "ACCESS, RFUI, RFUI, RFUI",
             config_offset+3: "PWD[0:3]",
             config_offset+4: "PACK[0:1], RFUI, RFUI",
@@ -350,22 +330,3 @@ class NTAG21X():
             a = (block_adr % 4) * 4
             b = a+4
             print_block(block_adr, data[a:b])
-
-if __name__ == "__main__":
-    from machine import Pin, SPI
-    from rfid.rc522 import RC522
-    from rfid.iso_iec_14443_3 import ISO_IEC_14443_3
-    from rfid.log import *
-
-    spi = SPI(0, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
-    cs  = Pin(5)
-    rst = Pin(7)
-    pcd = RC522(spi, cs, rst)
-    iso = ISO_IEC_14443_3(pcd)
-    mif = NTAG21X(pcd)
-
-    iso.scan_and_select()
-
-    # dump
-    debug_disable()
-    mif.dump()
