@@ -7,5 +7,7 @@ cs  = Pin(5)
 rst = Pin(7)
 pcd = RC522(spi, cs, rst)
 
+pcd.antenna_enable()
+
 ver = pcd.version_get()
 debug("Version", ver)
