@@ -4,9 +4,7 @@
 # MicroPython 1.27.0 ESP32 Pico
 # MicroPython 1.27.0 Raspberry Pico 2
 
-from machine import Pin, I2C
 import framebuf
-import mem_used
 
 class DisplayHAL:
     
@@ -152,21 +150,22 @@ class DisplayHAL:
             self.display.blit(bitmap, x, y, self.display.color(0x12, 0x34, 0x56), palette_framebuffer)
 
 if __name__ == "__main__":
-    from machine import Pin, I2C
-    from dem128064e1 import *
-    from dem240064b import *
-    from sh1106 import *
-    from sh1108 import *
-    from ssd1309 import *
-    from ssd1351 import *
-    from ssd1363_spi import *
-    from ssd1363_spi_bw import *
     import mem_used
-    import measure_time
-    from image.down_32x32 import *
-    from image.up_32x32 import *
-    from font.extronic16_unicode import *
-    from font.extronic16B_unicode import *
+    from machine import Pin, I2C, SPI
+    
+#     from dem128064e1 import *
+    
+#     from sh1106 import *
+#     from sh1108 import *
+#     from ssd1309 import *
+#     from ssd1351 import *
+#     from ssd1363_spi import *
+#     from ssd1363_spi_bw import *
+
+    from display_hal.image.down_32x32 import *
+    from display_hal.image.up_32x32 import *
+    from display_hal.font.extronic16_unicode import *
+    from display_hal.font.extronic16B_unicode import *
 
 #     i2c = I2C(0) # use default pinout and clock frequency
 #     display = SH1106(i2c, address=0x3D, rotate=0, offset_x=2)
@@ -190,6 +189,7 @@ if __name__ == "__main__":
 #     spi = SPI(0, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
 #     display = DEM128064E1(spi, cs=Pin(5), dc=Pin(6), rst=Pin(7))
     
+    from display_hal.driver.dem240064b import *
     spi = SPI(0, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
     display = DEM240064B(spi, cs0=Pin(5), cs1=Pin(8), dc=Pin(6), rst=Pin(7))
     
