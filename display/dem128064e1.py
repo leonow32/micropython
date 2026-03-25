@@ -4,8 +4,6 @@ from machine import Pin, SPI
 import time
 import framebuf
 
-DEFAULT_CONTRAST = const(8)
-
 class DEM128064E1(framebuf.FrameBuffer):
     
     @micropython.native
@@ -39,7 +37,7 @@ class DEM128064E1(framebuf.FrameBuffer):
             0x2F, # Power control set
             0x27, # Set (Rb/Ra)
             0x81, # Set the V0 output voltage in next byte
-            DEFAULT_CONTRAST,
+            8,    # default contrast
         )
         
         for cmd in config:

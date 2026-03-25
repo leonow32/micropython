@@ -4,8 +4,6 @@ from machine import Pin, SPI
 import time
 import framebuf
 
-DEFAULT_CONTRAST = const(32)
-
 class DEM240064B(framebuf.FrameBuffer):
     
     @micropython.native
@@ -41,7 +39,7 @@ class DEM240064B(framebuf.FrameBuffer):
             0x2F, # Power control set
             0x27, # Set (Rb/Ra)
             0x81, # Set the V0 output voltage in next byte
-            DEFAULT_CONTRAST,
+            32,   # Default contrast
         )
         
         for cmd in config:
@@ -87,6 +85,8 @@ class DEM240064B(framebuf.FrameBuffer):
         self.cs1(0)
 
         for page in range(8):
+            x = 240 * page
+            
             header = bytes([
                 0xB0 | page, # Set page number
                 0x00 ,       # Set x cursor, low nibble
@@ -98,10 +98,10 @@ class DEM240064B(framebuf.FrameBuffer):
             self.dc(1)
             
             self.cs1(1)
-            self.spi.write(self.array[240*page:240*page+120])     # left part of the display
+            self.spi.write(self.array[x:x+120])     # left part of the display
             self.cs0(1)
             self.cs1(0)
-            self.spi.write(self.array[240*page+120:240*page+240]) # right part of the display
+            self.spi.write(self.array[x+120:x+240]) # right part of the display
             self.cs0(0)
             
         self.cs0(1)
@@ -117,13 +117,3 @@ class DEM240064B(framebuf.FrameBuffer):
                 pixel = "#" if byte & bit else "."
                 print(pixel, end="")
             print("")
-
-if __name__ == "__main__":
-    spi = SPI(0, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
-    display = DEM240064B(spi, cs0=Pin(5), cs1=Pin(8), dc=Pin(6), rst=Pin(7))
-    print(display)
-    
-    display.rect(0, 0, 240, 64, 1)
-    display.text("abcdefghijklmnopqrstuvwxyz", 3, 3, 1)
-    display.line(20, 20, 40, 40, 1)
-    display.refresh()
