@@ -2,6 +2,7 @@
 # MicroPython 1.26.1 ESP32-S3 Octal SPIRAM
 # MicroPython 1.26.1 ESP32 Pico
 # MicroPython 1.27.0 ESP32 Pico
+# MicroPython 1.27.0 Raspberry Pico 2
 
 from machine import Pin, I2C
 import framebuf
@@ -153,6 +154,7 @@ class DisplayHAL:
 if __name__ == "__main__":
     from machine import Pin, I2C
     from dem128064e1 import *
+    from dem240064b import *
     from sh1106 import *
     from sh1108 import *
     from ssd1309 import *
@@ -185,8 +187,11 @@ if __name__ == "__main__":
 #     display = SSD1363_SPI_BW(spi, cs=Pin(7), dc=Pin(6), rotate=0)
 #     display = SSD1363_SPI(spi, cs=Pin(9), dc=Pin(10), rotate=0)
 
+#     spi = SPI(0, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
+#     display = DEM128064E1(spi, cs=Pin(5), dc=Pin(6), rst=Pin(7))
+    
     spi = SPI(0, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
-    display = DEM128064E1(spi, cs=Pin(5), dc=Pin(6), rst=Pin(7))
+    display = DEM240064B(spi, cs0=Pin(5), cs1=Pin(8), dc=Pin(6), rst=Pin(7))
     
     hal = DisplayHAL(display)
     print(hal)

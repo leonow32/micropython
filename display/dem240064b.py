@@ -4,15 +4,17 @@ from machine import Pin, SPI
 import time
 import framebuf
 
-class DEM128064E1(framebuf.FrameBuffer):
+class DEM240064B(framebuf.FrameBuffer):
     
     @micropython.native
-    def __init__(self, spi, cs, dc, rst):
+    def __init__(self, spi, cs0, cs1, dc, rst):
         self.spi = spi
-        self.cs  = cs
+        self.cs0 = cs0
+        self.cs1 = cs1
         self.dc  = dc
         self.rst = rst
-        self.cs.init(mode=Pin.OUT, value=1)
+        self.cs0.init(mode=Pin.OUT, value=1)
+        self.cs1.init(mode=Pin.OUT, value=1)
         self.dc.init(mode=Pin.OUT, value=1)
         self.rst.init(mode=Pin.OUT, value=0)
         
@@ -20,7 +22,7 @@ class DEM128064E1(framebuf.FrameBuffer):
         self.rst(1)
         time.sleep_ms(5)
         
-        self.width   = 128
+        self.width   = 240
         self.height  = 64
         self.mono    = True
         self.array   = bytearray(self.width * self.height // 8)
@@ -37,7 +39,7 @@ class DEM128064E1(framebuf.FrameBuffer):
             0x2F, # Power control set
             0x27, # Set (Rb/Ra)
             0x81, # Set the V0 output voltage in next byte
-            8,    # default contrast
+            32,   # Default contrast
         )
         
         for cmd in config:
@@ -45,21 +47,20 @@ class DEM128064E1(framebuf.FrameBuffer):
     
     @micropython.viper
     def __str__(self):
-        return f"DEM128064E1(spi={self.spi}, cs={self.cs}, dc={self.dc}, rst={self.rst})"
+        return f"DEM240064B(spi={self.spi}, cs0={self.cs0}, cs1={self.cs1}, dc={self.dc}, rst={self.rst})"
     
     @micropython.native
     def data_write(self, data):
-        self.dc(1)
-        self.cs(0)
-        self.spi.write(bytes([data]))
-        self.cs(1)
+        pass
         
     @micropython.native
     def cmd_write(self, cmd):
         self.dc(0)
-        self.cs(0)
+        self.cs0(0)
+        self.cs1(0)
         self.spi.write(bytes([cmd]))
-        self.cs(1)
+        self.cs0(1)
+        self.cs1(1)
     
     @micropython.viper
     def enable(self):
@@ -80,9 +81,12 @@ class DEM128064E1(framebuf.FrameBuffer):
     
     @micropython.native
     def refresh(self):
-        self.cs(0)
+        self.cs0(0)
+        self.cs1(0)
 
         for page in range(8):
+            x = 240 * page
+            
             header = bytes([
                 0xB0 | page, # Set page number
                 0x00 ,       # Set x cursor, low nibble
@@ -92,9 +96,16 @@ class DEM128064E1(framebuf.FrameBuffer):
             self.dc(0)
             self.spi.write(header)
             self.dc(1)
-            self.spi.write(self.array[page*(self.width):(page+1)*(self.width)])
             
-        self.cs(1)
+            self.cs1(1)
+            self.spi.write(self.array[x:x+120])     # left part of the display
+            self.cs0(1)
+            self.cs1(0)
+            self.spi.write(self.array[x+120:x+240]) # right part of the display
+            self.cs0(0)
+            
+        self.cs0(1)
+        self.cs1(1)
         
     @micropython.native
     def simulate(self):
