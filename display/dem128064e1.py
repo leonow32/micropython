@@ -108,14 +108,3 @@ class DEM128064E1(framebuf.FrameBuffer):
                 pixel = "#" if byte & bit else "."
                 print(pixel, end="")
             print("")
-
-if __name__ == "__main__":
-    spi = SPI(0, baudrate=1_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
-    display = DEM128064E1(spi, cs=Pin(5), dc=Pin(6), rst=Pin(7))
-    print(display)
-    
-    display.rect(0, 0, 128, 64, 1)
-    display.text("abcdefg", 3, 3, 1)
-    display.line(20, 20, 40, 40, 1)
-    display.refresh()
-    

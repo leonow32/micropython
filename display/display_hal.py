@@ -152,6 +152,7 @@ class DisplayHAL:
 
 if __name__ == "__main__":
     from machine import Pin, I2C
+    from dem128064e1 import *
     from sh1106 import *
     from sh1108 import *
     from ssd1309 import *
@@ -169,9 +170,9 @@ if __name__ == "__main__":
 #     display = SH1106(i2c, address=0x3D, rotate=0, offset_x=2)
 #     display = SSD1309(i2c, address=0x3C, rotate=0)
 
-    spi = SPI(1, baudrate=10_000_000, polarity=0, phase=0)
+#     spi = SPI(1, baudrate=10_000_000, polarity=0, phase=0)
     
-    display = SH1108(spi, cs=Pin(4), dc=Pin(2), rotate=0, offset_x=16)
+#     display = SH1108(spi, cs=Pin(4), dc=Pin(2), rotate=0, offset_x=16)
 #     Pin(4, mode=Pin.OUT, value=1)
 #     Pin(2, mode=Pin.OUT, value=1)
     
@@ -183,11 +184,14 @@ if __name__ == "__main__":
 #     display = SSD1363_SPI(spi, cs=Pin(7), dc=Pin(6), rotate=0)
 #     display = SSD1363_SPI_BW(spi, cs=Pin(7), dc=Pin(6), rotate=0)
 #     display = SSD1363_SPI(spi, cs=Pin(9), dc=Pin(10), rotate=0)
+
+    spi = SPI(0, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
+    display = DEM128064E1(spi, cs=Pin(5), dc=Pin(6), rst=Pin(7))
     
     hal = DisplayHAL(display)
     print(hal)
     
-    hal.contrast_set(0xFF)
+#     hal.contrast_set(0xFF)
     
     measure_time.begin()
     hal.rect(0, 0, display.width, display.height, hal.color(0xFF, 0xFF, 0xFF))
