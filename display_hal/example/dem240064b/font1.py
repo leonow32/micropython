@@ -5,8 +5,9 @@ from display_hal.display_hal import *
 from display_hal.driver.dem240064b import *
 from display_hal.font.extronic16B_unicode import *
 
-spi = SPI(0, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
-display = DEM240064B(spi, cs0=Pin(5), cs1=Pin(8), dc=Pin(6), rst=Pin(7))
+led = Pin(28, mode=Pin.OUT, value=1)
+spi = SPI(0, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(18), mosi=Pin(19), miso=Pin(16))
+display = DEM240064B(spi, cs0=Pin(17), cs1=Pin(22), dc=Pin(20), rst=Pin(21))
 dihal = DisplayHAL(display)
 print(dihal)
 
