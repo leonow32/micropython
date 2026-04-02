@@ -273,3 +273,4 @@ class RC522:
         
         if not self.read_reg(Status2Reg) & 0b00001000:  # Check bit MFCrypto1On
             raise Exception("Authentication failed")
+
