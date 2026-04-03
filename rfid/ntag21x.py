@@ -156,9 +156,9 @@ class NTAG21X():
             raise Exception(f"security_configure - wrong password length {len(password)}, must be 4")
         if len(pack) != 2:
             raise Exception(f"security_configure - wrong pack length {len(pack)}, must be 2")
-        if try_times < 0 and try_times > 7:
+        if try_times < 0 or try_times > 7:
             raise Exception(f"security_configure - wrong value of try_times {try_times}, must 0...7")
-        if mode < 0 and mode > 1:
+        if mode < 0 or mode > 1:
             raise Exception(f"security_configure - wrong value of mode {mode}, must 0 or 1")
         
         version = self.version_get()
@@ -195,9 +195,9 @@ class NTAG21X():
         - page - the page (block address) for the beginning of the ASCII mirroring
         - byte - The 2 bits define the byte position within the page defined by the `page`. Range 0...3.
         """
-        if mode < 0 and mode > 3:
+        if mode < 0 or mode > 3:
             raise Exception("mirror_configure - mode out of range")
-        if byte < 0 and byte > 3:
+        if byte < 0 or byte > 3:
             raise Exception("mirror_configure - byte out of range")
         
         version = self.version_get()
