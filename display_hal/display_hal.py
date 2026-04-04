@@ -11,6 +11,8 @@ class DisplayHAL:
     @micropython.native
     def __init__(self, display):
         self.display = display
+        self.width   = display.width
+        self.height  = display.height
         
     @micropython.viper
     def __str__(self):
