@@ -1,34 +1,32 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+# MicroPython 1.27.0 ESP32 Pico
 
-from machine import Pin, I2C
-from font.console7 import *
-import framebuf
-import ssd1309
-import simulator
+from machine import I2C
+from display_hal.display_hal import *
+from display_hal.driver.ssd1309 import *
+
+from display_hal.font.console7 import *
+
 import mem_used
-import time       
+import measure_time   
 
-button = Pin(0, Pin.IN, Pin.PULL_UP)
-i2c = I2C(0) # use default pinout and clock frequency
-print(i2c)   # print pinout and clock frequency
-try:
-    display = ssd1309.SSD1309(i2c)
-except:
-    display = simulator.SIM()
-start_time = time.ticks_us()
+i2c     = I2C(0) # use default pinout and clock frequency
+display = SSD1309(i2c, rotate=False, address=0x3C)
+dihal   = DisplayHAL(display)
+print(dihal)
 
-display.print_text(console7,  "ABCDEFGHIJKLM", 0, 0, "C")
-display.print_text(console7,  "NOPQRSTUVWXYZ", 0, 8, "C")
-display.print_text(console7, "abcdefghijkl", 0, 16, "C")
-display.print_text(console7, "mnopqrstuvwxyz", 0, 24, "C")
-display.print_text(console7,  "0123456789", 0, 32, "C")
-display.print_text(console7,  "+-*/=()[]{}<>", 0, 40, "C")
-display.print_text(console7, "`~!@#$%^&*.,:;'|\/_\"", 0, 48, "C")
-display.refresh()
+measure_time.begin()
+dihal.text("ABCDEFGHIJKLM",         0,  0, 1, console7, "CENTER")
+dihal.text("NOPQRSTUVWXYZ",         0,  8, 1, console7, "CENTER")
+dihal.text("abcdefghijkl",          0, 16, 1, console7, "CENTER")
+dihal.text("mnopqrstuvwxyz",        0, 24, 1, console7, "CENTER")
+dihal.text("0123456789",            0, 32, 1, console7, "CENTER")
+dihal.text("+-*/=()[]{}<>",         0, 40, 1, console7, "CENTER")
+dihal.text("`~!@#$%^&*.,:;'|\/_\"", 0, 48, 1, console7, "CENTER")
+measure_time.end("Rendering time")
 
-end_time = time.ticks_us()
-print(f"Work time: {end_time-start_time} us")
+measure_time.begin()
+dihal.refresh()
+measure_time.end("Refreshing time")
+
 mem_used.print_ram_used()
-
-
-

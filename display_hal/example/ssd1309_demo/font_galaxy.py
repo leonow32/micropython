@@ -1,4 +1,5 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+# MicroPython 1.27.0 ESP32 Pico
 
 from machine import I2C
 from display_hal.display_hal import *
@@ -24,7 +25,5 @@ measure_time.end("Rendering time")
 measure_time.begin()
 dihal.refresh()
 measure_time.end("Refreshing time")
-
-display.refresh()
 
 mem_used.print_ram_used()

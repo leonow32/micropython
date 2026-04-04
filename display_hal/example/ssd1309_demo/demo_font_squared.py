@@ -1,126 +1,115 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+# MicroPython 1.27.0 ESP32 Pico
 
-from machine import Pin, I2C
-from font.squared16_unicode import *
-from font.squared16B_unicode import *
-import framebuf
-import ssd1309
-import simulator
+from machine import I2C
+from display_hal.display_hal import *
+from display_hal.driver.ssd1309 import *
+
+from display_hal.font.extronic16_unicode import *
+from display_hal.font.extronic16B_unicode import *
+
 import mem_used
-import time       
+import measure_time   
 
-button = Pin(0, Pin.IN, Pin.PULL_UP)
-i2c = I2C(0) # use default pinout and clock frequency
-print(i2c)   # print pinout and clock frequency
-try:
-    display = ssd1309.SSD1309(i2c)
-except:
-    display = simulator.SIM()
+i2c     = I2C(0) # use default pinout and clock frequency
+display = SSD1309(i2c, rotate=False, address=0x3C)
+dihal   = DisplayHAL(display)
+print(dihal)
 
-display.print_text(squared16_unicode,  "ABCDEFGHIJKL", 0, 0, "C")
-display.print_text(squared16B_unicode, "ABCDEFGHIJKL", 0, 16, "C")
-display.print_text(squared16_unicode,  "MNOPQRSTUVWXYZ", 0, 32, "C")
-display.print_text(squared16B_unicode, "MNOPQRSTUVWXYZ", 0, 48, "C")
-display.refresh()
+dihal.text("ABCDEFGHIJKL",   0, 0,  1, extronic16_unicode,  "CENTER")
+dihal.text("ABCDEFGHIJKL",   0, 16, 1, extronic16B_unicode, "CENTER")
+dihal.text("MNOPQRSTUVWXYZ", 0, 32, 1, extronic16_unicode,  "CENTER")
+dihal.text("MNOPQRSTUVWXYZ", 0, 48, 1, extronic16B_unicode, "CENTER")
+dihal.refresh()
+input("Press enter")
 
-time.sleep_ms(100)
-while button(): pass
-display.fill(0)
-display.print_text(squared16_unicode,  "abcdefghijkl", 0, 0, "C")
-display.print_text(squared16B_unicode, "abcdefghijkl", 0, 16, "C")
-display.print_text(squared16_unicode,  "mnopqrstuvwxyz", 0, 32, "C")
-display.print_text(squared16B_unicode, "mnopqrstuvwxyz", 0, 48, "C")
-display.refresh()
+dihal.fill(0)
+dihal.text("abcdefghijkl",   0, 0,  1, extronic16_unicode,  "CENTER")
+dihal.text("abcdefghijkl",   0, 16, 1, extronic16B_unicode, "CENTER")
+dihal.text("mnopqrstuvwxyz", 0, 32, 1, extronic16_unicode,  "CENTER")
+dihal.text("mnopqrstuvwxyz", 0, 48, 1, extronic16B_unicode, "CENTER")
+dihal.refresh()
+input("Press enter")
 
-time.sleep_ms(100)
-while button(): pass
-display.fill(0)
-display.print_text(squared16_unicode,  "aąäáàâåāæcćčçdďđ", 0, 0, "C")
-display.print_text(squared16B_unicode, "aąäáàâåāæcćčçdďđ", 0, 16, "C")
-display.print_text(squared16_unicode,  "eęéěèêëēėgğģiíîïīiįkķ", 0, 32, "C")
-display.print_text(squared16B_unicode, "eęéěèêëēėgğģiíîïīiįkķ", 0, 48, "C")
-display.refresh()
+dihal.fill(0)
+dihal.text("aąäáàâåāæcćčçdďđ",      0, 0,  1, extronic16_unicode,  "CENTER")
+dihal.text("aąäáàâåāæcćčçdďđ",      0, 16, 1, extronic16B_unicode, "CENTER")
+dihal.text("eęéěèêëēėgğģiíîïīiįkķ", 0, 32, 1, extronic16_unicode,  "CENTER")
+dihal.text("eęéěèêëēėgğģiíîïīiįkķ", 0, 48, 1, extronic16B_unicode, "CENTER")
+dihal.refresh()
+input("Press enter")
 
-time.sleep_ms(100)
-while button(): pass
-display.fill(0)
-display.print_text(squared16_unicode,  "lłļnńňņñoóöõôørřsśšş", 0, 0, "C")
-display.print_text(squared16B_unicode, "lłļnńňņñoóöõôørřsśšş", 0, 16, "C")
-display.print_text(squared16_unicode,  "tťuüúůûùūųyýÿzźżžß", 0, 32, "C")
-display.print_text(squared16B_unicode, "tťuüúůûùūųyýÿzźżžß", 0, 48, "C")
-display.refresh()
+dihal.fill(0)
+dihal.text("lłļnńňņñoóöõôørřsśšş", 0, 0,  1, extronic16_unicode,  "CENTER")
+dihal.text("lłļnńňņñoóöõôørřsśšş", 0, 16, 1, extronic16B_unicode, "CENTER")
+dihal.text("tťuüúůûùūųyýÿzźżžß",   0, 32, 1, extronic16_unicode,  "CENTER")
+dihal.text("tťuüúůûùūųyýÿzźżžß",   0, 48, 1, extronic16B_unicode, "CENTER")
+dihal.refresh()
 
-time.sleep_ms(100)
-while button(): pass
-display.fill(0)
-display.print_text(squared16_unicode,  "@0123456789.,:;+-*/", 0, 0, "C")
-display.print_text(squared16B_unicode, "@0123456789.,:;+-*/", 0, 16, "C")
-display.print_text(squared16_unicode,  "!¡?¿#$%^&*(){}[]<>", 0, 32, "C")
-display.print_text(squared16B_unicode, "!¡?¿#$%^&*(){}[]<>", 0, 48, "C")
-display.refresh()
+dihal.refresh()
+input("Press enter")
+dihal.fill(0)
+dihal.text("@0123456789.,:;+-*/", 0, 0,  1, extronic16_unicode,  "CENTER")
+dihal.text("@0123456789.,:;+-*/", 0, 16, 1, extronic16B_unicode, "CENTER")
+dihal.text("!¡?¿#$%^&*(){}[]<>",  0, 32, 1, extronic16_unicode,  "CENTER")
+dihal.text("!¡?¿#$%^&*(){}[]<>",  0, 48, 1, extronic16B_unicode, "CENTER")
+dihal.refresh()
+input("Press enter")
 
-time.sleep_ms(100)
-while button(): pass
-display.fill(0)
-display.print_text(squared16_unicode,  "AĄÄÁÀÂÅĀÆCĆČÇ", 0, 0, "C")
-display.print_text(squared16B_unicode, "AĄÄÁÀÂÅĀÆCĆČÇ", 0, 16, "C")
-display.print_text(squared16_unicode,  "DĎĐEĘÉĚÈÊËĒĖGĞĢ", 0, 32, "C")
-display.print_text(squared16B_unicode, "DĎĐEĘÉĚÈÊËĒĖGĞĢ", 0, 48, "C")
-display.refresh()
+dihal.fill(0)
+dihal.text("AĄÄÁÀÂÅĀÆCĆČÇ",   0, 0,  1, extronic16_unicode,  "CENTER")
+dihal.text("AĄÄÁÀÂÅĀÆCĆČÇ",   0, 16, 1, extronic16B_unicode, "CENTER")
+dihal.text("DĎĐEĘÉĚÈÊËĒĖGĞĢ", 0, 32, 1, extronic16_unicode,  "CENTER")
+dihal.text("DĎĐEĘÉĚÈÊËĒĖGĞĢ", 0, 48, 1, extronic16B_unicode, "CENTER")
+dihal.refresh()
+input("Press enter")
 
-time.sleep_ms(100)
-while button(): pass
-display.fill(0)
-display.print_text(squared16_unicode,  "IÍÎÏĪİĮKĶLŁĻNŃŇŅÑ", 0, 0, "C")
-display.print_text(squared16B_unicode, "IÍÎÏĪİĮKĶLŁĻNŃŇŅÑ", 0, 16, "C")
-display.print_text(squared16_unicode,  "OÓÖÕÔØRŘ", 0, 32, "C")
-display.print_text(squared16B_unicode, "OÓÖÕÔØRŘ", 0, 48, "C")
-display.refresh()
+dihal.fill(0)
+dihal.text("IÍÎÏĪİĮKĶLŁĻNŃŇŅÑ", 0, 0,  1, extronic16_unicode, "CENTER")
+dihal.text("IÍÎÏĪİĮKĶLŁĻNŃŇŅÑ", 0, 16, 1, extronic16B_unicode,"CENTER")
+dihal.text("OÓÖÕÔØRŘ",          0, 32, 1, extronic16_unicode,  "CENTER")
+dihal.text("OÓÖÕÔØRŘ",          0, 48, 1, extronic16B_unicode, "CENTER")
+dihal.refresh()
+input("Press enter")
 
-time.sleep_ms(100)
-while button(): pass
-display.fill(0)
-display.print_text(squared16_unicode,  "SŚŠŞTŤUÜÚŮÛÙŪŲ", 0, 0, "C")
-display.print_text(squared16B_unicode, "SŚŠŞTŤUÜÚŮÛÙŪŲ", 0, 16, "C")
-display.print_text(squared16_unicode,  "YÝŸZŹŻŽß", 0, 32, "C")
-display.print_text(squared16B_unicode, "YÝŸZŹŻŽß", 0, 48, "C")
-display.refresh()
+dihal.fill(0)
+dihal.text("SŚŠŞTŤUÜÚŮÛÙŪŲ", 0, 0,  1, extronic16_unicode,  "CENTER")
+dihal.text("SŚŠŞTŤUÜÚŮÛÙŪŲ", 0, 16, 1, extronic16B_unicode, "CENTER")
+dihal.text("YÝŸZŹŻŽß",       0, 32, 1, extronic16_unicode,  "CENTER")
+dihal.text("YÝŸZŹŻŽß",       0, 48, 1, extronic16B_unicode, "CENTER")
+dihal.refresh()
+input("Press enter")
 
-time.sleep_ms(100)
-while button(): pass
-display.fill(0)
-display.print_text(squared16_unicode,  "АБВГДЕЁЖЗИЙ", 0, 0, "C")
-display.print_text(squared16B_unicode, "АБВГДЕЁЖЗИЙ", 0, 16, "C")
-display.print_text(squared16_unicode,  "КЛМНОПРСТУФ", 0, 32, "C")
-display.print_text(squared16B_unicode, "КЛМНОПРСТУФ", 0, 48, "C")
-display.refresh()
+dihal.fill(0)
+dihal.text("АБВГДЕЁЖЗИЙ", 0, 0,  1, extronic16_unicode,  "CENTER")
+dihal.text("АБВГДЕЁЖЗИЙ", 0, 16, 1, extronic16B_unicode, "CENTER")
+dihal.text("КЛМНОПРСТУФ", 0, 32, 1, extronic16_unicode,  "CENTER")
+dihal.text("КЛМНОПРСТУФ", 0, 48, 1, extronic16B_unicode, "CENTER")
+dihal.refresh()
+input("Press enter")
 
-time.sleep_ms(100)
-while button(): pass
-display.fill(0)
-display.print_text(squared16_unicode,  "ХЦЧШЩЪЫЬЭЮЯ", 0, 0, "C")
-display.print_text(squared16B_unicode, "ХЦЧШЩЪЫЬЭЮЯ", 0, 16, "C")
-display.print_text(squared16_unicode,  "ҐЄІЇЋЏЂЈЉЊ", 0, 32, "C")
-display.print_text(squared16B_unicode, "ҐЄІЇЋЏЂЈЉЊ", 0, 48, "C")
-display.refresh()
+dihal.fill(0)
+dihal.text("ХЦЧШЩЪЫЬЭЮЯ", 0, 0,  1, extronic16_unicode,  "CENTER")
+dihal.text("ХЦЧШЩЪЫЬЭЮЯ", 0, 16, 1, extronic16B_unicode, "CENTER")
+dihal.text("ҐЄІЇЋЏЂЈЉЊ",  0, 32, 1, extronic16_unicode,  "CENTER")
+dihal.text("ҐЄІЇЋЏЂЈЉЊ",  0, 48, 1, extronic16B_unicode, "CENTER")
+dihal.refresh()
+input("Press enter")
 
-time.sleep_ms(100)
-while button(): pass
-display.fill(0)
-display.print_text(squared16_unicode,  "абвгдеёжзий", 0, 0, "C")
-display.print_text(squared16B_unicode, "абвгдеёжзий", 0, 16, "C")
-display.print_text(squared16_unicode,  "клмнопрстуф", 0, 32, "C")
-display.print_text(squared16B_unicode, "клмнопрстуф", 0, 48, "C")
-display.refresh()
+dihal.fill(0)
+dihal.text("абвгдеёжзий", 0, 0,  1, extronic16_unicode,  "CENTER")
+dihal.text("абвгдеёжзий", 0, 16, 1, extronic16B_unicode, "CENTER")
+dihal.text("клмнопрстуф", 0, 32, 1, extronic16_unicode,  "CENTER")
+dihal.text("клмнопрстуф", 0, 48, 1, extronic16B_unicode, "CENTER")
+dihal.refresh()
+input("Press enter")
 
-time.sleep_ms(100)
-while button(): pass
-display.fill(0)
-display.print_text(squared16_unicode,  "хцчшщъыьэюя", 0, 0, "C")
-display.print_text(squared16B_unicode, "хцчшщъыьэюя", 0, 16, "C")
-display.print_text(squared16_unicode,  "ґєіїћџђјљњ", 0, 32, "C")
-display.print_text(squared16B_unicode, "ґєіїћџђјљњ", 0, 48, "C")
-display.refresh()
+dihal.fill(0)
+dihal.text("хцчшщъыьэюя", 0, 0,  1, extronic16_unicode,  "CENTER")
+dihal.text("хцчшщъыьэюя", 0, 16, 1, extronic16B_unicode, "CENTER")
+dihal.text("ґєіїћџђјљњ",  0, 32, 1, extronic16_unicode,  "CENTER")
+dihal.text("ґєіїћџђјљњ",  0, 48, 1, extronic16B_unicode, "CENTER")
+dihal.refresh()
+input("Press enter")
 
 mem_used.print_ram_used()
-
