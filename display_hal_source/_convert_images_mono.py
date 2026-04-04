@@ -23,7 +23,7 @@ def convert(file):
         
     with open(f"../display_hal/image_mono/{file}.py", "w", encoding="utf-8") as output:
         output.write("import framebuf\n")
-        output.write(f"{file    } = framebuf.FrameBuffer({bitmap}, {width}, {height}, framebuf.MONO_VLSB)\n")
+        output.write(f"{file} = framebuf.FrameBuffer({bitmap}, {width}, {height}, framebuf.MONO_VLSB)\n")
 
 if __name__ == "__main__":
     if not os.path.exists("../display_hal/image_mono"):
