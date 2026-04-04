@@ -1,45 +1,39 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+# MicroPython 1.27.0 ESP32 Pico
 
-from machine import Pin, I2C
-from font.dos8 import *
-import framebuf
-import ssd1309
-import simulator
+from machine import I2C
+from display_hal.display_hal import *
+from display_hal.driver.ssd1309 import *
+
+from display_hal.font.dos8 import *
+
 import mem_used
-import time       
+import measure_time    
 
-button = Pin(0, Pin.IN, Pin.PULL_UP)
-i2c = I2C(0) # use default pinout and clock frequency
-print(i2c)   # print pinout and clock frequency
-try:
-    display = ssd1309.SSD1309(i2c)
-except:
-    display = simulator.SIM()
+i2c     = I2C(0) # use default pinout and clock frequency
+display = SSD1309(i2c, rotate=False, address=0x3C)
+dihal   = DisplayHAL(display)
+print(dihal)
 
 char = 0
 for page in range(2):
     for row in range(8):
         for col in range(16):
             string = chr(char)
-            display.print_text(dos8, string, col*8, row*8)
+            dihal.text(string, col*8, row*8, 1, dos8)
             char += 1
     display.refresh()
-    time.sleep_ms(100)
-    while button(): pass
+    input("Press enter")
 
 char = 0
 for page in range(2):
     for row in range(8):
         for col in range(16):
             string = chr(char)
-            display.print_text(dos8, string, col*8, row*8, 0, 0)
+            dihal.text(string, col*8, row*8, 0, dos8)
             char += 1
     display.refresh()
-    time.sleep_ms(100)
-    while button(): pass
+    dihal.refresh()
+    input("Press enter")
 
 mem_used.print_ram_used()
-
-
-
-

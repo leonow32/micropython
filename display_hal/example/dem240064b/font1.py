@@ -1,6 +1,9 @@
+# MicroPython 1.27.0 Raspberry Pi Pico 2
+
 from machine import Pin, PWM, SPI
 from display_hal.display_hal import *
 from display_hal.driver.dem240064b import *
+
 from display_hal.font.extronic16B_unicode import *
 
 import mem_used

@@ -1,29 +1,30 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
 
-from machine import Pin, I2C
-from font.galaxy16_digits import *
-from font.galaxy24_digits import *
-import framebuf
-import ssd1309
-import simulator
+from machine import I2C
+from display_hal.display_hal import *
+from display_hal.driver.ssd1309 import *
+
+from display_hal.font.galaxy16_digits import *
+from display_hal.font.galaxy24_digits import *
+
 import mem_used
-import time       
+import measure_time    
 
-button = Pin(0, Pin.IN, Pin.PULL_UP)
-i2c = I2C(0) # use default pinout and clock frequency
-print(i2c)   # print pinout and clock frequency
-try:
-    display = ssd1309.SSD1309(i2c)
-except:
-    display = simulator.SIM()
+i2c     = I2C(0) # use default pinout and clock frequency
+display = SSD1309(i2c, rotate=False, address=0x3C)
+dihal   = DisplayHAL(display)
+print(dihal)
 
-display.print_text(galaxy16_digits,  "0123456789", 0, -1, "C")
-display.print_text(galaxy24_digits,  "01234", 0, 15, "C")
-display.print_text(galaxy24_digits, "56789", 0, 40, "C")
-display.print_text(galaxy16_digits,  "", 0, 48, "C")
+measure_time.begin()
+dihal.text("0123456789", 0,  0, 1, galaxy16_digits, "CENTER")
+dihal.text("01234",      0, 15, 1, galaxy24_digits, "CENTER")
+dihal.text("56789",      0, 40, 1, galaxy24_digits, "CENTER")
+measure_time.end("Rendering time")
+
+measure_time.begin()
+dihal.refresh()
+measure_time.end("Refreshing time")
+
 display.refresh()
 
 mem_used.print_ram_used()
-
-
-
