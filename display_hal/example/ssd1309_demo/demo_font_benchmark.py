@@ -1,8 +1,10 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+# MicroPython 1.27.0 ESP32 Pico
 
 from machine import I2C
 from display_hal.display_hal import *
 from display_hal.driver.ssd1309 import *
+
 from display_hal.font.console7 import *
 from display_hal.font.dos8 import *
 from display_hal.font.galaxy16_digits import *
@@ -19,13 +21,13 @@ dihal   = DisplayHAL(display)
 print(dihal)
 
 measure_time.begin()
-# dihal.text(console7,            "Benchmark SSD1309", 0, 0, "C")
-# dihal.text(mini8,               "abcdefghijklmnopqrstuvwxyz01234", 0, 8, "C")
-# dihal.text(extronic16_unicode,  "ąęłćśńóźż", 0, 16, "L")
-# dihal.text(extronic16B_unicode, "ąęłćśńóźż", 0, 16, "R")
-# dihal.text(dos8,                "abcdefghijklmnop", 0, 32, "C", 0)
-# dihal.text(dos8,                "qrstuvwxyz123345", 0, 40, "C", 0)
-# dihal.text(galaxy16_digits,     "0123456789", 0, 49, "C")
+dihal.text("Benchmark SSD1309", 0, 0, 1, console7, "CENTER")
+dihal.text("abcdefghijklmnopqrstuvwxyz01234", 0, 8, 1, mini8, "CENTER")
+dihal.text("ąęłćśńóźż", 0, 16, 1, extronic16_unicode, "LEFT")
+dihal.text("ąęłćśńóźż", 0, 16, 1, extronic16B_unicode, "RIGHT")
+dihal.text("abcdefghijklmnop", 0, 32, 0, dos8, "CENTER")
+dihal.text("qrstuvwxyz123345", 0, 40, 0, dos8, "CENTER")
+dihal.text("0123456789", 0, 49, 1, galaxy16_digits, "CENTER")
 measure_time.end("Rendering time")
 
 measure_time.begin()

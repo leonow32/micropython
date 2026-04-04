@@ -1,4 +1,5 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+# MicroPython 1.27.0 ESP32 Pico
 
 from machine import Pin, I2C
 import framebuf
