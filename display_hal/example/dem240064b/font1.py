@@ -17,9 +17,9 @@ print(dihal)
 
 measure_time.begin()
 dihal.text("abcdefghijklmnopqrstuvwxyz0123456789", 0,  0, 1, extronic16B_unicode, "CENTER")
-dihal.text("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 0, 16, 1, extronic16B_unicode, "CENTER")
-dihal.text("абвгдеёжзийклмнопрстуфхцчшщъыьэ", 0, 32, 1, extronic16B_unicode, "CENTER")
-dihal.text("АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩ", 0, 48, 1, extronic16B_unicode, "CENTER")
+dihal.text("ABCDEFGHIJKLMNOPQRSTUVWXYZ",           0, 16, 1, extronic16B_unicode, "CENTER")
+dihal.text("абвгдеёжзийклмнопрстуфхцчшщъыьэ",      0, 32, 1, extronic16B_unicode, "CENTER")
+dihal.text("АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩ",          0, 48, 1, extronic16B_unicode, "CENTER")
 measure_time.end("Rendering time")
 
 measure_time.begin()

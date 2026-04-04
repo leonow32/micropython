@@ -21,7 +21,7 @@ dihal   = DisplayHAL(display)
 print(dihal)
 
 measure_time.begin()
-dihal.text("Benchmark SSD1309", 0, 0, 1, console7, "CENTER")
+dihal.text("-= Font Benchmark =-", 0, 0, 1, console7, "CENTER")
 dihal.text("abcdefghijklmnopqrstuvwxyz01234", 0, 8, 1, mini8, "CENTER")
 dihal.text("ąęłćśńóźż", 0, 16, 1, extronic16_unicode, "LEFT")
 dihal.text("ąęłćśńóźż", 0, 16, 1, extronic16B_unicode, "RIGHT")
