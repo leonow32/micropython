@@ -1,9 +1,10 @@
-import mem_used
-import measure_time
 from machine import Pin, PWM, SPI
 from display_hal.display_hal import *
 from display_hal.driver.dem240064b import *
 from display_hal.font.extronic16B_unicode import *
+
+import mem_used
+import measure_time
 
 pwm = PWM(Pin(28), freq=50000, duty_u16=65535)
 spi = SPI(0, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(18), mosi=Pin(19), miso=Pin(16))

@@ -1,14 +1,14 @@
 import machine
-from font.galaxy16_digits import *
-from font.galaxy24_digits import *
-import ssd1309
+from display_hal.font.galaxy16_digits import *
+from display_hal.font.galaxy24_digits import *
+import display_hal.driver.ssd1309 as display
 import mem_used
 import time
 
 i2c = machine.I2C(0) # use default pinout and clock frequency
 print(i2c)   # print pinout and clock frequency
 
-display = ssd1309.SSD1309(i2c)
+display = display_hal.driver.ssd1309.SSD1309(i2c)
 
 while True:
     time_tuple = time.localtime()

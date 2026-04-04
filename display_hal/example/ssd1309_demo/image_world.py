@@ -1,8 +1,11 @@
+# MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
 # MicroPython 1.27.0 ESP32 Pico
 
 from machine import I2C
 from display_hal.display_hal import *
 from display_hal.driver.ssd1309 import *
+
+from display_hal.image_mono.world_128x64 import *
 
 import mem_used
 import measure_time
@@ -13,15 +16,16 @@ dihal   = DisplayHAL(display)
 print(dihal)
 
 measure_time.begin()
-dihal.rect(0, 0, 128, 64, 1)
-dihal.text('abcdefghijklm', 1, 2, 1)
-dihal.text('nopqrstuvwxyz', 1, 10, 1)
+dihal.image(world_128x64, 0, 0)
+# dihal.image(world_128x64, 0, 12, 0)  # transparent background
+
 measure_time.end("Rendering time")
 
 measure_time.begin()
 dihal.refresh()
 measure_time.end("Refreshing time")
 
-display.simulate()
+dihal.simulate()
 
 mem_used.print_ram_used()
+

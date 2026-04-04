@@ -1,35 +1,35 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
+# MicroPython 1.27.0 ESP32 Pico
 
-from machine import Pin, I2C
-import ssd1309
+from machine import I2C
+from display_hal.display_hal import *
+from display_hal.driver.ssd1309 import *
+
 import mem_used
+import measure_time
 import random
 import time
 
 LOOPS = const(100)
 
-i2c = I2C(0) # use default pinout and clock frequency
-print(i2c)   # print pinout and clock frequency
-display = ssd1309.SSD1309(i2c)
+i2c     = I2C(0) # use default pinout and clock frequency
+display = SSD1309(i2c, rotate=False, address=0x3C)
+dihal   = DisplayHAL(display)
+print(dihal)
 
 x1 = 0
 y1 = 0
 
-start_time = time.ticks_ms()
+measure_time.begin()
 
 for i in range(LOOPS):
-    x2 = random.randrange(ssd1309.WIDTH)
-    y2 = random.randrange(ssd1309.HEIGHT)
-    display.line(x1, y1, x2, y2, 1)
-    display.refresh()
+    x2 = random.randrange(dihal.width)
+    y2 = random.randrange(dihal.height)
+    dihal.line(x1, y1, x2, y2, 1)
+    dihal.refresh()
     x1 = x2
     y1 = y2
 
-end_time = time.ticks_ms()
-work_time = end_time - start_time
-frame_time = work_time / LOOPS
-
-print(f"Frame time: {frame_time} ms")
-print(f"Frame rate: {1000/frame_time} fps")
+measure_time.end("Work time")
 
 mem_used.print_ram_used()
