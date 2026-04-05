@@ -30,8 +30,8 @@ if __name__ == "__main__":
     if not os.path.exists("../display_hal/image_rgb565"):
         os.makedirs("../display_hal/image_rgb565")
         
-    image_files = os.listdir("image_source_rgb565")
+    files = os.listdir("image_source_rgb565")
     
-    for image_file in image_files:
-        if ".bmp" in image_file:
-            convert(image_file)
+    for file in files:
+        if ".bmp" in file:
+            convert(file)

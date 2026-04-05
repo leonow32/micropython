@@ -29,8 +29,8 @@ if __name__ == "__main__":
     if not os.path.exists("../display_hal/image_mono"):
         os.makedirs("../display_hal/image_mono")
     
-    image_files = os.listdir("image_source_mono")
+    files = os.listdir("image_source_mono")
     
-    for image_file in image_files:
-        if ".bmp" in image_file:
-            convert(image_file)
+    for file in files:
+        if ".bmp" in file:
+            convert(file)
