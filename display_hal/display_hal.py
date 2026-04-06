@@ -13,11 +13,29 @@ class DisplayHAL:
         self.display = display
         self.width   = display.width
         self.height  = display.height
-        self.color_f = 1
-        self.color_b = 0
         self.transp  = -1
-        self.palette = framebuf.FrameBuffer(bytearray(4), 2, 1, framebuf.MONO_VLSB) # TODO to zmienić żeby pasowało też do RGB
+        self.palette = framebuf.FrameBuffer(bytearray(4), 2, 1, framebuf.MONO_VLSB if display.mono else framebuf.RGB565)
+        self.palette.pixel(1, 0, 1 if display.mono else 0xFFFF)
+        self.palette.pixel(0, 0, 0)
         
+    def color_set(self, foreground, background):
+        if foreground >= 0 and background >= 0:
+            self.transp = -1
+            self.palette.pixel(1, 0, foreground)
+            self.palette.pixel(0, 0, background)
+        elif foreground < 0 and background >= 0:
+            self.transp = 0 if background else 1
+            self.palette.pixel(1, 0, self.transp)
+            self.palette.pixel(0, 0, background)
+        elif foreground >= 0 and background < 0:
+            self.transp = 0 if foreground else 1
+            self.palette.pixel(1, 0, foreground)
+            self.palette.pixel(0, 0, self.transp)
+        else:
+            self.transp = 0
+            self.palette.pixel(1, 0, 0)
+            self.palette.pixel(0, 0, 0)
+    
     def color_f_set(self, color):
         self.color_f = color
         if color != -1:
@@ -153,23 +171,14 @@ class DisplayHAL:
             last_char_space = bitmap[2]
         
         return total - last_char_space
-    
-    @micropython.native
-    def image(self, bitmap, x, y, color=-1):
-        if self.display.mono:
-            self.display.blit(bitmap, x, y, color)
-        else:
-            palette_array = bytearray(4)
-            palette_framebuffer = framebuf.FrameBuffer(palette_array, 2, 1, framebuf.RGB565)
-            palette_framebuffer.pixel(0, 0, self.display.color(0x12, 0x34, 0x56)) # background
-            palette_framebuffer.pixel(1, 0, color) # foreground
-            self.display.blit(bitmap, x, y, self.display.color(0x12, 0x34, 0x56), palette_framebuffer)
             
     @micropython.native
-    def image_new(self, bitmap, x, y, ):
+    def image(self, bitmap, x: int, y: int) -> None:
+        self.display.blit(bitmap, x, y, self.transp, self.palette)
+        
+    def image_old(self, bitmap, x, y, color=-1):
         if self.display.mono:
-#             self.display.blit(bitmap, x, y, color)        
-            self.display.blit(bitmap, x, y, self.transp, self.palette)
+            self.display.blit(bitmap, x, y, color)
         else:
             palette_array = bytearray(4)
             palette_framebuffer = framebuf.FrameBuffer(palette_array, 2, 1, framebuf.RGB565)
@@ -242,65 +251,46 @@ if __name__ == "__main__":
 #     dihal.image(down_32x32,     96, 32, dihal.color(0x00, 0xFF, 0x00))
     
     # Chessboard as a background
+    dihal.color_set(1, 0)
     for x in range(0, dihal.width, 8):
         for y in range(0, dihal.height, 8):
             dihal.image(chess_8x8, x, y)
     
-    # Rendering time: 15.991 ms
+    # Row 0, Col 0 - foreground off, background off
+    dihal.color_set(0, 0)
+    dihal.image(ball_16x16, 20, 4)
     
-    # Row 0, Col 0 - 
-    dihal.color_f_set(0)
-    dihal.color_b_set(0)
-    dihal.transp = -1
-    dihal.image_new(ball_16x16, 20, 4)
+    # Row 0, Col 1 - foreground off, background on (negative)
+    dihal.color_set(0, 1)
+    dihal.image(ball_16x16, 56, 4)
     
-    # Row 0, Col 1 -
-    dihal.color_f_set(0)
-    dihal.color_b_set(1)
-    dihal.transp = -1
-    dihal.image_new(ball_16x16, 56, 4)
-    
-    # Row 0, Col 2 -
-    dihal.color_f_set(0)
-    dihal.color_b_set(1)
-    dihal.transp = 1
-    dihal.image_new(ball_16x16, 92, 4)
+    # Row 0, Col 2 - foreground off, background transparent
+    dihal.color_set(0, -1)
+    dihal.image(ball_16x16, 92, 4)
 
-    # Row 1, Col 0 -
-    dihal.color_f_set(1)
-    dihal.color_b_set(0)
-    dihal.transp = -1
-    dihal.image_new(ball_16x16, 20, 24)
+    # Row 1, Col 0 - foreground on, background off
+    dihal.color_set(1, 0)
+    dihal.image(ball_16x16, 20, 24)
     
-    # Row 1, Col 1 -
-    dihal.color_f_set(1)
-    dihal.color_b_set(1)
-    dihal.transp = -1
-    dihal.image_new(ball_16x16, 56, 24)
+    # Row 1, Col 1 - foreground on, background on
+    dihal.color_set(1, 1)
+    dihal.image(ball_16x16, 56, 24)
     
-    # Row 1, Col 2 -
-    dihal.color_f_set(1)
-    dihal.color_b_set(1)
-    dihal.transp = -1
-    dihal.image_new(ball_16x16, 92, 24)
+    # Row 1, Col 2 - foreground on, background transparent
+    dihal.color_set(1, -1)
+    dihal.image(ball_16x16, 92, 24)
 
-    # Row 2, Col 0 -
-    dihal.color_f_set(1)
-    dihal.color_b_set(0)
-    dihal.transp = 0
-    dihal.image_new(ball_16x16, 20, 44)
+    # Row 2, Col 0 - foreground transparent, background off
+    dihal.color_set(-1, 0)
+    dihal.image(ball_16x16, 20, 44)
     
-    # Row 2, Col 1 -
-    dihal.color_f_set(1)
-    dihal.color_b_set(1)
-    dihal.transp = 0
-    dihal.image_new(ball_16x16, 56, 44)
+    # Row 2, Col 1 - foreground transparent, background on
+    dihal.color_set(-1, 1)
+    dihal.image(ball_16x16, 56, 44)
     
-    # Row 2, Col 2 -
-    dihal.color_f_set(0)
-    dihal.color_b_set(0)
-    dihal.transp = 0
-    dihal.image_new(ball_16x16, 92, 44)
+    # Row 2, Col 2 - foreground transparent, background transparent
+    dihal.color_set(-1, -1)
+    dihal.image(ball_16x16, 92, 44)
 
     measure_time.end("Rendering time:")
     

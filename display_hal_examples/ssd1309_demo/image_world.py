@@ -17,7 +17,6 @@ print(dihal)
 
 measure_time.begin()
 dihal.image(world_128x64, 0, 0)
-# dihal.image(world_128x64, 0, 12, 0)  # transparent background
 
 measure_time.end("Rendering time")
 
