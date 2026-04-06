@@ -13,7 +13,21 @@ class DisplayHAL:
         self.display = display
         self.width   = display.width
         self.height  = display.height
+        self.color_f = 1
+        self.color_b = 0
+        self.transp  = -1
+        self.palette = framebuf.FrameBuffer(bytearray(4), 2, 1, framebuf.MONO_VLSB) # TODO to zmienić żeby pasowało też do RGB
         
+    def color_f_set(self, color):
+        self.color_f = color
+        if color != -1:
+            self.palette.pixel(1, 0, color) # foreground
+        
+    def color_b_set(self, color):
+        self.color_b = color
+        if color != -1:
+            self.palette.pixel(0, 0, color) # background
+    
     @micropython.viper
     def __str__(self):
         return f"DisplayHAL(display={self.display})"
@@ -150,28 +164,44 @@ class DisplayHAL:
             palette_framebuffer.pixel(0, 0, self.display.color(0x12, 0x34, 0x56)) # background
             palette_framebuffer.pixel(1, 0, color) # foreground
             self.display.blit(bitmap, x, y, self.display.color(0x12, 0x34, 0x56), palette_framebuffer)
+            
+    @micropython.native
+    def image_new(self, bitmap, x, y, ):
+        if self.display.mono:
+#             self.display.blit(bitmap, x, y, color)        
+            self.display.blit(bitmap, x, y, self.transp, self.palette)
+        else:
+            palette_array = bytearray(4)
+            palette_framebuffer = framebuf.FrameBuffer(palette_array, 2, 1, framebuf.RGB565)
+            palette_framebuffer.pixel(0, 0, self.display.color(0x12, 0x34, 0x56)) # background
+            palette_framebuffer.pixel(1, 0, color) # foreground
+            self.display.blit(bitmap, x, y, self.display.color(0x12, 0x34, 0x56), palette_framebuffer)
 
 if __name__ == "__main__":
     import mem_used
+    import measure_time
     from machine import Pin, I2C, SPI
     
 #     from dem128064e1 import *
     
 #     from sh1106 import *
 #     from sh1108 import *
-#     from ssd1309 import *
+    from display_hal.driver.ssd1309 import *
 #     from ssd1351 import *
 #     from ssd1363_spi import *
 #     from ssd1363_spi_bw import *
 
-    from display_hal.image.down_32x32 import *
-    from display_hal.image.up_32x32 import *
+    from display_hal.image_mono.down_32x32 import *
+    from display_hal.image_mono.up_32x32 import *
+    from display_hal.image_mono.ball_16x16 import *
+    from display_hal.image_mono.chess_8x8 import *
+
     from display_hal.font.extronic16_unicode import *
     from display_hal.font.extronic16B_unicode import *
 
-#     i2c = I2C(0) # use default pinout and clock frequency
+    i2c = I2C(0) # use default pinout and clock frequency
 #     display = SH1106(i2c, address=0x3D, rotate=0, offset_x=2)
-#     display = SSD1309(i2c, address=0x3C, rotate=0)
+    display = SSD1309(i2c, address=0x3C, rotate=0)
 
 #     spi = SPI(1, baudrate=10_000_000, polarity=0, phase=0)
     
@@ -191,32 +221,93 @@ if __name__ == "__main__":
 #     spi = SPI(0, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
 #     display = DEM128064E1(spi, cs=Pin(5), dc=Pin(6), rst=Pin(7))
     
-    from display_hal.driver.dem240064b import *
-    spi = SPI(0, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
-    display = DEM240064B(spi, cs0=Pin(5), cs1=Pin(8), dc=Pin(6), rst=Pin(7))
+#     from display_hal.driver.dem240064b import *
+#     spi = SPI(0, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
+#     display = DEM240064B(spi, cs0=Pin(5), cs1=Pin(8), dc=Pin(6), rst=Pin(7))
     
-    hal = DisplayHAL(display)
-    print(hal)
+    dihal = DisplayHAL(display)
+    print(dihal)
     
-#     hal.contrast_set(0xFF)
+#     dihal.contrast_set(0xFF)
     
     measure_time.begin()
-    hal.rect(0, 0, display.width, display.height, hal.color(0xFF, 0xFF, 0xFF))
-    hal.line(2, 2, display.width-3, display.height-3, hal.color(0xFF, 0x00, 0x00))
-    hal.circle(display.width//2, display.height//2, display.width//4-3, hal.color(0x00, 0xFF, 0x00))
-    hal.text('abcdefghijklm',  1,  2, hal.color(0x00, 0xFF, 0xFF))
-    hal.text('nopqrstuvwxyz',  1, 10, hal.color(0x00, 0x00, 0xFF))
-    hal.text("abcdefghijkl",  50, 20, hal.color(0xFF, 0xFF, 0xFF), extronic16_unicode,  "center")
-    hal.text("abcdefghijkl",  50, 40, hal.color(0xFF, 0xFF, 0x00), extronic16B_unicode, "center")
-    hal.image(up_32x32,       96,  0, hal.color(0xFF, 0x00, 0x00))
-    hal.image(down_32x32,     96, 32, hal.color(0x00, 0xFF, 0x00))
+#     dihal.rect(0, 0, display.width, display.height, dihal.color(0xFF, 0xFF, 0xFF))
+#     dihal.line(2, 2, display.width-3, display.height-3, dihal.color(0xFF, 0x00, 0x00))
+#     dihal.circle(display.width//2, display.height//2, display.width//4-3, dihal.color(0x00, 0xFF, 0x00))
+#     dihal.text('abcdefghijklm',  1,  2, dihal.color(0x00, 0xFF, 0xFF))
+#     dihal.text('nopqrstuvwxyz',  1, 10, dihal.color(0x00, 0x00, 0xFF))
+#     dihal.text("abcdefghijkl",  50, 20, dihal.color(0xFF, 0xFF, 0xFF), extronic16_unicode,  "center")
+#     dihal.text("abcdefghijkl",  50, 40, dihal.color(0xFF, 0xFF, 0x00), extronic16B_unicode, "center")
+#     dihal.image(up_32x32,       96,  0, dihal.color(0xFF, 0x00, 0x00))
+#     dihal.image(down_32x32,     96, 32, dihal.color(0x00, 0xFF, 0x00))
     
+    # Chessboard as a background
+    for x in range(0, dihal.width, 8):
+        for y in range(0, dihal.height, 8):
+            dihal.image(chess_8x8, x, y)
+    
+    # Rendering time: 15.991 ms
+    
+    # Row 0, Col 0 - 
+    dihal.color_f_set(0)
+    dihal.color_b_set(0)
+    dihal.transp = -1
+    dihal.image_new(ball_16x16, 20, 4)
+    
+    # Row 0, Col 1 -
+    dihal.color_f_set(0)
+    dihal.color_b_set(1)
+    dihal.transp = -1
+    dihal.image_new(ball_16x16, 56, 4)
+    
+    # Row 0, Col 2 -
+    dihal.color_f_set(0)
+    dihal.color_b_set(1)
+    dihal.transp = 1
+    dihal.image_new(ball_16x16, 92, 4)
+
+    # Row 1, Col 0 -
+    dihal.color_f_set(1)
+    dihal.color_b_set(0)
+    dihal.transp = -1
+    dihal.image_new(ball_16x16, 20, 24)
+    
+    # Row 1, Col 1 -
+    dihal.color_f_set(1)
+    dihal.color_b_set(1)
+    dihal.transp = -1
+    dihal.image_new(ball_16x16, 56, 24)
+    
+    # Row 1, Col 2 -
+    dihal.color_f_set(1)
+    dihal.color_b_set(1)
+    dihal.transp = -1
+    dihal.image_new(ball_16x16, 92, 24)
+
+    # Row 2, Col 0 -
+    dihal.color_f_set(1)
+    dihal.color_b_set(0)
+    dihal.transp = 0
+    dihal.image_new(ball_16x16, 20, 44)
+    
+    # Row 2, Col 1 -
+    dihal.color_f_set(1)
+    dihal.color_b_set(1)
+    dihal.transp = 0
+    dihal.image_new(ball_16x16, 56, 44)
+    
+    # Row 2, Col 2 -
+    dihal.color_f_set(0)
+    dihal.color_b_set(0)
+    dihal.transp = 0
+    dihal.image_new(ball_16x16, 92, 44)
+
     measure_time.end("Rendering time:")
     
     measure_time.begin()
-    hal.refresh()
+    dihal.refresh()
     measure_time.end("Refresh time:  ")
     
-#     hal.simulate()
+#     dihal.simulate()
 
     mem_used.print_ram_used()
