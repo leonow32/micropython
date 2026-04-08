@@ -25,7 +25,7 @@ measure_time.begin()
 for i in range(LOOPS):
     x2 = random.randrange(dihal.width)
     y2 = random.randrange(dihal.height)
-    dihal.line(x1, y1, x2, y2, 1)
+    dihal.line(x1, y1, x2, y2)
     dihal.refresh()
     x1 = x2
     y1 = y2
