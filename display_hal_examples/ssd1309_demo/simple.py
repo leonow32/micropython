@@ -13,7 +13,7 @@ dihal   = DisplayHAL(display)
 print(dihal)
 
 measure_time.begin()
-dihal.rect(0, 0, 128, 64, 1)
+dihal.rect(0, 0, 128, 64)
 dihal.text('abcdefghijklm', 1, 2, 1)
 dihal.text('nopqrstuvwxyz', 1, 10, 1)
 measure_time.end("Rendering time")

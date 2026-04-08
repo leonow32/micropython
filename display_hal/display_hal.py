@@ -14,37 +14,34 @@ class DisplayHAL:
         self.width   = display.width
         self.height  = display.height
         self.transp  = -1
+        self._color_f = 1 if display.mono else 0xFFFF
+        self._color_b = 0
         self.palette = framebuf.FrameBuffer(bytearray(4), 2, 1, framebuf.MONO_VLSB if display.mono else framebuf.RGB565)
-        self.palette.pixel(1, 0, 1 if display.mono else 0xFFFF)
+        self.palette.pixel(1, 0, self._color_f)
         self.palette.pixel(0, 0, 0)
+    
+    def color_set(self, foreground, background=None):
+        self._color_f = foreground
         
-    def color_set(self, foreground, background):
-        if foreground >= 0 and background >= 0:
+        if background is not None:
+            self._color_b = background
+            
+        if self._color_f >= 0 and self._color_b >= 0:
             self.transp = -1
-            self.palette.pixel(1, 0, foreground)
-            self.palette.pixel(0, 0, background)
-        elif foreground < 0 and background >= 0:
-            self.transp = 0 if background else 1
+            self.palette.pixel(1, 0, self._color_f)
+            self.palette.pixel(0, 0, self._color_b)
+        elif self._color_f < 0 and self._color_b >= 0:
+            self.transp = 0 if self._color_b else 1
             self.palette.pixel(1, 0, self.transp)
-            self.palette.pixel(0, 0, background)
-        elif foreground >= 0 and background < 0:
-            self.transp = 0 if foreground else 1
-            self.palette.pixel(1, 0, foreground)
+            self.palette.pixel(0, 0, self._color_b)
+        elif self._color_f >= 0 and self._color_b < 0:
+            self.transp = 0 if self._color_f else 1
+            self.palette.pixel(1, 0, self._color_f)
             self.palette.pixel(0, 0, self.transp)
         else:
             self.transp = 0
             self.palette.pixel(1, 0, 0)
             self.palette.pixel(0, 0, 0)
-    
-    def color_f_set(self, color):
-        self.color_f = color
-        if color != -1:
-            self.palette.pixel(1, 0, color) # foreground
-        
-    def color_b_set(self, color):
-        self.color_b = color
-        if color != -1:
-            self.palette.pixel(0, 0, color) # background
     
     @micropython.viper
     def __str__(self):
@@ -75,36 +72,36 @@ class DisplayHAL:
         self.display.simulate()
         
     @micropython.viper
-    def pixel(self, x, y, color):
-        self.display.pixel(x, y, color)
+    def pixel(self, x, y):
+        self.display.pixel(x, y, self._color_f)
         
     @micropython.viper
-    def line(self, x1, y1, x2, y2, color):
-        self.display.line(x1, y1, x2, y2, color)
+    def line(self, x1, y1, x2, y2):
+        self.display.line(x1, y1, x2, y2, self._color_f)
         
     @micropython.viper
-    def hline(self, x, y, width, color):
-        self.display.hline(x, y, width, color)
+    def hline(self, x, y, width):
+        self.display.hline(x, y, width, self._color_f)
         
     @micropython.viper
-    def vline(self, x, y, height, color):
-        self.display.vline(x, y, h, color)
+    def vline(self, x, y, height):
+        self.display.vline(x, y, h, self._color_f)
         
     @micropython.viper
-    def rect(self, x, y, width, height, color):
-        self.display.rect(x, y, width, height, color)
+    def rect(self, x, y, width, height):
+        self.display.rect(x, y, width, height, self._color_f)
         
     @micropython.viper
-    def fill_rect(self, x, y, width, height, color):
-        self.display.fill_rect(x, y, width, height, color)
+    def fill_rect(self, x, y, width, height):
+        self.display.fill_rect(x, y, width, height, self._color_f)
         
     @micropython.viper
-    def fill(self, color):
-        self.display.fill(color)
+    def fill(self):
+        self.display.fill(self._color_f)
         
     @micropython.native
-    def circle(self, x, y, radius, color, fill=False):
-        self.display.ellipse(x, y, radius, radius, color, fill)
+    def circle(self, x, y, radius, fill=False):
+        self.display.ellipse(x, y, radius, radius, self._color_f, fill)
         
     @micropython.native
     def char(self, font, char, x, y, color=1):

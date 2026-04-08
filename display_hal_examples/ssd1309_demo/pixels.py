@@ -25,10 +25,12 @@ measure_time.begin()
 for i in range(LOOPS):
     x = random.randrange(dihal.width)
     y = random.randrange(dihal.height)
-    dihal.pixel(x, y, 0) # black pixel
+    dihal.color_set(0)
+    dihal.pixel(x, y)
     x = random.randrange(dihal.width)
     y = random.randrange(dihal.height)
-    dihal.pixel(x, y, 1) # white pixel
+    dihal.color_set(1)
+    dihal.pixel(x, y)
     dihal.refresh()
 
 measure_time.end("Work time")
