@@ -10,15 +10,15 @@ class DisplayHAL:
     
     @micropython.native
     def __init__(self, display):
-        self.display = display
-        self.width   = display.width
-        self.height  = display.height
-        self.transp  = -1
+        self.display  = display
+        self.width    = display.width
+        self.height   = display.height
+        self._transp  = -1
         self._color_f = 1 if display.mono else 0xFFFF
         self._color_b = 0
-        self.palette = framebuf.FrameBuffer(bytearray(4), 2, 1, framebuf.MONO_VLSB if display.mono else framebuf.RGB565)
-        self.palette.pixel(1, 0, self._color_f)
-        self.palette.pixel(0, 0, 0)
+        self._palette = framebuf.FrameBuffer(bytearray(4), 2, 1, framebuf.MONO_VLSB if display.mono else framebuf.RGB565)
+        self._palette.pixel(1, 0, self._color_f)
+        self._palette.pixel(0, 0, 0)
     
     def color_set(self, foreground, background=None):
         self._color_f = foreground
@@ -27,21 +27,21 @@ class DisplayHAL:
             self._color_b = background
             
         if self._color_f >= 0 and self._color_b >= 0:
-            self.transp = -1
-            self.palette.pixel(1, 0, self._color_f)
-            self.palette.pixel(0, 0, self._color_b)
+            self._transp = -1
+            self._palette.pixel(1, 0, self._color_f)
+            self._palette.pixel(0, 0, self._color_b)
         elif self._color_f < 0 and self._color_b >= 0:
-            self.transp = 0 if self._color_b else 1
-            self.palette.pixel(1, 0, self.transp)
-            self.palette.pixel(0, 0, self._color_b)
+            self._transp = 0 if self._color_b else 1
+            self._palette.pixel(1, 0, self._transp)
+            self._palette.pixel(0, 0, self._color_b)
         elif self._color_f >= 0 and self._color_b < 0:
-            self.transp = 0 if self._color_f else 1
-            self.palette.pixel(1, 0, self._color_f)
-            self.palette.pixel(0, 0, self.transp)
+            self._transp = 0 if self._color_f else 1
+            self._palette.pixel(1, 0, self._color_f)
+            self._palette.pixel(0, 0, self._transp)
         else:
-            self.transp = 0
-            self.palette.pixel(1, 0, 0)
-            self.palette.pixel(0, 0, 0)
+            self._transp = 0
+            self._palette.pixel(1, 0, 0)
+            self._palette.pixel(0, 0, 0)
     
     @micropython.viper
     def __str__(self):
@@ -171,7 +171,7 @@ class DisplayHAL:
             
     @micropython.native
     def image(self, bitmap, x: int, y: int) -> None:
-        self.display.blit(bitmap, x, y, self.transp, self.palette)
+        self.display.blit(bitmap, x, y, self._transp, self._palette)
         
     def image_old(self, bitmap, x, y, color=-1):
         if self.display.mono:
