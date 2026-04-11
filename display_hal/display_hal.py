@@ -172,16 +172,6 @@ class DisplayHAL:
     @micropython.native
     def image(self, bitmap, x: int, y: int) -> None:
         self.display.blit(bitmap, x, y, self._transp, self._palette)
-        
-    def image_old(self, bitmap, x, y, color=-1):
-        if self.display.mono:
-            self.display.blit(bitmap, x, y, color)
-        else:
-            palette_array = bytearray(4)
-            palette_framebuffer = framebuf.FrameBuffer(palette_array, 2, 1, framebuf.RGB565)
-            palette_framebuffer.pixel(0, 0, self.display.color(0x12, 0x34, 0x56)) # background
-            palette_framebuffer.pixel(1, 0, color) # foreground
-            self.display.blit(bitmap, x, y, self.display.color(0x12, 0x34, 0x56), palette_framebuffer)
 
 if __name__ == "__main__":
     import mem_used
@@ -197,11 +187,15 @@ if __name__ == "__main__":
 #     from ssd1363_spi import *
 #     from ssd1363_spi_bw import *
 
-    from display_hal.image_mono.down_32x32 import *
-    from display_hal.image_mono.up_32x32 import *
-    from display_hal.image_mono.ball_16x16 import *
-    from display_hal.image_mono.chess_8x8 import *
+#     from display_hal.image_mono.down_32x32 import *
+#     from display_hal.image_mono.up_32x32 import *
+#     from display_hal.image_mono.ball_16x16 import *
+#     from display_hal.image_mono.chess_8x8 import *
 
+    from display_hal.font.console7 import *
+    from display_hal.font.dos8 import *
+    from display_hal.font.galaxy16_digits import *
+    from display_hal.font.mini8 import *
     from display_hal.font.extronic16_unicode import *
     from display_hal.font.extronic16B_unicode import *
 
@@ -236,7 +230,7 @@ if __name__ == "__main__":
     
 #     dihal.contrast_set(0xFF)
     
-    measure_time.begin()
+#     measure_time.begin()
 #     dihal.rect(0, 0, display.width, display.height, dihal.color(0xFF, 0xFF, 0xFF))
 #     dihal.line(2, 2, display.width-3, display.height-3, dihal.color(0xFF, 0x00, 0x00))
 #     dihal.circle(display.width//2, display.height//2, display.width//4-3, dihal.color(0x00, 0xFF, 0x00))
@@ -246,50 +240,17 @@ if __name__ == "__main__":
 #     dihal.text("abcdefghijkl",  50, 40, dihal.color(0xFF, 0xFF, 0x00), extronic16B_unicode, "center")
 #     dihal.image(up_32x32,       96,  0, dihal.color(0xFF, 0x00, 0x00))
 #     dihal.image(down_32x32,     96, 32, dihal.color(0x00, 0xFF, 0x00))
-    
-    # Chessboard as a background
-    dihal.color_set(1, 0)
-    for x in range(0, dihal.width, 8):
-        for y in range(0, dihal.height, 8):
-            dihal.image(chess_8x8, x, y)
-    
-    # Row 0, Col 0 - foreground off, background off
-    dihal.color_set(0, 0)
-    dihal.image(ball_16x16, 20, 4)
-    
-    # Row 0, Col 1 - foreground off, background on (negative)
-    dihal.color_set(0, 1)
-    dihal.image(ball_16x16, 56, 4)
-    
-    # Row 0, Col 2 - foreground off, background transparent
-    dihal.color_set(0, -1)
-    dihal.image(ball_16x16, 92, 4)
+#     measure_time.end("Rendering time:")
 
-    # Row 1, Col 0 - foreground on, background off
-    dihal.color_set(1, 0)
-    dihal.image(ball_16x16, 20, 24)
-    
-    # Row 1, Col 1 - foreground on, background on
-    dihal.color_set(1, 1)
-    dihal.image(ball_16x16, 56, 24)
-    
-    # Row 1, Col 2 - foreground on, background transparent
-    dihal.color_set(1, -1)
-    dihal.image(ball_16x16, 92, 24)
-
-    # Row 2, Col 0 - foreground transparent, background off
-    dihal.color_set(-1, 0)
-    dihal.image(ball_16x16, 20, 44)
-    
-    # Row 2, Col 1 - foreground transparent, background on
-    dihal.color_set(-1, 1)
-    dihal.image(ball_16x16, 56, 44)
-    
-    # Row 2, Col 2 - foreground transparent, background transparent
-    dihal.color_set(-1, -1)
-    dihal.image(ball_16x16, 92, 44)
-
-    measure_time.end("Rendering time:")
+    measure_time.begin()
+    dihal.text("-= Font Benchmark =-", 0, 0, 1, console7, "CENTER")
+    dihal.text("abcdefghijklmnopqrstuvwxyz01234", 0, 8, 1, mini8, "CENTER")
+    dihal.text("ąęłćśńóźż", 0, 16, 1, extronic16_unicode, "LEFT")
+    dihal.text("ąęłćśńóźż", 0, 16, 1, extronic16B_unicode, "RIGHT")
+    dihal.text("abcdefghijklmnop", 0, 32, 0, dos8, "CENTER")
+    dihal.text("qrstuvwxyz123345", 0, 40, 0, dos8, "CENTER")
+    dihal.text("0123456789", 0, 49, 1, galaxy16_digits, "CENTER")
+    measure_time.end("Rendering time")
     
     measure_time.begin()
     dihal.refresh()
