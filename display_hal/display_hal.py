@@ -264,7 +264,10 @@ class DisplayHAL:
         
         a = uctypes.addressof(bitmap)
         print(f"a = {a:08X}")
+        a = uctypes.addressof(bitmap[1:])
+        print(f"a = {a:08X}")
 #         b = uctypes.sizeof(bitmap)
+#         print(f"b = {b}")
         data = uctypes.bytearray_at(a, 32)
         fb = framebuf.FrameBuffer(data, 32, 32, 0)
         self.display.blit(fb, x, y, self._transp, self._palette)
@@ -417,26 +420,28 @@ if __name__ == "__main__":
     
     # NOWA IMAGE 3
     
-    from display_hal.image_mono3.back_32x32 import *
-    from display_hal.image_mono3.book_32x32 import *
-    from display_hal.image_mono3.cancel_32x32 import *
-    from display_hal.image_mono3.clock_32x32 import *
-    from display_hal.image_mono3.down_32x32 import *
-    from display_hal.image_mono3.hand_32x32 import *
-    from display_hal.image_mono3.light_32x32 import *
-    from display_hal.image_mono3.ok_32x32 import *
-    from display_hal.image_mono3.settings_32x32 import *
-    from display_hal.image_mono3.up_32x32 import *
+#     from display_hal.image_mono3.back_32x32 import *
+#     from display_hal.image_mono3.book_32x32 import *
+#     from display_hal.image_mono3.cancel_32x32 import *
+#     from display_hal.image_mono3.clock_32x32 import *
+#     from display_hal.image_mono3.down_32x32 import *
+#     from display_hal.image_mono3.hand_32x32 import *
+#     from display_hal.image_mono3.light_32x32 import *
+#     from display_hal.image_mono3.ok_32x32 import *
+#     from display_hal.image_mono3.settings_32x32 import *
+#     from display_hal.image_mono3.up_32x32 import *
+    _back_32x32 = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xc0\xc0\xc0\xc0\x80\x80\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x01\x01\x03\x03\x07\x1f\xfe\xfc\xf0\x00\x00\x00\x00\x00\x00  pp\xf8\xf8\xfc\xfc\xfe\xfepppppppppx8<\x1f\x0f\x07\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x01\x03\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    back_32x32 = memoryview(_back_32x32)
     
     measure_time.begin()
-    dihal.image3(ok_32x32,        0,  0)
+#     dihal.image3(ok_32x32,        0,  0)
     dihal.image3(back_32x32,      0, 32)
-    dihal.image3(clock_32x32,    32,  0)
-    dihal.image3(settings_32x32, 32, 32)
-    dihal.image3(book_32x32,     64,  0)
-    dihal.image3(light_32x32,    64, 32)
-    dihal.image3(up_32x32,       96,  0)
-    dihal.image3(down_32x32,     96, 32)
+#     dihal.image3(clock_32x32,    32,  0)
+#     dihal.image3(settings_32x32, 32, 32)
+#     dihal.image3(book_32x32,     64,  0)
+#     dihal.image3(light_32x32,    64, 32)
+#     dihal.image3(up_32x32,       96,  0)
+#     dihal.image3(down_32x32,     96, 32)
     measure_time.end("Rendering time")
     
     measure_time.begin()
