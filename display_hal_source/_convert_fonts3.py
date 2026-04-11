@@ -1,17 +1,20 @@
 # 250301
 import os
 
+input_dir  = "font_source"
+output_dir = "../display_hal/font3"
+
 def convert(file):
     print(f"Processing: {file}")
     file = file.replace(".font", "")
 
     bitmap = bytearray()
 
-    with open(f"../display_hal/font2/{file}.py", "w", encoding="utf-8") as result:
+    with open(f"{output_dir}/{file}.py", "w", encoding="utf-8") as result:
         result.write("import framebuf\n")
         result.write(f"{file} = {{\n")
         
-        with open(f"font_source/{file}.font", "r", encoding="utf-8") as source:
+        with open(f"{input_dir}/{file}.font", "r", encoding="utf-8") as source:
             lines = source.readlines()
             
             for line in lines:
@@ -59,10 +62,10 @@ def convert(file):
         result.write("}\n")
 
 if __name__ == "__main__":
-    if not os.path.exists("../display_hal/font2"):
-        os.makedirs("../display_hal/font2")
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
         
-    files = os.listdir("font_source")
+    files = os.listdir(input_dir)
     
     for file in files:
         if ".font" in file:
