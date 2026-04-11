@@ -1,0 +1,1 @@
+chess_8x8 = (b'U\xaaU\xaaU\xaaU\xaa', 8, 8, 0)
