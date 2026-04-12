@@ -25,15 +25,16 @@ def convert(file):
                 bitmap[page * width + column] |= bit
         
     with open(f"{output_dir}/{file}.py", "w", encoding="utf-8") as output:
-        bitstream = bytearray()
+#         bitstream = bytearray()
 #         bitstream.append((width >> 8) & 0xFF)
 #         bitstream.append(width & 0xFF)
 #         bitstream.append((height >> 8) & 0xFF)
 #         bitstream.append(height & 0xFF)
 #         bitstream.append(0) # 0 = framebuf.MONO_VLSB
-        bitstream += bitmap
-        output.write(f"_{file} = {bytes(bitstream)}\n")
-        output.write(f"{file} = memoryview(_{file})")
+#         bitstream += bitmap
+#         output.write(f"_{file} = {bitstream}\n")
+#         output.write(f"{file} = memoryview(_{file})")
+        output.write(f"{file} = ({bitmap}, {width}, {height}, 0)")  # 0 = framebuf.MONO_VLSB
 
 if __name__ == "__main__":
     if not os.path.exists(output_dir):
