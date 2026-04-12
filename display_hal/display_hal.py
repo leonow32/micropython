@@ -245,25 +245,6 @@ class DisplayHAL:
     @micropython.native
     def image(self, bitmap, x: int, y: int) -> None:
         self.display.blit(bitmap, x, y, self._transp, self._palette)
-        
-#     @micropython.native
-#     def image2(self, bitmap, x: int, y: int) -> None:
-#         fb = framebuf.FrameBuffer(bytearray(bitmap[0]), bitmap[1], bitmap[2], bitmap[3])
-#         self.display.blit(fb, x, y, self._transp, self._palette)
-        
-#     @micropython.native
-#     def image3(self, bitmap, x: int, y: int) -> None:
-#         fb = framebuf.FrameBuffer(bitmap[0], bitmap[1], bitmap[2], bitmap[3])
-#         self.display.blit(fb, x, y, self._transp, self._palette)
-# 
-#     @micropython.native
-#     def image4(self, bitmap, x: int, y: int) -> None:
-#         fb = framebuf.FrameBuffer(bytearray(bitmap[0]), bitmap[1], bitmap[2], bitmap[3])
-#         self.display.blit(fb, x, y, self._transp, self._palette)
-
-#     @micropython.native
-#     def image5(self, bitmap, x: int, y: int) -> None:
-#         self.display.blit(bitmap, x, y, self._transp, self._palette)
 
 if __name__ == "__main__":
     import mem_used
@@ -363,7 +344,7 @@ if __name__ == "__main__":
 #     dihal.text2("0123456789", 0, 49, galaxy16_digits, "CENTER")
 #     measure_time.end("Rendering time:")
 
-    # STARE IMAGE
+    # Image demo
     from display_hal.image_mono.back_32x32 import *
     from display_hal.image_mono.book_32x32 import *
     from display_hal.image_mono.cancel_32x32 import *
@@ -385,98 +366,6 @@ if __name__ == "__main__":
     dihal.image(up_32x32,       96,  0)
     dihal.image(down_32x32,     96, 32)
     measure_time.end("Rendering time:")
-    
-    # NOWA IMAGE 2
-#     from display_hal.image_mono2.back_32x32 import *
-#     from display_hal.image_mono2.book_32x32 import *
-#     from display_hal.image_mono2.cancel_32x32 import *
-#     from display_hal.image_mono2.clock_32x32 import *
-#     from display_hal.image_mono2.down_32x32 import *
-#     from display_hal.image_mono2.hand_32x32 import *
-#     from display_hal.image_mono2.light_32x32 import *
-#     from display_hal.image_mono2.ok_32x32 import *
-#     from display_hal.image_mono2.settings_32x32 import *
-#     from display_hal.image_mono2.up_32x32 import *
-#     
-#     measure_time.begin()
-#     dihal.image2(ok_32x32,        0,  0)
-#     dihal.image2(back_32x32,      0, 32)
-#     dihal.image2(clock_32x32,    32,  0)
-#     dihal.image2(settings_32x32, 32, 32)
-#     dihal.image2(book_32x32,     64,  0)
-#     dihal.image2(light_32x32,    64, 32)
-#     dihal.image2(up_32x32,       96,  0)
-#     dihal.image2(down_32x32,     96, 32)
-#     measure_time.end("Rendering time")
-    
-    # NOWA IMAGE 3
-#     from display_hal.image_mono3.back_32x32 import *
-#     from display_hal.image_mono3.book_32x32 import *
-#     from display_hal.image_mono3.cancel_32x32 import *
-#     from display_hal.image_mono3.clock_32x32 import *
-#     from display_hal.image_mono3.down_32x32 import *
-#     from display_hal.image_mono3.hand_32x32 import *
-#     from display_hal.image_mono3.light_32x32 import *
-#     from display_hal.image_mono3.ok_32x32 import *
-#     from display_hal.image_mono3.settings_32x32 import *
-#     from display_hal.image_mono3.up_32x32 import *
-#     
-#     measure_time.begin()
-#     dihal.image3(ok_32x32,        0,  0)
-#     dihal.image3(back_32x32,      0, 32)
-#     dihal.image3(clock_32x32,    32,  0)
-#     dihal.image3(settings_32x32, 32, 32)
-#     dihal.image3(book_32x32,     64,  0)
-#     dihal.image3(light_32x32,    64, 32)
-#     dihal.image3(up_32x32,       96,  0)
-#     dihal.image3(down_32x32,     96, 32)
-#     measure_time.end("Rendering time")
-    
-        # NOWA IMAGE 4
-#     from display_hal.image_mono4.back_32x32 import *
-#     from display_hal.image_mono4.book_32x32 import *
-#     from display_hal.image_mono4.cancel_32x32 import *
-#     from display_hal.image_mono4.clock_32x32 import *
-#     from display_hal.image_mono4.down_32x32 import *
-#     from display_hal.image_mono4.hand_32x32 import *
-#     from display_hal.image_mono4.light_32x32 import *
-#     from display_hal.image_mono4.ok_32x32 import *
-#     from display_hal.image_mono4.settings_32x32 import *
-#     from display_hal.image_mono4.up_32x32 import *
-#     
-#     measure_time.begin()
-#     dihal.image4(ok_32x32,        0,  0)
-#     dihal.image4(back_32x32,      0, 32)
-#     dihal.image4(clock_32x32,    32,  0)
-#     dihal.image4(settings_32x32, 32, 32)
-#     dihal.image4(book_32x32,     64,  0)
-#     dihal.image4(light_32x32,    64, 32)
-#     dihal.image4(up_32x32,       96,  0)
-#     dihal.image4(down_32x32,     96, 32)
-#     measure_time.end("Rendering time")
-    
-        # NOWA IMAGE 5
-#     from display_hal.image_mono5.back_32x32 import *
-#     from display_hal.image_mono5.book_32x32 import *
-#     from display_hal.image_mono5.cancel_32x32 import *
-#     from display_hal.image_mono5.clock_32x32 import *
-#     from display_hal.image_mono5.down_32x32 import *
-#     from display_hal.image_mono5.hand_32x32 import *
-#     from display_hal.image_mono5.light_32x32 import *
-#     from display_hal.image_mono5.ok_32x32 import *
-#     from display_hal.image_mono5.settings_32x32 import *
-#     from display_hal.image_mono5.up_32x32 import *
-#     
-#     measure_time.begin()
-#     dihal.image5(ok_32x32,        0,  0)
-#     dihal.image5(back_32x32,      0, 32)
-#     dihal.image5(clock_32x32,    32,  0)
-#     dihal.image5(settings_32x32, 32, 32)
-#     dihal.image5(book_32x32,     64,  0)
-#     dihal.image5(light_32x32,    64, 32)
-#     dihal.image5(up_32x32,       96,  0)
-#     dihal.image5(down_32x32,     96, 32)
-#     measure_time.end("Rendering time")
 
     measure_time.begin()
     dihal.refresh()
