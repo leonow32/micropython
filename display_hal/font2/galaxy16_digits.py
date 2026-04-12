@@ -1,0 +1,22 @@
+import framebuf
+galaxy16_digits = {
+32: (2, 16, 1, framebuf.FrameBuffer(bytearray(b'\x00\x00\x00\x00'), 2, 16, framebuf.MONO_VLSB)),
+37: (10, 16, 1, framebuf.FrameBuffer(bytearray(b'\x0c\x12\x12\x8c`\x18\x86b\x1a\x06`XFa\x18\x061HH0'), 10, 16, framebuf.MONO_VLSB)),
+39: (4, 16, 1, framebuf.FrameBuffer(bytearray(b'\x0c\x12\x12\x0c\x00\x00\x00\x00'), 4, 16, framebuf.MONO_VLSB)),
+46: (4, 16, 1, framebuf.FrameBuffer(bytearray(b'\x00\x00\x00\x000HH0'), 4, 16, framebuf.MONO_VLSB)),
+48: (11, 16, 1, framebuf.FrameBuffer(bytearray(b'\xf8\x04\x02\xe2\x12\x12\x12\xe2\x02\x04\xf8\x1f @GHHHG@ \x1f'), 11, 16, framebuf.MONO_VLSB)),
+49: (6, 16, 1, framebuf.FrameBuffer(bytearray(b'0(\xe4\x02\x02\xfe\x00\x00\x7f@@\x7f'), 6, 16, framebuf.MONO_VLSB)),
+50: (11, 16, 1, framebuf.FrameBuffer(bytearray(b'\x00\x9eRRRRR"\x02\x04\xf8\x7f@@LJJJJJIx'), 11, 16, framebuf.MONO_VLSB)),
+51: (11, 16, 1, framebuf.FrameBuffer(bytearray(b'\x1e\x12\x12\xd2RRR"\x02\x84xxHHKJJJD@!\x1e'), 11, 16, framebuf.MONO_VLSB)),
+52: (10, 16, 1, framebuf.FrameBuffer(bytearray(b'\xfc\x04\x04|@~\x02\x02~\xc0\x03\x02\x02\x02\x02~@@~\x03'), 10, 16, framebuf.MONO_VLSB)),
+53: (11, 16, 1, framebuf.FrameBuffer(bytearray(b'\xfe\x02\x02rRRRRR\x9e\x00{JJJJJJD@ \x1f'), 11, 16, framebuf.MONO_VLSB)),
+54: (11, 16, 1, framebuf.FrameBuffer(bytearray(b'\xf8\x04\x02bRRRRR\x9e\x00\x1f @DJJJD@ \x1f'), 11, 16, framebuf.MONO_VLSB)),
+55: (10, 16, 1, framebuf.FrameBuffer(bytearray(b'\x1e\x12\x12\xd22\x02\x82b\x1a\x06pLC`\x18\x06\x01\x00\x00\x00'), 10, 16, framebuf.MONO_VLSB)),
+56: (11, 16, 1, framebuf.FrameBuffer(bytearray(b'x\x84\x02"RRR"\x02\x84x\x1e!@DJJJD@!\x1e'), 11, 16, framebuf.MONO_VLSB)),
+57: (11, 16, 1, framebuf.FrameBuffer(bytearray(b'\xf8\x04\x02"RRR"\x02\x04\xf8\x00yJJJJJF@ \x1f'), 11, 16, framebuf.MONO_VLSB)),
+58: (4, 16, 1, framebuf.FrameBuffer(bytearray(b'\x80@@\x801JJ1'), 4, 16, framebuf.MONO_VLSB)),
+80: (11, 16, 1, framebuf.FrameBuffer(bytearray(b'\xdeRRRRRR"\x02\x84x\x7f@@~\x02\x02\x02\x02\x01\x00\x00'), 11, 16, framebuf.MONO_VLSB)),
+97: (10, 16, 1, framebuf.FrameBuffer(bytearray(b'\x00\x80@@@@@@@\xc0\x1f @DJJN@@\x7f'), 10, 16, framebuf.MONO_VLSB)),
+104: (10, 16, 1, framebuf.FrameBuffer(bytearray(b'\xfe\x02\x02~@@@@\x80\x00\x7f@@~\x02\x02~@@\x7f'), 10, 16, framebuf.MONO_VLSB)),
+0: (3, 16, 1, framebuf.FrameBuffer(bytearray(b'\xff\x01\xff\xff\x80\xff'), 3, 16, framebuf.MONO_VLSB)),
+}

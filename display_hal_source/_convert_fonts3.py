@@ -2,7 +2,7 @@
 import os
 
 input_dir  = "font_source"
-output_dir = "../display_hal/font"
+output_dir = "../display_hal/font3"
 
 def convert(file):
     print(f"Processing: {file}")
@@ -11,6 +11,7 @@ def convert(file):
     bitmap = bytearray()
 
     with open(f"{output_dir}/{file}.py", "w", encoding="utf-8") as result:
+#         result.write("import framebuf\n")
         result.write(f"{file} = {{\n")
         
         with open(f"{input_dir}/{file}.font", "r", encoding="utf-8") as source:
@@ -35,8 +36,8 @@ def convert(file):
                     space = int(line[line.find(":")+1:])
                     
                 elif len(line) == 0:
-                    output = bytearray([width]) + bytearray([height]) + bytearray([space]) + bitmap
-                    result.write(f"{num}: {output},\n")
+                    result.write(f"{num}: ({width}, {height}, {space}, {bitmap}),\n")
+                    
                     bitmap = bytearray()
                     
                 elif "." in line or "#" in line:
