@@ -5,7 +5,6 @@
 # MicroPython 1.27.0 Raspberry Pico 2
 
 import framebuf
-import uctypes
 
 class DisplayHAL:
     

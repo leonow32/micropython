@@ -1,11 +1,10 @@
 # 250131
 import os
-import sys
 import numpy            # install with "pip install numpy"
 from PIL import Image   # install with "pip install pillow"
 
 input_dir  = "image_source_mono"
-output_dir = "../display_hal/image_mono2"
+output_dir = "../display_hal/image_mono"
 
 def convert(file):
     print(f"Processing: {file}")
