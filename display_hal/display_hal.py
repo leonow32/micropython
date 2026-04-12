@@ -104,7 +104,6 @@ class DisplayHAL:
         self.display.ellipse(x, y, radius, radius, self._color_f, fill)
         
     # FONT 1
-    
 #     @micropython.native
 #     def char(self, font, char, x, y, color=1):
 #         try:
@@ -172,7 +171,6 @@ class DisplayHAL:
 #         return total - last_char_space
     
     # FONT 2
-    
     @micropython.native
     def char2(self, font, char, x, y):
         try:
@@ -235,14 +233,12 @@ class DisplayHAL:
         total = 0
         last_char_space = 0
         for char in text:
-            bitmap = font.get(ord(char), font[0])
-            total += bitmap[0]
-            total += bitmap[2]
-            last_char_space = bitmap[2]
+            data = font.get(ord(char), font[0])
+            total += data[0]
+            total += data[2]
+            last_char_space = data[2]
         
         return total - last_char_space
-    
-    # IMAGE
             
     @micropython.native
     def image(self, bitmap, x: int, y: int) -> None:
@@ -349,7 +345,31 @@ if __name__ == "__main__":
     dihal.color_set(1, 0)
     dihal.text2("0123456789", 0, 49, galaxy16_digits, "CENTER")
     measure_time.end("Rendering time")
-    
+
+    # Image demo
+#     from display_hal.image_mono.back_32x32 import *
+#     from display_hal.image_mono.book_32x32 import *
+#     from display_hal.image_mono.cancel_32x32 import *
+#     from display_hal.image_mono.clock_32x32 import *
+#     from display_hal.image_mono.down_32x32 import *
+#     from display_hal.image_mono.hand_32x32 import *
+#     from display_hal.image_mono.light_32x32 import *
+#     from display_hal.image_mono.ok_32x32 import *
+#     from display_hal.image_mono.settings_32x32 import *
+#     from display_hal.image_mono.up_32x32 import *
+#     
+#     measure_time.begin()
+#     dihal.image(ok_32x32,        0,  0)
+#     dihal.image(back_32x32,      0, 32)
+#     dihal.image(clock_32x32,    32,  0)
+#     dihal.image(settings_32x32, 32, 32)
+#     dihal.image(book_32x32,     64,  0)
+#     dihal.image(light_32x32,    64, 32)
+#     dihal.image(up_32x32,       96,  0)
+#     dihal.image(down_32x32,     96, 32)
+#     measure_time.end("Rendering time:")
+
+    # Refresh
     measure_time.begin()
     dihal.refresh()
     measure_time.end("Refresh time:  ")
