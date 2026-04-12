@@ -11,7 +11,7 @@ def convert(file):
     bitmap = bytearray()
 
     with open(f"{output_dir}/{file}.py", "w", encoding="utf-8") as result:
-        result.write("import framebuf\n")
+#         result.write("import framebuf\n")
         result.write(f"{file} = {{\n")
         
         with open(f"{input_dir}/{file}.font", "r", encoding="utf-8") as source:
@@ -36,9 +36,7 @@ def convert(file):
                     space = int(line[line.find(":")+1:])
                     
                 elif len(line) == 0:
-                    output = bytearray([width]) + bytearray([height]) + bytearray([space]) + bitmap
-                    #result.write(f"{num}: {output},\n")
-                    result.write(f"{num}: ({width}, {height}, {space}, framebuf.FrameBuffer({bitmap}, {width}, {height}, framebuf.MONO_VLSB)),\n")
+                    result.write(f"{num}: ({width}, {height}, {space}, {bitmap}),\n")
                     
                     bitmap = bytearray()
                     
