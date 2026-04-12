@@ -259,6 +259,145 @@ class DisplayHAL:
 #             last_char_space = space
 #         
 #         return total - last_char_space
+
+#     # FONT 4        
+#     @micropython.native
+#     def text4(self, text, x, y, font=None, align="left"):
+#         space = font[-1]
+#         height = font[0][1]
+#         
+#         if align == "RIGHT":
+#             width = self.text_width4(text, font)
+#             x = self.display.width - width
+#         elif align == "CENTER":
+#             width = self.text_width4(text, font)
+#             x = self.display.width//2 - width//2
+#         elif align == "right":
+#             width = self.text_width4(text, font)
+#             x = x - width + 1
+#         elif align == "center":
+#             width = self.text_width4(text, font)
+#             x = x - width//2
+#         
+#         if space and self._color_b != -1:
+#             self.display.rect(x, y, space, height, self._color_b, True)
+#             x += space
+#         
+#         for char in text:            
+#             bitmap = font.get(ord(char), font[0])
+#             fb = framebuf.FrameBuffer(bitmap[2:], bitmap[0], bitmap[1], framebuf.MONO_VLSB)
+#             self.display.blit(fb, x, y, self._transp, self._palette)
+#             x += bitmap[0]
+#             
+#             if space and self._color_b != -1:
+#                 self.display.rect(x, y, space, height, self._color_b, True)
+#                 x += space
+#     
+#     @micropython.native
+#     def text_width4(self, text, font):        
+#         total = 0
+# 
+#         for char in text:
+#             total += font.get(ord(char), font[0])[0]
+#             
+#         total += font[-1] * (len(text)+1)
+#         return total
+
+    # FONT 5
+    @micropython.native
+    def text5(self, text, x, y, font=None, align="left"):
+        height, space = font[-1]
+        
+        if align == "RIGHT":
+            width = self.text_width5(text, font)
+            x = self.display.width - width
+        elif align == "CENTER":
+            width = self.text_width5(text, font)
+            x = self.display.width//2 - width//2
+        elif align == "right":
+            width = self.text_width5(text, font)
+            x = x - width + 1
+        elif align == "center":
+            width = self.text_width5(text, font)
+            x = x - width//2
+        
+        if space:
+            if self._color_b != -1:
+                self.display.rect(x, y, space, height, self._color_b, True)
+            x += space
+        
+        for char in text:            
+            bitmap = font.get(ord(char), font[0])
+            fb = framebuf.FrameBuffer(bitmap[1:], bitmap[0], height, framebuf.MONO_VLSB)
+            self.display.blit(fb, x, y, self._transp, self._palette)
+            x += bitmap[0]
+            
+            if space and self._color_b != -1:
+                self.display.rect(x, y, space, height, self._color_b, True)
+                x += space
+    
+    @micropython.native
+    def text_width5(self, text, font):
+        """
+        Calculate the width of a text in pixels.
+        """
+        total = 0
+
+        # Width of each character
+        for char in text:
+            total += font.get(ord(char), font[0])[0]
+            
+        # Width of separators between the characters
+        total += font[-1][1] * (len(text)+1)
+        return total
+
+    # FONT 6
+#     @micropython.native
+#     def text6(self, text, x, y, font=None, align="left"):
+#         height, space = font[-1]
+#         
+#         if align == "RIGHT":
+#             width = self.text_width6(text, font)
+#             x = self.display.width - width
+#         elif align == "CENTER":
+#             width = self.text_width6(text, font)
+#             x = self.display.width//2 - width//2
+#         elif align == "right":
+#             width = self.text_width6(text, font)
+#             x = x - width + 1
+#         elif align == "center":
+#             width = self.text_width6(text, font)
+#             x = x - width//2
+#         
+#         if space:
+#             if self._color_b != -1:
+#                 self.display.rect(x, y, space, height, self._color_b, True)
+#             x += space
+#         
+#         for char in text:            
+#             width, bitmap = font.get(ord(char), font[0])
+#             fb = framebuf.FrameBuffer(bitmap, width, height, framebuf.MONO_VLSB)
+#             self.display.blit(fb, x, y, self._transp, self._palette)
+#             x += width
+#             
+#             if space and self._color_b != -1:
+#                 self.display.rect(x, y, space, height, self._color_b, True)
+#                 x += space
+#     
+#     @micropython.native
+#     def text_width6(self, text, font):
+#         """
+#         Calculate the width of a text in pixels.
+#         """
+#         total = 0
+# 
+#         # Width of each character
+#         for char in text:
+#             total += font.get(ord(char), font[0])[0]
+#             
+#         # Width of separators between the characters
+#         total += font[-1][1] * (len(text)+1)
+#         return total
             
     @micropython.native
     def image(self, bitmap, x: int, y: int) -> None:
@@ -315,24 +454,24 @@ if __name__ == "__main__":
 #     dihal.contrast_set(0xFF)
 
     # FONT 1
-    from display_hal.font.console7 import *
-    from display_hal.font.dos8 import *
-    from display_hal.font.galaxy16_digits import *
-    from display_hal.font.mini8 import *
-    from display_hal.font.extronic16_unicode import *
-    from display_hal.font.extronic16B_unicode import *
-
-    measure_time.begin()
-    dihal.text("-= Font Benchmark =-", 0, 0, console7, "CENTER")
-    dihal.text("abcdefghijklmnopqrstuvwxyz01234", 0, 8, mini8, "CENTER")
-    dihal.text("ąęłćśńóźż", 0, 16, extronic16_unicode, "LEFT")
-    dihal.text("ąęłćśńóźż", 0, 16, extronic16B_unicode, "RIGHT")
-    dihal.color_set(0, 1)
-    dihal.text("abcdefghijklmnop", 0, 32, dos8, "CENTER")
-    dihal.text("qrstuvwxyz123345", 0, 40, dos8, "CENTER")
-    dihal.color_set(1, 0)
-    dihal.text("0123456789", 0, 49, galaxy16_digits, "CENTER")
-    measure_time.end("Rendering time")
+#     from display_hal.font.console7 import *
+#     from display_hal.font.dos8 import *
+#     from display_hal.font.galaxy16_digits import *
+#     from display_hal.font.mini8 import *
+#     from display_hal.font.extronic16_unicode import *
+#     from display_hal.font.extronic16B_unicode import *
+# 
+#     measure_time.begin()
+#     dihal.text("-= Font Benchmark =-", 0, 0, console7, "CENTER")
+#     dihal.text("abcdefghijklmnopqrstuvwxyz01234", 0, 8, mini8, "CENTER")
+#     dihal.text("ąęłćśńóźż", 0, 16, extronic16_unicode, "LEFT")
+#     dihal.color_set(0, 1)
+#     dihal.text("ąęłćśńóźż", 0, 16, extronic16B_unicode, "RIGHT")
+#     dihal.text("abcdefghijklmnop", 0, 32, dos8, "CENTER")
+#     dihal.text("qrstuvwxyz123345", 0, 40, dos8, "CENTER")
+#     dihal.color_set(1, 0)
+#     dihal.text("0123456789", 0, 49, galaxy16_digits, "CENTER")
+#     measure_time.end("Rendering time")
 
     # FONT 2
 #     from display_hal.font2.console7 import *
@@ -372,6 +511,66 @@ if __name__ == "__main__":
 #     dihal.text3("qrstuvwxyz123345", 0, 40, dos8, "CENTER")
 #     dihal.color_set(1, 0)
 #     dihal.text3("0123456789", 0, 49, galaxy16_digits, "CENTER")
+#     measure_time.end("Rendering time")
+
+#     # FONT 4
+#     from display_hal.font4.console7 import *
+#     from display_hal.font4.dos8 import *
+#     from display_hal.font4.galaxy16_digits import *
+#     from display_hal.font4.mini8 import *
+#     from display_hal.font4.extronic16_unicode import *
+#     from display_hal.font4.extronic16B_unicode import *
+# 
+#     measure_time.begin()
+#     dihal.text4("-= Font Benchmark =-", 0, 0, console7, "CENTER")
+#     dihal.text4("abcdefghijklmnopqrstuvwxyz01234", 0, 8, mini8, "CENTER")
+#     dihal.text4("ąęłćśńóźż", 0, 16, extronic16_unicode, "LEFT")
+#     dihal.color_set(0, 1)
+#     dihal.text4("ąęłćśńóźż", 0, 16, extronic16B_unicode, "RIGHT")
+#     dihal.text4("abcdefghijklmnop", 0, 32, dos8, "CENTER")
+#     dihal.text4("qrstuvwxyz123345", 0, 40, dos8, "CENTER")
+#     dihal.color_set(1, 0)
+#     dihal.text4("0123456789", 0, 49, galaxy16_digits, "CENTER")
+#     measure_time.end("Rendering time")
+
+#     # FONT 5
+    from display_hal.font5.console7 import *
+    from display_hal.font5.dos8 import *
+    from display_hal.font5.galaxy16_digits import *
+    from display_hal.font5.mini8 import *
+    from display_hal.font5.extronic16_unicode import *
+    from display_hal.font5.extronic16B_unicode import *
+
+    measure_time.begin()
+    dihal.text5("-= Font Benchmark =-", 0, 0, console7, "CENTER")
+    dihal.text5("abcdefghijklmnopqrstuvwxyz01234", 0, 8, mini8, "CENTER")
+    dihal.text5("ąęłćśńóźż", 0, 16, extronic16_unicode, "LEFT")
+    dihal.color_set(0, 1)
+    dihal.text5("ąęłćśńóźż", 0, 16, extronic16B_unicode, "RIGHT")
+    dihal.text5("abcdefghijklmnop", 0, 32, dos8, "CENTER")
+    dihal.text5("qrstuvwxyz123345", 0, 40, dos8, "CENTER")
+    dihal.color_set(1, 0)
+    dihal.text5("0123456789", 0, 49, galaxy16_digits, "CENTER")
+    measure_time.end("Rendering time")
+
+    # FONT 6
+#     from display_hal.font6.console7 import *
+#     from display_hal.font6.dos8 import *
+#     from display_hal.font6.galaxy16_digits import *
+#     from display_hal.font6.mini8 import *
+#     from display_hal.font6.extronic16_unicode import *
+#     from display_hal.font6.extronic16B_unicode import *
+# 
+#     measure_time.begin()
+#     dihal.text6("-= Font Benchmark =-", 0, 0, console7, "CENTER")
+#     dihal.text6("abcdefghijklmnopqrstuvwxyz01234", 0, 8, mini8, "CENTER")
+#     dihal.text6("ąęłćśńóźż", 0, 16, extronic16_unicode, "LEFT")
+#     dihal.color_set(0, 1)
+#     dihal.text6("ąęłćśńóźż", 0, 16, extronic16B_unicode, "RIGHT")
+#     dihal.text6("abcdefghijklmnop", 0, 32, dos8, "CENTER")
+#     dihal.text6("qrstuvwxyz123345", 0, 40, dos8, "CENTER")
+#     dihal.color_set(1, 0)
+#     dihal.text6("0123456789", 0, 49, galaxy16_digits, "CENTER")
 #     measure_time.end("Rendering time")
 
     # Image demo
