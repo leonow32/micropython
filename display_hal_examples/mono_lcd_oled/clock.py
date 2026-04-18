@@ -1,19 +1,17 @@
 # MicroPython 1.27.0 ESP32 Pico
-from machine import I2C
-from display_hal.display_hal import *
-from display_hal.driver.ssd1309 import *
 
+import mem_used
+import measure_time
+import time
+
+from display_hal.display_hal import *
 from display_hal.font.galaxy16_digits import *
 from display_hal.font.galaxy24_digits import *
 from display_hal.font.galaxy16_digits import *
-from display_hal.font.mini8 import *
-from display_hal.font.extronic16_unicode import *
-from display_hal.font.extronic16B_unicode import *
 
-import time
-import mem_used
-import measure_time
-
+# Display OLED 128x64 monochrome with SSD1309
+from machine import I2C
+from display_hal.driver.ssd1309 import *
 i2c     = I2C(0) # use default pinout and clock frequency
 display = SSD1309(i2c, rotate=False, address=0x3C)
 dihal   = DisplayHAL(display)
