@@ -9,6 +9,7 @@ def convert(file):
     file = file.replace(".font", "")
 
     bitmap = bytearray()
+    space_is_written = False
 
     with open(f"{output_dir}/{file}.py", "w", encoding="utf-8") as result:
         result.write(f"{file} = {{\n")
@@ -33,9 +34,12 @@ def convert(file):
                     
                 elif "space" in line:
                     space = int(line[line.find(":")+1:])
+                    if not space_is_written:
+                        result.write(f"{-1}: ({height}, {space}),\n")
+                        space_is_written = True
                     
                 elif len(line) == 0:
-                    output = bytearray([width]) + bytearray([height]) + bytearray([space]) + bitmap
+                    output = bytearray([width]) + bitmap
                     result.write(f"{num}: {output},\n")
                     bitmap = bytearray()
                     
