@@ -6,6 +6,13 @@
 
 import framebuf
 
+ALIGN_LEFT_X   = const(0)
+ALIGN_LEFT     = const(1)
+ALIGN_CENTER_X = const(2)
+ALIGN_CENTER   = const(3)
+ALIGN_RIGHT_X  = const(4)
+ALIGN_RIGHT    = const(5)
+
 class DisplayHAL:
     
     @micropython.native
@@ -99,26 +106,32 @@ class DisplayHAL:
     def fill(self):
         self.display.fill(self._color_f)
         
+    @micropython.viper
+    def clear(self):
+        self.display.fill(self._color_b)
+        
     @micropython.native
     def circle(self, x, y, radius, fill=False):
         self.display.ellipse(x, y, radius, radius, self._color_f, fill)
 
     @micropython.native
-    def text(self, text, x, y, font=None, align="left"):
+    def text(self, text, x, y, font=None, align=ALIGN_LEFT_X):
         height, space = font[-1]
         
-        if align == "RIGHT":
-            width = self.text_width(text, font)
-            x = self.display.width - width
-        elif align == "CENTER":
-            width = self.text_width(text, font)
-            x = self.display.width//2 - width//2
-        elif align == "right":
-            width = self.text_width(text, font)
-            x = x - width + 1
-        elif align == "center":
+        if align == ALIGN_LEFT:
+            x = 0
+        elif align == ALIGN_CENTER_X:
             width = self.text_width(text, font)
             x = x - width//2
+        elif align == ALIGN_RIGHT_X:
+            width = self.text_width(text, font)
+            x = x - width + 1    
+        elif align == ALIGN_RIGHT:
+            width = self.text_width(text, font)
+            x = self.display.width - width
+        elif align == ALIGN_CENTER:
+            width = self.text_width(text, font)
+            x = self.display.width//2 - width//2
         
         if space:
             if self._color_b != -1:
@@ -213,15 +226,15 @@ if __name__ == "__main__":
     from display_hal.font.extronic16B_unicode import *
 
     measure_time.begin()
-    dihal.text("-= Font Benchmark =-", 0, 0, console7, "CENTER")
-    dihal.text("abcdefghijklmnopqrstuvwxyz01234", 0, 8, mini8, "CENTER")
-    dihal.text("ąęłćśńóźż", 0, 16, extronic16_unicode, "LEFT")
+    dihal.text("-= Font Benchmark =-", 0, 0, console7, ALIGN_CENTER)
+    dihal.text("abcdefghijklmnopqrstuvwxyz01234", 0, 8, mini8, ALIGN_CENTER)
+    dihal.text("ąęłćśńóźż", 0, 16, extronic16_unicode, ALIGN_LEFT)
     dihal.color_set(0, 1)
-    dihal.text("ąęłćśńóźż", 0, 16, extronic16B_unicode, "RIGHT")
-    dihal.text("abcdefghijklmnop", 0, 32, dos8, "CENTER")
-    dihal.text("qrstuvwxyz123345", 0, 40, dos8, "CENTER")
+    dihal.text("ąęłćśńóźż", 0, 16, extronic16B_unicode, ALIGN_RIGHT)
+    dihal.text("abcdefghijklmnop", 0, 32, dos8, ALIGN_CENTER)
+    dihal.text("qrstuvwxyz123345", 0, 40, dos8, ALIGN_CENTER)
     dihal.color_set(1, 0)
-    dihal.text("0123456789", 0, 49, galaxy16_digits, "CENTER")
+    dihal.text("0123456789", 0, 49, galaxy16_digits, ALIGN_CENTER)
     measure_time.end("Rendering time")
 
     # Image demo

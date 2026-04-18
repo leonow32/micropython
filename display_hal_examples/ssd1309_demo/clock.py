@@ -21,9 +21,9 @@ print(dihal)
 
 while True:
     time_tuple = time.localtime()
-    dihal.fill(0)
-    dihal.text(f"{time_tuple[3]}:{time_tuple[4]:02}", 127, 10, 1, galaxy24_digits, "CENTER")
-    dihal.text(f"{time_tuple[2]}.{time_tuple[1]:02}.{time_tuple[0]}", 127, 38, 1, galaxy16_digits, "CENTER")
+    dihal.clear()
+    dihal.text(f"{time_tuple[3]}:{time_tuple[4]:02}", 127, 10, galaxy24_digits, ALIGN_CENTER)
+    dihal.text(f"{time_tuple[2]}.{time_tuple[1]:02}.{time_tuple[0]}", 127, 38, galaxy16_digits, ALIGN_CENTER)
     dihal.refresh()
     mem_used.print_ram_used()
     time.sleep(60)

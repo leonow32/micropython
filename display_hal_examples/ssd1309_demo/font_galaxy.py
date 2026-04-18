@@ -17,9 +17,9 @@ dihal   = DisplayHAL(display)
 print(dihal)
 
 measure_time.begin()
-dihal.text("0123456789", 0,  0, 1, galaxy16_digits, "CENTER")
-dihal.text("01234",      0, 15, 1, galaxy24_digits, "CENTER")
-dihal.text("56789",      0, 40, 1, galaxy24_digits, "CENTER")
+dihal.text("0123456789", 0,  0, galaxy16_digits, ALIGN_CENTER)
+dihal.text("01234",      0, 15, galaxy24_digits, ALIGN_CENTER)
+dihal.text("56789",      0, 40, galaxy24_digits, ALIGN_CENTER)
 measure_time.end("Rendering time")
 
 measure_time.begin()
