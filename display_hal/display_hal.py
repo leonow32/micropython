@@ -1,7 +1,7 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
 # MicroPython 1.26.1 ESP32-S3 Octal SPIRAM
-# MicroPython 1.26.1 ESP32 Pico
-# MicroPython 1.27.0 ESP32 Pico
+# MicroPython 1.26.1 ESP32
+# MicroPython 1.27.0 ESP32
 # MicroPython 1.27.0 Raspberry Pico 2
 
 import framebuf
