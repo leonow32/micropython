@@ -1,4 +1,5 @@
-# MicroPython 1.24.1 ESP32 Pico
+# MicroPython 1.24.1 ESP32
+# MicroPython 1.27.0 ESP32
 
 from machine import Pin, I2C
 import framebuf
@@ -70,7 +71,7 @@ class SH1106(framebuf.FrameBuffer):
     def contrast_set(self, value: int):
         self.cmd_write(0x81)
         self.cmd_write(value)
-        
+    
     @micropython.native
     def color(self, r, g, b):
         return 1 if r | g | b else 0

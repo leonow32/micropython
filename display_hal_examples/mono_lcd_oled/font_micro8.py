@@ -8,10 +8,17 @@ from display_hal.display_hal import *
 from display_hal.font.micro8 import *
 
 # Display OLED 128x64 monochrome with SSD1309
+# from machine import I2C
+# from display_hal.driver.ssd1309 import *
+# i2c     = I2C(0) # use default pinout and clock frequency
+# display = SSD1309(i2c, address=0x3C, rotate=False)
+
+# Display OLED 128x64 monochrome with SH1106
 from machine import I2C
-from display_hal.driver.ssd1309 import *
+from display_hal.driver.sh1106 import *
 i2c     = I2C(0) # use default pinout and clock frequency
-display = SSD1309(i2c, rotate=False, address=0x3C)
+display = SH1106(i2c, address=0x3D, rotate=False, offset_x=2)
+
 dihal   = DisplayHAL(display)
 print(dihal)
 

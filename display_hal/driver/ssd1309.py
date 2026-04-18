@@ -1,5 +1,5 @@
 # MicroPython 1.24.1 ESP32-S3 Octal SPIRAM
-# MicroPython 1.24.1 ESP32 Pico
+# MicroPython 1.24.1 ESP32
 # Works also with SSD1306 128x64
 
 from machine import Pin, I2C
