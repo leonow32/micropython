@@ -7,7 +7,6 @@ import time
 from display_hal.display_hal import *
 from display_hal.font.galaxy16_digits import *
 from display_hal.font.galaxy24_digits import *
-from display_hal.font.galaxy16_digits import *
 
 # Display OLED 128x64 monochrome with SSD1309
 from machine import I2C
