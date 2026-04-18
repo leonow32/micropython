@@ -1,16 +1,20 @@
 # 250301
 import os
 
+input_dir  = "font_source"
+output_dir = "../display_hal/font"
+
 def convert(file):
     print(f"Processing: {file}")
     file = file.replace(".font", "")
 
     bitmap = bytearray()
+    space_is_written = False
 
-    with open(f"../display_hal/font/{file}.py", "w", encoding="utf-8") as result:
+    with open(f"{output_dir}/{file}.py", "w", encoding="utf-8") as result:
         result.write(f"{file} = {{\n")
         
-        with open(f"font_source/{file}.font", "r", encoding="utf-8") as source:
+        with open(f"{input_dir}/{file}.font", "r", encoding="utf-8") as source:
             lines = source.readlines()
             
             for line in lines:
@@ -30,9 +34,12 @@ def convert(file):
                     
                 elif "space" in line:
                     space = int(line[line.find(":")+1:])
+                    if not space_is_written:
+                        result.write(f"{-1}: ({height}, {space}),\n")
+                        space_is_written = True
                     
                 elif len(line) == 0:
-                    output = bytearray([width]) + bytearray([height]) + bytearray([space]) + bitmap
+                    output = bytearray([width]) + bitmap
                     result.write(f"{num}: {output},\n")
                     bitmap = bytearray()
                     
@@ -56,10 +63,10 @@ def convert(file):
         result.write("}\n")
 
 if __name__ == "__main__":
-    if not os.path.exists("../display_hal/font"):
-        os.makedirs("../display_hal/font")
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
         
-    files = os.listdir("font_source")
+    files = os.listdir(input_dir)
     
     for file in files:
         if ".font" in file:

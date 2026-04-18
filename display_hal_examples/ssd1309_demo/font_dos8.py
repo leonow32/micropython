@@ -16,21 +16,23 @@ dihal   = DisplayHAL(display)
 print(dihal)
 
 char = 0
+dihal.color_set(1, 0)
 for page in range(2):
     for row in range(8):
         for col in range(16):
             string = chr(char)
-            dihal.text(string, col*8, row*8, 1, dos8)
+            dihal.text(string, col*8, row*8, dos8)
             char += 1
     display.refresh()
     input("Press enter")
 
 char = 0
+dihal.color_set(0, 1)
 for page in range(2):
     for row in range(8):
         for col in range(16):
             string = chr(char)
-            dihal.text(string, col*8, row*8, 0, dos8)
+            dihal.text(string, col*8, row*8, dos8)
             char += 1
     display.refresh()
     dihal.refresh()
