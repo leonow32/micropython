@@ -37,7 +37,7 @@ class DEM128064E1(framebuf.FrameBuffer):
             0x2F, # Power control set
             0x27, # Set (Rb/Ra)
             0x81, # Set the V0 output voltage in next byte
-            8,    # default contrast
+            8,    # Default contrast
         )
         
         for cmd in config:
