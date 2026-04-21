@@ -1,4 +1,4 @@
-# MicroPython 1.24.1 ESP32 Pico
+# MicroPython 1.24.1 ESP32
 
 from machine import Pin, SPI
 import framebuf

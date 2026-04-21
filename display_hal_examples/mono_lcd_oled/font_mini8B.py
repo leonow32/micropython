@@ -20,12 +20,18 @@ from display_hal.font.mini8B import *
 # i2c     = I2C(0) # use default pinout and clock frequency
 # display = SH1106(i2c, address=0x3D, rotate=False, offset_x=2)
 
+# Display OLED 128x160 monochrome with SH1108
+from machine import Pin, SPI
+from display_hal.driver.sh1108 import *
+spi = SPI(1, baudrate=10_000_000, polarity=0, phase=0)
+display = SH1108(spi, cs=Pin(4), dc=Pin(2), rotate=1, offset_x=16)
+
 # Display LCD DEM128064E1 from Display Elektronik GmbH with ST7565R
-from machine import Pin, PWM, SPI
-from display_hal.driver.dem128064e1 import *
-pwm = PWM(Pin(15), freq=50000, duty_u16=65535)
-spi = SPI(0, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
-display = DEM128064E1(spi, cs=Pin(5), dc=Pin(6), rst=Pin(7))
+# from machine import Pin, PWM, SPI
+# from display_hal.driver.dem128064e1 import *
+# pwm = PWM(Pin(15), freq=50000, duty_u16=65535)
+# spi = SPI(0, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
+# display = DEM128064E1(spi, cs=Pin(5), dc=Pin(6), rst=Pin(7))
 
 dihal   = DisplayHAL(display)
 print(dihal)
