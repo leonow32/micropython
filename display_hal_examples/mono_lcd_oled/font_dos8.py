@@ -61,7 +61,7 @@ def print_all_characters(hal, font):
                 y = 0
                 hal.refresh()
                 input("Press enter")
-                hal.clear()    
+                hal.clear()
     
 # Print all the characters in positive
 dihal.color_set(1, 0)

@@ -7,6 +7,7 @@ import measure_time
 
 from display_hal.display_hal import *
 from display_hal.font.dos16 import *
+from display_hal.font.extronic16B_unicode import *
 
 # Display OLED 128x64 monochrome with SSD1309
 # from machine import I2C
@@ -35,40 +36,68 @@ display = SH1108(spi, cs=Pin(4), dc=Pin(2), rotate=1, offset_x=16)
 
 dihal   = DisplayHAL(display)
 print(dihal)
+
+def print_char(hal, font, x, y):
+    pass
+    
         
 def print_all_characters(hal, font):
     x = 0
     y = 0
     n = 0
-    
+    loop = 0
     char_height, char_space = font[-1]
-    char_width = font[0][0]
-
-    while True:
-        hal.text(chr(n), x, y, font)
+    
+    hal.clear()
+                
+    for index, data in font.items():
+        print(f"loop: {loop}, index: {index}, data: {data}")
         
-        n += 1
-        if n == 256:
-            hal.refresh()
-            input("Press enter")
-            break;
-        
-        x += char_width + char_space
-        if x >= hal.width:
-            x = 0
-            y += char_height
-            if y >= dihal.height:
-                y = 0
+        if index == -1:
+            print("aaaaa")
+            continue
+            
+        else:
+            char_width = data[0]
+            
+            # Sprawdzenie czy znak pasuje w kierunku x
+            if x + char_width + char_space < hal.width:
+                hal.text(chr(index), x, y, font)
+                x += char_width + char_space
+            else:
+                hal.circle(30, 30, 10)
                 hal.refresh()
                 input("Press enter")
+                x = 0
+                y = 0
                 hal.clear()
+            
+            
+            
+            
+            
+            
+            # Verify is this char fits into remaining area of the screen
+#             if x + char_width + char_space < hal.width and y + char_height < hal.height:
+#                 hal.text(chr(n), x, y, font)
+#                 char_printed = True
+#             else:
+#                 char_printed = False
+#             
+#             x += char_width + char_space
+#             if x >= hal.width:
+#                 x = 0
+#                 y += char_height
+#                 if
+                
+            
+                
+        
     
 # Print all the characters in positive
 dihal.color_set(1, 0)
-print_all_characters(dihal, dos16)
-
-# Print all the characters in negative
-dihal.color_set(0, 1)
-print_all_characters(dihal, dos16)
+# print_all_characters(dihal, dos16)
+print_all_characters(dihal, extronic16B_unicode)
 
 mem_used.print_ram_used()
+
