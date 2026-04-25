@@ -45,11 +45,14 @@ dihal   = DisplayHAL(display)
 print(dihal)
 
 while True:
-    time_tuple = time.localtime()
+    Y, M, D, h, m, s, _, _ = time.localtime()
     dihal.clear()
-    dihal.text(f"{time_tuple[3]}:{time_tuple[4]:02}", 127, 10, galaxy24_digits, ALIGN_CENTER)
-    dihal.text(f"{time_tuple[2]}.{time_tuple[1]:02}.{time_tuple[0]}", 127, 38, galaxy16_digits, ALIGN_CENTER)
+    if dihal.width <= 64:
+        dihal.text(f"{h}:{m:02}", 127, 10, galaxy24_digits, ALIGN_CENTER)
+    else:
+        dihal.text(f"{h}:{m:02}:{s:02}", 127, 10, galaxy24_digits, ALIGN_CENTER)
+    dihal.text(f"{Y}.{M:02}.{D}", 127, 38, galaxy16_digits, ALIGN_CENTER)
     dihal.refresh()
     mem_used.print_ram_used()
-    time.sleep(60)
+    time.sleep(1)
     #machine.lightsleep(60_000)

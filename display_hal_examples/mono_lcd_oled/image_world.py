@@ -52,7 +52,5 @@ measure_time.begin()
 dihal.refresh()
 measure_time.end("Refreshing time")
 
-dihal.simulate()
-
 mem_used.print_ram_used()
 

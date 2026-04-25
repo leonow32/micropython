@@ -53,18 +53,36 @@ dihal   = DisplayHAL(display)
 print(dihal)
 
 measure_time.begin()
-dihal.image(ok_32x32,        0,  0)
-dihal.image(back_32x32,      0, 32)
-dihal.image(clock_32x32,    32,  0)
-dihal.image(settings_32x32, 32, 32)
-dihal.image(book_32x32,     64,  0)
-dihal.image(light_32x32,    64, 32)
-dihal.image(up_32x32,       96,  0)
-dihal.image(down_32x32,     96, 32)
+
+icon_width  = 32
+icon_height = 32
+
+images = (ok_32x32, clock_32x32, book_32x32, up_32x32, back_32x32, settings_32x32, cancel_32x32, down_32x32, hand_32x32, light_32x32)
+
+if dihal.width == 240 and dihal.height == 64:
+    cols = 5
+    rows = 2
+else:
+    cols = dihal.width  // icon_width
+    rows = dihal.height // icon_height
+
+sw = (dihal.width-cols*icon_width) // (cols+1)   # separator width
+sh = (dihal.height-rows*icon_height) // (rows+1) # separator height
+
+for row in range(rows):
+    for col in range(cols):
+        dihal.image(images[(row*cols+col)%10], sw*(col+1)+icon_width*col, sh*(row+1)+icon_height*row)
+
 measure_time.end("Rendering time")
 
 measure_time.begin()
 dihal.refresh()
 measure_time.end("Refreshing time")
+
+print("-----")
+print(f"Array of {cols} columns and {rows} rows.")
+print(f"Horizontal separator: {sw:3} px")
+print(f"Vertical separator:   {sh:3} px")
+print("-----")
 
 mem_used.print_ram_used()
