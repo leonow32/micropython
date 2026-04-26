@@ -22,17 +22,24 @@ from display_hal.image_mono.chess_8x8 import *
 # display = SH1106(i2c, address=0x3D, rotate=False, offset_x=2)
 
 # Display OLED 128x160 monochrome with SH1108
-from machine import Pin, SPI
-from display_hal.driver.sh1108 import *
-spi = SPI(1, baudrate=10_000_000, polarity=0, phase=0)
-display = SH1108(spi, cs=Pin(4), dc=Pin(2), rotate=1, offset_x=16)
+# from machine import Pin, SPI
+# from display_hal.driver.sh1108 import *
+# spi = SPI(1, baudrate=10_000_000, polarity=0, phase=0)
+# display = SH1108(spi, cs=Pin(4), dc=Pin(2), rotate=1, offset_x=16)
 
-# Display LCD DEM128064E1 from Display Elektronik GmbH with ST7565R
+# Display LCD DEM128064E1 128x64 from Display Elektronik GmbH with ST7565R
 # from machine import Pin, PWM, SPI
 # from display_hal.driver.dem128064e1 import *
 # pwm = PWM(Pin(15), freq=50000, duty_u16=65535)
 # spi = SPI(0, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
 # display = DEM128064E1(spi, cs=Pin(5), dc=Pin(6), rst=Pin(7))
+
+# Display LCD DEM240064B 240x64 from Display Elektronik GmbH with ST7565P
+from machine import Pin, PWM, SPI
+from display_hal.driver.dem240064b import *
+pwm = PWM(Pin(28), freq=50000, duty_u16=65535)
+spi = SPI(0, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(18), mosi=Pin(19), miso=Pin(16))
+display = DEM240064B(spi, cs0=Pin(17), cs1=Pin(22), dc=Pin(20), rst=Pin(21))
 
 dihal   = DisplayHAL(display)
 print(dihal)
@@ -45,49 +52,60 @@ for x in range(0, dihal.width, 8):
     for y in range(0, dihal.height, 8):
         dihal.image(chess_8x8, x, y)
 
+cols = 3
+rows = 3
+icon_width  = 16
+icon_height = 16
+sw = (dihal.width-cols*icon_width) // (cols+1)   # separator width
+sh = (dihal.height-rows*icon_height) // (rows+1) # separator height
+
+def get_x(col):
+    return sw*(col+1)+icon_width*col
+
+def get_y(row):
+    return sh*(row+1)+icon_height*row
+    
 # Row 0, Col 0 - foreground off, background off
 dihal.color_set(0, 0)
-dihal.image(ball_16x16, 20, 4)
+dihal.image(ball_16x16, get_x(0), get_y(0))
 
 # Row 0, Col 1 - foreground off, background on (negative)
 dihal.color_set(0, 1)
-dihal.image(ball_16x16, 56, 4)
+dihal.image(ball_16x16, get_x(1), get_y(0))
 
 # Row 0, Col 2 - foreground off, background transparent
 dihal.color_set(0, -1)
-dihal.image(ball_16x16, 92, 4)
+dihal.image(ball_16x16, get_x(2), get_y(0))
 
 # Row 1, Col 0 - foreground on, background off
 dihal.color_set(1, 0)
-dihal.image(ball_16x16, 20, 24)
+dihal.image(ball_16x16, get_x(0), get_y(1))
 
 # Row 1, Col 1 - foreground on, background on
 dihal.color_set(1, 1)
-dihal.image(ball_16x16, 56, 24)
+dihal.image(ball_16x16, get_x(1), get_y(1))
 
 # Row 1, Col 2 - foreground on, background transparent
 dihal.color_set(1, -1)
-dihal.image(ball_16x16, 92, 24)
+dihal.image(ball_16x16, get_x(2), get_y(1))
 
 # Row 2, Col 0 - foreground transparent, background off
 dihal.color_set(-1, 0)
-dihal.image(ball_16x16, 20, 44)
+dihal.image(ball_16x16, get_x(0), get_y(2))
 
 # Row 2, Col 1 - foreground transparent, background on
 dihal.color_set(-1, 1)
-dihal.image(ball_16x16, 56, 44)
+dihal.image(ball_16x16, get_x(1), get_y(2))
 
 # Row 2, Col 2 - foreground transparent, background transparent
 dihal.color_set(-1, -1)
-dihal.image(ball_16x16, 92, 44)
+dihal.image(ball_16x16, get_x(2), get_y(2))
 
 measure_time.end("Rendering time")
 
 measure_time.begin()
 dihal.refresh()
 measure_time.end("Refreshing time")
-
-dihal.simulate()
 
 mem_used.print_ram_used()
 
