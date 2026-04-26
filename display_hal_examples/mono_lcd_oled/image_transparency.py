@@ -52,41 +52,54 @@ for x in range(0, dihal.width, 8):
     for y in range(0, dihal.height, 8):
         dihal.image(chess_8x8, x, y)
 
+cols = 3
+rows = 3
+icon_width  = 16
+icon_height = 16
+sw = (dihal.width-cols*icon_width) // (cols+1)   # separator width
+sh = (dihal.height-rows*icon_height) // (rows+1) # separator height
+
+def get_x(col):
+    return sw*(col+1)+icon_width*col
+
+def get_y(row):
+    return sh*(row+1)+icon_height*row
+    
 # Row 0, Col 0 - foreground off, background off
 dihal.color_set(0, 0)
-dihal.image(ball_16x16, 20, 4)
+dihal.image(ball_16x16, get_x(0), get_y(0))
 
 # Row 0, Col 1 - foreground off, background on (negative)
 dihal.color_set(0, 1)
-dihal.image(ball_16x16, 56, 4)
+dihal.image(ball_16x16, get_x(1), get_y(0))
 
 # Row 0, Col 2 - foreground off, background transparent
 dihal.color_set(0, -1)
-dihal.image(ball_16x16, 92, 4)
+dihal.image(ball_16x16, get_x(2), get_y(0))
 
 # Row 1, Col 0 - foreground on, background off
 dihal.color_set(1, 0)
-dihal.image(ball_16x16, 20, 24)
+dihal.image(ball_16x16, get_x(0), get_y(1))
 
 # Row 1, Col 1 - foreground on, background on
 dihal.color_set(1, 1)
-dihal.image(ball_16x16, 56, 24)
+dihal.image(ball_16x16, get_x(1), get_y(1))
 
 # Row 1, Col 2 - foreground on, background transparent
 dihal.color_set(1, -1)
-dihal.image(ball_16x16, 92, 24)
+dihal.image(ball_16x16, get_x(2), get_y(1))
 
 # Row 2, Col 0 - foreground transparent, background off
 dihal.color_set(-1, 0)
-dihal.image(ball_16x16, 20, 44)
+dihal.image(ball_16x16, get_x(0), get_y(2))
 
 # Row 2, Col 1 - foreground transparent, background on
 dihal.color_set(-1, 1)
-dihal.image(ball_16x16, 56, 44)
+dihal.image(ball_16x16, get_x(1), get_y(2))
 
 # Row 2, Col 2 - foreground transparent, background transparent
 dihal.color_set(-1, -1)
-dihal.image(ball_16x16, 92, 44)
+dihal.image(ball_16x16, get_x(2), get_y(2))
 
 measure_time.end("Rendering time")
 
