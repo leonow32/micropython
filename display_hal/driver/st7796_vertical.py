@@ -4,9 +4,6 @@ from machine import Pin, SPI
 import framebuf
 import time
 
-WIDTH   = const(320)
-HEIGHT  = const(480)
-
 RED     = const(0b000_00000_11111_000)
 YELLOW  = const(0b111_00000_11111_111)
 GREEN   = const(0b111_00000_00000_111)
@@ -29,11 +26,11 @@ class ST7796(framebuf.FrameBuffer):
         self.rst.init(mode=Pin.OUT, value=1)
         
         self.rotate   = rotate
-        self.width    = 320 if rotate == 0  or rotate == 180 else 480
-        self.height   = 480 if rotate == 90 or rotate == 270 else 320
+        self.width    = 320 if (rotate == 0 or rotate == 180) else 480
+        self.height   = 480 if (rotate == 0 or rotate == 180) else 320
         self.mono     = False
-        self.array    = bytearray(WIDTH * HEIGHT * 2)
-        super().__init__(self.array, WIDTH, HEIGHT, framebuf.RGB565)
+        self.array    = bytearray(self.width * self.height * 2)
+        super().__init__(self.array, self.width, self.height, framebuf.RGB565)
         
         self.rst(0)
         time.sleep_ms(15)
@@ -44,19 +41,26 @@ class ST7796(framebuf.FrameBuffer):
         self.write_data(0x05)            # 16-bit pixel format
         
         self.write_cmd(0x36)             # Memory Access Control
-        self.write_data(0b01001000);     # MY=0 MX=1 MV=0 ML=0 BGR=1 MH=0 Dummy Dummy
-        
+        if self.rotate == 0:
+            self.write_data(0b01001000); # MY=0 MX=1 MV=0 ML=0 BGR=1 MH=0 Dummy=0 Dummy=0
+        elif self.rotate == 90:
+            self.write_data(0b11101100); # MY=1 MX=1 MV=1 ML=0 BGR=1 MH=1 Dummy=0 Dummy=0
+        elif self.rotate == 180:
+            self.write_data(0b10001000); # MY=1 MX=0 MV=0 ML=0 BGR=1 MH=0 Dummy=0 Dummy=0
+        elif self.rotate == 270:
+            self.write_data(0b00101100); # MY=0 MX=0 MV=1 ML=0 BGR=1 MH=1 Dummy=0 Dummy=0
+            
         self.write_cmd(0x2B)             # Row range 0..479
         self.write_data(0x00)
         self.write_data(0x00)
-        self.write_data(0x01)
-        self.write_data(0xDF)
+        self.write_data(self.height-1 >> 8)
+        self.write_data(self.height-1 & 0xFF)
         
         self.write_cmd(0x2A)             # Col range 0..319
         self.write_data(0x00)
         self.write_data(0x00)
-        self.write_data(0x01)
-        self.write_data(0x3F)
+        self.write_data(self.width-1 >> 8)
+        self.write_data(self.width-1 & 0xFF)
         
         self.write_cmd(0x11)             # Sleep Out
         self.write_cmd(0x29)             # Display ON
@@ -89,18 +93,7 @@ class ST7796(framebuf.FrameBuffer):
         self.cs(1)
         
     @micropython.viper
-    def color(self, red: uint, green: uint, blue: uint) -> uint:
-#         red   = int(red)
-#         green = int(green)
-#         blue  = int(blue)
-#         
-#         if red > 255:
-#             red = 255
-#         if green > 255:
-#             green = 255
-#         if blue > 255:
-#             blue = 255
-        
+    def color(self, red: uint, green: uint, blue: uint) -> uint:        
         red    = red & 0xF8
         green1 = (green & 0xE0) >> 5
         green2 = (green & 0x1C) << 11
@@ -109,9 +102,16 @@ class ST7796(framebuf.FrameBuffer):
         return color
 
 if __name__ == "__main__":
+    from machine import Pin, PWM, SPI
+    pwm = PWM(Pin(16), freq=50000, duty_u16=65535)
     spi = SPI(2, baudrate=80_000_000, polarity=0, phase=0, sck=Pin(15), mosi=Pin(7), miso=None)
-    display = ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5))
+#     display = ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5), rotate=0)       # ok
+#     display = ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5), rotate=90)    # ok
+#     display = ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5), rotate=180)     # ok
+    display = ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5), rotate=270)
+    print(display)
     
+    display.fill(BLUE)
     display.rect(0, 0, 128, 64, WHITE)
     display.text('abcdefghijklm', 1, 2, RED)
     display.text('nopqrstuvwxyz', 1, 10, YELLOW)
@@ -120,4 +120,3 @@ if __name__ == "__main__":
     display.text('0123456789+-*/', 1, 34, BLUE)
     display.text('!@#$%^&*(),.<>?', 1, 42, MAGENTA)
     display.refresh()
-    
