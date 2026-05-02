@@ -41,14 +41,14 @@ class ST7796(framebuf.FrameBuffer):
         self.write_data(0x05)            # 16-bit pixel format
         
         self.write_cmd(0x36)             # Memory Access Control
-        if self.rotate == 0:
+        if rotate == 0:
             self.write_data(0b01001000); # MY=0 MX=1 MV=0 ML=0 BGR=1 MH=0 Dummy=0 Dummy=0
-        elif self.rotate == 90:
-            self.write_data(0b11101100); # MY=1 MX=1 MV=1 ML=0 BGR=1 MH=1 Dummy=0 Dummy=0
-        elif self.rotate == 180:
-            self.write_data(0b10001000); # MY=1 MX=0 MV=0 ML=0 BGR=1 MH=0 Dummy=0 Dummy=0
-        elif self.rotate == 270:
+        elif rotate == 90:
             self.write_data(0b00101100); # MY=0 MX=0 MV=1 ML=0 BGR=1 MH=1 Dummy=0 Dummy=0
+        elif rotate == 180:
+            self.write_data(0b10001000); # MY=1 MX=0 MV=0 ML=0 BGR=1 MH=0 Dummy=0 Dummy=0
+        elif rotate == 270:
+            self.write_data(0b11101100); # MY=1 MX=1 MV=1 ML=0 BGR=1 MH=1 Dummy=0 Dummy=0
             
         self.write_cmd(0x2B)             # Row range 0..479
         self.write_data(0x00)
@@ -102,13 +102,14 @@ class ST7796(framebuf.FrameBuffer):
         return color
 
 if __name__ == "__main__":
+    import mem_used
     from machine import Pin, PWM, SPI
     pwm = PWM(Pin(16), freq=50000, duty_u16=65535)
     spi = SPI(2, baudrate=80_000_000, polarity=0, phase=0, sck=Pin(15), mosi=Pin(7), miso=None)
-#     display = ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5), rotate=0)       # ok
+    display = ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5), rotate=0)       # ok
 #     display = ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5), rotate=90)    # ok
 #     display = ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5), rotate=180)     # ok
-    display = ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5), rotate=270)
+#     display = ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5), rotate=270)
     print(display)
     
     display.fill(BLUE)
@@ -120,3 +121,5 @@ if __name__ == "__main__":
     display.text('0123456789+-*/', 1, 34, BLUE)
     display.text('!@#$%^&*(),.<>?', 1, 42, MAGENTA)
     display.refresh()
+    
+    mem_used.print_ram_used()
