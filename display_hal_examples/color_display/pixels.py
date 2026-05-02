@@ -20,25 +20,20 @@ display = ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5), rotate=0)
 dihal   = DisplayHAL(display)
 print(dihal)
 
-LOOPS = const(100)
-x1 = 0
-y1 = 0
+LOOPS  = const(1000)
+COLORS = (RED, YELLOW, GREEN, CYAN, BLUE, MAGENTA, WHITE)
 
 measure_time.begin()
 
 for i in range(LOOPS):
-    x2 = random.randrange(dihal.width)
-    y2 = random.randrange(dihal.height)
-    r  = random.randrange(256)
-    g  = random.randrange(256)
-    b  = random.randrange(256)
-    dihal.color_set(dihal.color(r, g, b))
-    dihal.line(x1, y1, x2, y2)
+    x = random.randrange(dihal.width)
+    y = random.randrange(dihal.height)
+    dihal.color_set(COLORS[random.randrange(len(COLORS))])
+    dihal.pixel(x, y)
     dihal.refresh()
-    x1 = x2
-    y1 = y2
 
 measure_time.end("Work time")
 
 mem_used.print_ram_used()
+
 
