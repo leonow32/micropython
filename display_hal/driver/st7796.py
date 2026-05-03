@@ -11,6 +11,7 @@ CYAN    = const(0b111_11111_00000_111)
 BLUE    = const(0b000_11111_00000_000)
 MAGENTA = const(0b000_11111_11111_000)
 WHITE   = const(0b111_11111_11111_111)
+GRAY    = const(0b000_10000_10000_100)
 BLACK   = const(0b000_00000_00000_000)
 
 class ST7796(framebuf.FrameBuffer):
