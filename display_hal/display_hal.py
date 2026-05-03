@@ -168,6 +168,10 @@ class DisplayHAL:
     @micropython.native
     def image(self, bitmap, x: int, y: int) -> None:
         self.display.blit(bitmap, x, y, self._transp, self._palette)
+        
+    @micropython.native
+    def image_rgb(self, bitmap, x: int, y: int, transparent=-1) -> None:
+        self.display.blit(bitmap, x, y, transparent)
 
 if __name__ == "__main__":
     import mem_used
@@ -284,15 +288,23 @@ if __name__ == "__main__":
     dihal = DisplayHAL(display)
     print(dihal)
     
-    dihal.color_set(BLUE, YELLOW)
-    dihal.fill()
+#     dihal.color_set(BLUE, YELLOW)
+#     dihal.fill()
+#     
+#     from display_hal.image_mono.hand_32x32 import *
+#     dihal.color_set(YELLOW, -1)
+#     dihal.image(hand_32x32, 0, 0)
+#     
+#     from display_hal.font.extronic16B_unicode import *
+#     dihal.text("ABCDEFGHIJKL",   0, 16, extronic16B_unicode, ALIGN_CENTER)
     
-    from display_hal.image_mono.hand_32x32 import *
-    dihal.color_set(YELLOW, -1)
-    dihal.image(hand_32x32, 0, 0)
+    from display_hal.image_rgb565.marble_red_48x48 import *
+    from display_hal.image_rgb565.marble_green_48x48 import *
+    from display_hal.image_rgb565.marble_blue_48x48 import *
     
-    from display_hal.font.extronic16B_unicode import *
-    dihal.text("ABCDEFGHIJKL",   0, 16, extronic16B_unicode, ALIGN_CENTER)
+    dihal.image_rgb(marble_red_48x48,        0,  0, BLACK)
+    dihal.image_rgb(marble_green_48x48,      0, 48)
+    dihal.image_rgb(marble_blue_48x48,       0, 96)
 
     # Refresh
     measure_time.begin()
