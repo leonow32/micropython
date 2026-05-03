@@ -3,6 +3,7 @@
 # MicroPython 1.26.1 ESP32
 # MicroPython 1.27.0 ESP32
 # MicroPython 1.27.0 Raspberry Pico 2
+# MicroPython 1.28.0 ESP32-S3 Octal SPIRAM
 
 import framebuf
 
@@ -146,7 +147,8 @@ class DisplayHAL:
             
             if space and self._color_b != -1:
                 self.display.rect(x, y, space, height, self._color_b, True)
-                x += space
+            
+            x += space
     
     @micropython.native
     def text_width(self, text, font):
@@ -170,13 +172,13 @@ class DisplayHAL:
 if __name__ == "__main__":
     import mem_used
     import measure_time
-    from machine import Pin, I2C, SPI
+    from machine import Pin, I2C, SPI, PWM
     
 #     from dem128064e1 import *
     
 #     from sh1106 import *
 #     from sh1108 import *
-    from display_hal.driver.ssd1309 import *
+#     from display_hal.driver.ssd1309 import *
 #     from ssd1351 import *
 #     from ssd1363_spi import *
 #     from ssd1363_spi_bw import *
@@ -186,9 +188,9 @@ if __name__ == "__main__":
 #     from display_hal.image_mono.ball_16x16 import *
 #     from display_hal.image_mono.chess_8x8 import *
 
-    i2c = I2C(0) # use default pinout and clock frequency
+#     i2c = I2C(0) # use default pinout and clock frequency
 #     display = SH1106(i2c, address=0x3D, rotate=0, offset_x=2)
-    display = SSD1309(i2c, address=0x3C, rotate=0)
+#     display = SSD1309(i2c, address=0x3C, rotate=0)
 
 #     spi = SPI(1, baudrate=10_000_000, polarity=0, phase=0)
     
@@ -212,30 +214,30 @@ if __name__ == "__main__":
 #     spi = SPI(0, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
 #     display = DEM240064B(spi, cs0=Pin(5), cs1=Pin(8), dc=Pin(6), rst=Pin(7))
     
-    dihal = DisplayHAL(display)
-    print(dihal)
+#     dihal = DisplayHAL(display)
+#     print(dihal)
     
 #     dihal.contrast_set(0xFF)
 
     # FONT 5
-    from display_hal.font.console7 import *
-    from display_hal.font.dos8 import *
-    from display_hal.font.galaxy16_digits import *
-    from display_hal.font.mini8 import *
-    from display_hal.font.extronic16_unicode import *
-    from display_hal.font.extronic16B_unicode import *
-
-    measure_time.begin()
-    dihal.text("-= Font Benchmark =-", 0, 0, console7, ALIGN_CENTER)
-    dihal.text("abcdefghijklmnopqrstuvwxyz01234", 0, 8, mini8, ALIGN_CENTER)
-    dihal.text("ąęłćśńóźż", 0, 16, extronic16_unicode, ALIGN_LEFT)
-    dihal.color_set(0, 1)
-    dihal.text("ąęłćśńóźż", 0, 16, extronic16B_unicode, ALIGN_RIGHT)
-    dihal.text("abcdefghijklmnop", 0, 32, dos8, ALIGN_CENTER)
-    dihal.text("qrstuvwxyz123345", 0, 40, dos8, ALIGN_CENTER)
-    dihal.color_set(1, 0)
-    dihal.text("0123456789", 0, 49, galaxy16_digits, ALIGN_CENTER)
-    measure_time.end("Rendering time")
+#     from display_hal.font.console7 import *
+#     from display_hal.font.dos8 import *
+#     from display_hal.font.galaxy16_digits import *
+#     from display_hal.font.mini8 import *
+#     from display_hal.font.extronic16_unicode import *
+#     from display_hal.font.extronic16B_unicode import *
+# 
+#     measure_time.begin()
+#     dihal.text("-= Font Benchmark =-", 0, 0, console7, ALIGN_CENTER)
+#     dihal.text("abcdefghijklmnopqrstuvwxyz01234", 0, 8, mini8, ALIGN_CENTER)
+#     dihal.text("ąęłćśńóźż", 0, 16, extronic16_unicode, ALIGN_LEFT)
+#     dihal.color_set(0, 1)
+#     dihal.text("ąęłćśńóźż", 0, 16, extronic16B_unicode, ALIGN_RIGHT)
+#     dihal.text("abcdefghijklmnop", 0, 32, dos8, ALIGN_CENTER)
+#     dihal.text("qrstuvwxyz123345", 0, 40, dos8, ALIGN_CENTER)
+#     dihal.color_set(1, 0)
+#     dihal.text("0123456789", 0, 49, galaxy16_digits, ALIGN_CENTER)
+#     measure_time.end("Rendering time")
 
     # Image demo
 #     from display_hal.image_mono.back_32x32 import *
@@ -271,6 +273,26 @@ if __name__ == "__main__":
 #     dihal.image(up_32x32,       96,  0, dihal.color(0xFF, 0x00, 0x00))
 #     dihal.image(down_32x32,     96, 32, dihal.color(0x00, 0xFF, 0x00))
 #     measure_time.end("Rendering time:")
+
+    # Display TFT-LCD 480x320 with ST7565R
+    from machine import Pin, PWM, SPI
+    from display_hal.driver.st7796 import *
+    pwm = PWM(Pin(16), freq=50000, duty_u16=65535)
+    spi = SPI(2, baudrate=80_000_000, polarity=0, phase=0, sck=Pin(15), mosi=Pin(7), miso=None)
+    display = ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5), rotate=0)
+    
+    dihal = DisplayHAL(display)
+    print(dihal)
+    
+    dihal.color_set(BLUE, YELLOW)
+    dihal.fill()
+    
+    from display_hal.image_mono.hand_32x32 import *
+    dihal.color_set(YELLOW, -1)
+    dihal.image(hand_32x32, 0, 0)
+    
+    from display_hal.font.extronic16B_unicode import *
+    dihal.text("ABCDEFGHIJKL",   0, 16, extronic16B_unicode, ALIGN_CENTER)
 
     # Refresh
     measure_time.begin()
