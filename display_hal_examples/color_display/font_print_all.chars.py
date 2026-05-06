@@ -71,16 +71,15 @@ def print_all_characters(hal, font):
 # from display_hal.font.dos8 import dos8 as font
 # from display_hal.font.dos16 import dos16 as font
 # from display_hal.font.extronic16_unicode import extronic16_unicode as font
-from display_hal.font.extronic16B_unicode import extronic16B_unicode as font
+# from display_hal.font.extronic16B_unicode import extronic16B_unicode as font
 # from display_hal.font.galaxy16_digits import galaxy16_digits as font
 # from display_hal.font.galaxy24_digits import galaxy24_digits as font
 # from display_hal.font.micro8 import micro8 as font
 # from display_hal.font.mini8 import mini8 as font
 # from display_hal.font.mini8B import mini8B as font
 # from display_hal.font.sans24 import sans24 as font
-# from display_hal.font.sans24B import sans24B as font
+from display_hal.font.sans24B import sans24B as font
 
 print_all_characters(dihal, font)
 
 mem_used.print_ram_used()
-
