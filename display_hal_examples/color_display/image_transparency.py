@@ -4,7 +4,7 @@ import mem_used
 import measure_time
 
 from display_hal.display_hal import *
-from display_hal.image_mono.ball_32x32 import *
+from display_hal.image_mono.ball_64x64 import *
 
 # Display TFT-LCD 480x320 with ST7565R
 from machine import Pin, PWM, SPI
@@ -27,8 +27,8 @@ dihal.fill()
 
 cols = 3
 rows = 3
-icon_width  = 32
-icon_height = 32
+icon_width  = 64
+icon_height = 64
 sw = (dihal.width-cols*icon_width) // (cols+1)   # separator width
 sh = (dihal.height-rows*icon_height) // (rows+1) # separator height
 
@@ -40,39 +40,39 @@ def get_y(row):
     
 # Row 0, Col 0 - foreground off, background off
 dihal.color_set(BLACK, BLACK)
-dihal.image(ball_32x32, get_x(0), get_y(0))
+dihal.image(ball_64x64, get_x(0), get_y(0))
 
 # Row 0, Col 1 - foreground off, background on (negative)
-dihal.color_set(BLACK, YELLOW)
-dihal.image(ball_32x32, get_x(1), get_y(0))
+dihal.color_set(BLACK, WHITE)
+dihal.image(ball_64x64, get_x(1), get_y(0))
 
 # Row 0, Col 2 - foreground off, background transparent
 dihal.color_set(BLACK, -1)
-dihal.image(ball_32x32, get_x(2), get_y(0))
+dihal.image(ball_64x64, get_x(2), get_y(0))
 
 # Row 1, Col 0 - foreground on, background off
-dihal.color_set(YELLOW, BLACK)
-dihal.image(ball_32x32, get_x(0), get_y(1))
+dihal.color_set(WHITE, BLACK)
+dihal.image(ball_64x64, get_x(0), get_y(1))
 
 # Row 1, Col 1 - foreground on, background on
-dihal.color_set(YELLOW, YELLOW)
-dihal.image(ball_32x32, get_x(1), get_y(1))
+dihal.color_set(WHITE, WHITE)
+dihal.image(ball_64x64, get_x(1), get_y(1))
 
 # Row 1, Col 2 - foreground on, background transparent
-dihal.color_set(YELLOW, -1)
-dihal.image(ball_32x32, get_x(2), get_y(1))
+dihal.color_set(WHITE, -1)
+dihal.image(ball_64x64, get_x(2), get_y(1))
 
 # Row 2, Col 0 - foreground transparent, background off
 dihal.color_set(-1, BLACK)
-dihal.image(ball_32x32, get_x(0), get_y(2))
+dihal.image(ball_64x64, get_x(0), get_y(2))
 
 # Row 2, Col 1 - foreground transparent, background on
-dihal.color_set(-1, YELLOW)
-dihal.image(ball_32x32, get_x(1), get_y(2))
+dihal.color_set(-1, WHITE)
+dihal.image(ball_64x64, get_x(1), get_y(2))
 
 # Row 2, Col 2 - foreground transparent, background transparent
 dihal.color_set(-1, -1)
-dihal.image(ball_32x32, get_x(2), get_y(2))
+dihal.image(ball_64x64, get_x(2), get_y(2))
 
 measure_time.end("Rendering time")
 
