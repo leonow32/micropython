@@ -21,7 +21,7 @@ print(dihal)
 
 measure_time.begin()
 
-# Chessboard as a background
+# Fill the background
 dihal.color_set(BLUE, BLACK)
 dihal.fill()
 
