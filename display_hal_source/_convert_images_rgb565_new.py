@@ -28,6 +28,7 @@ def convert(file):
     with open(f"{output_dir}/{file}.bin", "wb") as output:
         output.write(struct.pack(">BHH", 1, width, height))
         output.write(bitmap)
+        print(f"len(bitmap) = {len(bitmap)}")
 
 if __name__ == "__main__":
     if not os.path.exists(output_dir):
