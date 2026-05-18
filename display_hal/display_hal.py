@@ -15,6 +15,15 @@ ALIGN_CENTER   = const(3)
 ALIGN_RIGHT_X  = const(4)
 ALIGN_RIGHT    = const(5)
 
+class Image():
+    def __init__(self, width, height, format, array):
+        print(f"__init__(width={width}, height={height}, format={format}, len(array)={len(array)})")
+        self.width = width
+        self.height = height
+        self.format = format
+        self.array = array
+        self.fb = framebuf.FrameBuffer(array, width, height, format)
+        
 class DisplayHAL:
     
     @micropython.native
@@ -174,6 +183,8 @@ class DisplayHAL:
     def image_rgb(self, bitmap, x: int, y: int, transparent=-1) -> None:
         self.display.blit(bitmap, x, y, transparent)
         
+    
+        
     @micropython.native
     def image_load(self, path):
         print(f"image_load(self={self}, path={path}")
@@ -191,6 +202,41 @@ class DisplayHAL:
             fb = framebuf.FrameBuffer(array, width, height, format)
             
             return fb
+        
+    @micropython.native
+    def image_load2(self, path):
+        print(f"image_load2(self={self}, path={path}")
+        
+        with open(path, "rb") as file:
+            header = file.read(5)
+            format, width, height = struct.unpack(">BHH", header)
+            
+            print(f"format: {format}")
+            print(f"width:  {width}")
+            print(f"height: {height}")
+            
+            array = bytearray(file.read())
+            print(f"array:  {len(array)}")
+            fb = framebuf.FrameBuffer(array, width, height, format)
+            
+            image = Image(width, height, format, array)
+            
+            return image
+    
+    def image_new(self, image_obj: Image, x, y) -> None:
+        print(f"image_new")
+        print(f"format: {image_obj.format}")
+        print(f"width:  {image_obj.width}")
+        print(f"height: {image_obj.height}")
+        
+        if image_obj.format == framebuf.RGB565:
+            self.display.blit(image_obj.fb, x, y)
+        else:
+            self.display.blit(image_obj.fb, x, y, self._transp, self._palette)
+        
+#     @micropython.native
+#     def image_new(image_obj):
+        
 
 if __name__ == "__main__":
     import mem_used
@@ -309,6 +355,9 @@ if __name__ == "__main__":
     
     marble = dihal.image_load("display_hal/image_rgb565_new/marble_red_48x48.bin")
     dihal.image_rgb(marble, 0, 0)
+    
+    marble2 = dihal.image_load2("display_hal/image_rgb565_new/marble_red_48x48.bin")
+    dihal.image_new(marble2, 100, 10)
     
 #     dihal.color_set(BLUE, YELLOW)
 #     dihal.fill()
