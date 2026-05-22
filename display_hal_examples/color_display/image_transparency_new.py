@@ -19,7 +19,7 @@ dihal   = DisplayHAL(display)
 print(dihal)
 
 measure_time.begin()
-from display_hal.image_mono.ball_64x64 import *
+ball_64x64 = dihal.image_load2("display_hal/image_mono_new/ball_64x64.bin")
 
 # Fill the background
 dihal.color_set(BLUE, BLACK)
@@ -40,39 +40,39 @@ def get_y(row):
     
 # Row 0, Col 0 - foreground off, background off
 dihal.color_set(BLACK, BLACK)
-dihal.image(ball_64x64, get_x(0), get_y(0))
+dihal.image_new(ball_64x64, get_x(0), get_y(0))
 
 # Row 0, Col 1 - foreground off, background on (negative)
 dihal.color_set(BLACK, WHITE)
-dihal.image(ball_64x64, get_x(1), get_y(0))
+dihal.image_new(ball_64x64, get_x(1), get_y(0))
 
 # Row 0, Col 2 - foreground off, background transparent
 dihal.color_set(BLACK, -1)
-dihal.image(ball_64x64, get_x(2), get_y(0))
+dihal.image_new(ball_64x64, get_x(2), get_y(0))
 
 # Row 1, Col 0 - foreground on, background off
 dihal.color_set(WHITE, BLACK)
-dihal.image(ball_64x64, get_x(0), get_y(1))
+dihal.image_new(ball_64x64, get_x(0), get_y(1))
 
 # Row 1, Col 1 - foreground on, background on
 dihal.color_set(WHITE, WHITE)
-dihal.image(ball_64x64, get_x(1), get_y(1))
+dihal.image_new(ball_64x64, get_x(1), get_y(1))
 
 # Row 1, Col 2 - foreground on, background transparent
 dihal.color_set(WHITE, -1)
-dihal.image(ball_64x64, get_x(2), get_y(1))
+dihal.image_new(ball_64x64, get_x(2), get_y(1))
 
 # Row 2, Col 0 - foreground transparent, background off
 dihal.color_set(-1, BLACK)
-dihal.image(ball_64x64, get_x(0), get_y(2))
+dihal.image_new(ball_64x64, get_x(0), get_y(2))
 
 # Row 2, Col 1 - foreground transparent, background on
 dihal.color_set(-1, WHITE)
-dihal.image(ball_64x64, get_x(1), get_y(2))
+dihal.image_new(ball_64x64, get_x(1), get_y(2))
 
 # Row 2, Col 2 - foreground transparent, background transparent
 dihal.color_set(-1, -1)
-dihal.image(ball_64x64, get_x(2), get_y(2))
+dihal.image_new(ball_64x64, get_x(2), get_y(2))
 
 measure_time.end("Rendering time")
 
@@ -81,5 +81,6 @@ dihal.refresh()
 measure_time.end("Refreshing time")
 
 mem_used.print_ram_used()
+
 
 

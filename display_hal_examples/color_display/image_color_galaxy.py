@@ -4,8 +4,6 @@ import mem_used
 import measure_time
 
 from display_hal.display_hal import *
-from display_hal.image_rgb565.galaxy_color_480x320 import *
-# from display_hal.image_rgb565.marble_blue_48x48 import *
 
 # Display TFT-LCD 480x320 with ST7565R
 from machine import Pin, PWM, SPI
@@ -19,8 +17,8 @@ dihal   = DisplayHAL(display)
 print(dihal)
 
 measure_time.begin()
+from display_hal.image_rgb565.galaxy_color_480x320 import *
 dihal.image_rgb(galaxy_color_480x320, 0, 0)
-# dihal.image_rgb(marble_blue_48x48, 0, 0)
 measure_time.end("Rendering time")
 
 measure_time.begin()

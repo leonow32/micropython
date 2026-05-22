@@ -4,7 +4,6 @@ import mem_used
 import measure_time
 
 from display_hal.display_hal import *
-from display_hal.image_mono.world_128x64 import *
 
 # Display TFT-LCD 480x320 with ST7565R
 from machine import Pin, PWM, SPI
@@ -20,6 +19,7 @@ dihal   = DisplayHAL(display)
 print(dihal)
 
 measure_time.begin()
+from display_hal.image_mono.world_128x64 import *
 dihal.color_set(GREEN)
 dihal.image(world_128x64, (dihal.width-128)//2, (dihal.height-64)//2)
 

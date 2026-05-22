@@ -18,11 +18,11 @@ display = ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5), rotate=0)
 dihal   = DisplayHAL(display)
 print(dihal)
 
+measure_time.begin()
+
 marble_red_48x48   = dihal.image_load2("display_hal/image_rgb565_new/marble_red_48x48.bin")
 marble_green_48x48 = dihal.image_load2("display_hal/image_rgb565_new/marble_green_48x48.bin")
 marble_blue_48x48  = dihal.image_load2("display_hal/image_rgb565_new/marble_blue_48x48.bin")
-
-measure_time.begin()
 
 dihal.color_set(YELLOW, -1)
 dihal.fill()

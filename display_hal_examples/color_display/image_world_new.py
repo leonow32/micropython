@@ -18,9 +18,8 @@ display = ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5), rotate=0)
 dihal   = DisplayHAL(display)
 print(dihal)
 
-world_128x64 = dihal.image_load2("display_hal/image_mono_new/world_128x64.bin")
-
 measure_time.begin()
+world_128x64 = dihal.image_load2("display_hal/image_mono_new/world_128x64.bin")
 dihal.color_set(GREEN)
 dihal.image_new(world_128x64, (dihal.width-128)//2, (dihal.height-64)//2)
 measure_time.end("Rendering time")
