@@ -4,7 +4,6 @@ import mem_used
 import measure_time
 
 from display_hal.display_hal import *
-from display_hal.image_mono.world_128x64 import *
 
 # Display TFT-LCD 480x320 with ST7565R
 from machine import Pin, PWM, SPI
@@ -19,10 +18,18 @@ display = ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5), rotate=0)
 dihal   = DisplayHAL(display)
 print(dihal)
 
-measure_time.begin()
-dihal.color_set(GREEN)
-dihal.image(world_128x64, (dihal.width-128)//2, (dihal.height-64)//2)
+marble_red_48x48   = dihal.image_load2("display_hal/image_rgb565_new/marble_red_48x48.bin")
+marble_green_48x48 = dihal.image_load2("display_hal/image_rgb565_new/marble_green_48x48.bin")
+marble_blue_48x48  = dihal.image_load2("display_hal/image_rgb565_new/marble_blue_48x48.bin")
 
+measure_time.begin()
+
+dihal.color_set(YELLOW, -1)
+dihal.fill()
+
+dihal.image_new(marble_red_48x48,   0,  0)
+dihal.image_new(marble_green_48x48, 0, 48)
+dihal.image_new(marble_blue_48x48,  0, 96, BLACK)
 measure_time.end("Rendering time")
 
 measure_time.begin()

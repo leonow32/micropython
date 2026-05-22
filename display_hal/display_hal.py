@@ -17,12 +17,10 @@ ALIGN_RIGHT    = const(5)
 
 class Image():
     def __init__(self, width, height, format, array):
-        print(f"__init__(width={width}, height={height}, format={format}, len(array)={len(array)})")
-        self.width = width
+        self.width  = width
         self.height = height
         self.format = format
-        self.array = array
-        self.fb = framebuf.FrameBuffer(array, width, height, format)
+        self.fb     = framebuf.FrameBuffer(array, width, height, format)
         
 class DisplayHAL:
     
@@ -183,60 +181,22 @@ class DisplayHAL:
     def image_rgb(self, bitmap, x: int, y: int, transparent=-1) -> None:
         self.display.blit(bitmap, x, y, transparent)
         
-    
-        
-    @micropython.native
-    def image_load(self, path):
-        print(f"image_load(self={self}, path={path}")
-        
-        with open(path, "rb") as file:
-            header = file.read(5)
-            format, width, height = struct.unpack(">BHH", header)
-            
-            print(f"format: {format}")
-            print(f"width:  {width}")
-            print(f"height: {height}")
-            
-            array = bytearray(file.read())
-            print(f"array:  {len(array)}")
-            fb = framebuf.FrameBuffer(array, width, height, format)
-            
-            return fb
-        
     @micropython.native
     def image_load2(self, path):
-        print(f"image_load2(self={self}, path={path}")
-        
         with open(path, "rb") as file:
             header = file.read(5)
             format, width, height = struct.unpack(">BHH", header)
-            
-            print(f"format: {format}")
-            print(f"width:  {width}")
-            print(f"height: {height}")
-            
             array = bytearray(file.read())
-            print(f"array:  {len(array)}")
             fb = framebuf.FrameBuffer(array, width, height, format)
-            
             image = Image(width, height, format, array)
-            
             return image
     
-    def image_new(self, image_obj: Image, x, y) -> None:
-        print(f"image_new")
-        print(f"format: {image_obj.format}")
-        print(f"width:  {image_obj.width}")
-        print(f"height: {image_obj.height}")
-        
+    @micropython.native
+    def image_new(self, image_obj, x, y, transparent=-1) -> None:
         if image_obj.format == framebuf.RGB565:
-            self.display.blit(image_obj.fb, x, y)
+            self.display.blit(image_obj.fb, x, y, transparent)
         else:
             self.display.blit(image_obj.fb, x, y, self._transp, self._palette)
-        
-#     @micropython.native
-#     def image_new(image_obj):
-        
 
 if __name__ == "__main__":
     import mem_used
@@ -348,16 +308,41 @@ if __name__ == "__main__":
     from display_hal.driver.st7796 import *
     pwm = PWM(Pin(16), freq=50000, duty_u16=65535)
     spi = SPI(2, baudrate=80_000_000, polarity=0, phase=0, sck=Pin(15), mosi=Pin(7), miso=None)
-    display = ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5), rotate=270)
+    display = ST7796(spi, cs=Pin(4), dc=Pin(6), rst=Pin(5), rotate=0)
     
     dihal = DisplayHAL(display)
     print(dihal)
     
-    marble = dihal.image_load("display_hal/image_rgb565_new/marble_red_48x48.bin")
-    dihal.image_rgb(marble, 0, 0)
+#     marble = dihal.image_load("display_hal/image_rgb565_new/marble_red_48x48.bin")
+#     dihal.image_rgb(marble, 0, 0)
     
     marble2 = dihal.image_load2("display_hal/image_rgb565_new/marble_red_48x48.bin")
     dihal.image_new(marble2, 100, 10)
+    
+    ok_32x32 = dihal.image_load2("display_hal/image_mono_new/ok_32x32.bin")
+    back_32x32 = dihal.image_load2("display_hal/image_mono_new/back_32x32.bin")
+    clock_32x32 = dihal.image_load2("display_hal/image_mono_new/clock_32x32.bin")
+    settings_32x32 = dihal.image_load2("display_hal/image_mono_new/settings_32x32.bin")
+    book_32x32 = dihal.image_load2("display_hal/image_mono_new/book_32x32.bin")
+    light_32x32 = dihal.image_load2("display_hal/image_mono_new/light_32x32.bin")
+    up_32x32 = dihal.image_load2("display_hal/image_mono_new/up_32x32.bin")
+    down_32x32 = dihal.image_load2("display_hal/image_mono_new/down_32x32.bin")
+    
+    dihal.color_set(WHITE, BLACK)
+    dihal.image_new(ok_32x32,        0,  0)    
+    dihal.image_new(back_32x32,      0, 32)
+    
+    dihal.color_set(YELLOW, BLUE)
+    dihal.image_new(clock_32x32,    32,  0)
+    dihal.image_new(settings_32x32, 32, 32)
+    
+    dihal.color_set(-1, RED)
+    dihal.image_new(book_32x32,     64,  0)
+    dihal.image_new(light_32x32,    64, 32)
+    
+    dihal.color_set(GREEN, -1)
+    dihal.image_new(up_32x32,       96,  0)
+    dihal.image_new(down_32x32,     96, 32)
     
 #     dihal.color_set(BLUE, YELLOW)
 #     dihal.fill()
