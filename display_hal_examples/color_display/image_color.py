@@ -19,14 +19,17 @@ dihal   = DisplayHAL(display)
 print(dihal)
 
 measure_time.begin()
-from display_hal.image_rgb565.marble_red_48x48 import *
-from display_hal.image_rgb565.marble_green_48x48 import *
-from display_hal.image_rgb565.marble_blue_48x48 import *
+
+marble_red_48x48   = dihal.image_load("display_hal/image_rgb565/marble_red_48x48.bin")
+marble_green_48x48 = dihal.image_load("display_hal/image_rgb565/marble_green_48x48.bin")
+marble_blue_48x48  = dihal.image_load("display_hal/image_rgb565/marble_blue_48x48.bin")
+
 dihal.color_set(YELLOW, -1)
 dihal.fill()
-dihal.image_rgb(marble_red_48x48,   0,  0)
-dihal.image_rgb(marble_green_48x48, 0, 48)
-dihal.image_rgb(marble_blue_48x48,  0, 96, BLACK)
+
+dihal.image(marble_red_48x48,   0,  0)
+dihal.image(marble_green_48x48, 0, 48)
+dihal.image(marble_blue_48x48,  0, 96, BLACK)
 measure_time.end("Rendering time")
 
 measure_time.begin()

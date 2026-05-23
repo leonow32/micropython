@@ -17,8 +17,8 @@ dihal   = DisplayHAL(display)
 print(dihal)
 
 measure_time.begin()
-from display_hal.image_rgb565.galaxy_color_480x320 import *
-dihal.image_rgb(galaxy_color_480x320, 0, 0)
+galaxy_color_480x320 = dihal.image_load("display_hal/image_rgb565/galaxy_color_480x320.bin")
+dihal.image(galaxy_color_480x320, 0, 0)
 measure_time.end("Rendering time")
 
 measure_time.begin()
@@ -26,6 +26,7 @@ dihal.refresh()
 measure_time.end("Refreshing time")
 
 mem_used.print_ram_used()
+
 
 
 

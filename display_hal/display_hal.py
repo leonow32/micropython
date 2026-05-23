@@ -172,17 +172,9 @@ class DisplayHAL:
         # Width of separators between the characters
         total += font[-1][1] * (len(text)+1)
         return total
-            
-    @micropython.native
-    def image(self, bitmap, x: int, y: int) -> None:
-        self.display.blit(bitmap, x, y, self._transp, self._palette)
         
     @micropython.native
-    def image_rgb(self, bitmap, x: int, y: int, transparent=-1) -> None:
-        self.display.blit(bitmap, x, y, transparent)
-        
-    @micropython.native
-    def image_load2(self, path):
+    def image_load(self, path):
         with open(path, "rb") as file:
             header = file.read(5)
             format, width, height = struct.unpack(">BHH", header)
@@ -192,7 +184,7 @@ class DisplayHAL:
             return image
     
     @micropython.native
-    def image_new(self, image_obj, x, y, transparent=-1) -> None:
+    def image(self, image_obj, x, y, transparent=-1) -> None:
         if image_obj.format == framebuf.RGB565:
             self.display.blit(image_obj.fb, x, y, transparent)
         else:
@@ -313,36 +305,36 @@ if __name__ == "__main__":
     dihal = DisplayHAL(display)
     print(dihal)
     
-#     marble = dihal.image_load("display_hal/image_rgb565_new/marble_red_48x48.bin")
+#     marble = dihal.image_load("display_hal/image_rgb565/marble_red_48x48.bin")
 #     dihal.image_rgb(marble, 0, 0)
     
-    marble2 = dihal.image_load2("display_hal/image_rgb565_new/marble_red_48x48.bin")
-    dihal.image_new(marble2, 100, 10)
+    marble2 = dihal.image_load("display_hal/image_rgb565/marble_red_48x48.bin")
+    dihal.image(marble2, 100, 10)
     
-    ok_32x32 = dihal.image_load2("display_hal/image_mono_new/ok_32x32.bin")
-    back_32x32 = dihal.image_load2("display_hal/image_mono_new/back_32x32.bin")
-    clock_32x32 = dihal.image_load2("display_hal/image_mono_new/clock_32x32.bin")
-    settings_32x32 = dihal.image_load2("display_hal/image_mono_new/settings_32x32.bin")
-    book_32x32 = dihal.image_load2("display_hal/image_mono_new/book_32x32.bin")
-    light_32x32 = dihal.image_load2("display_hal/image_mono_new/light_32x32.bin")
-    up_32x32 = dihal.image_load2("display_hal/image_mono_new/up_32x32.bin")
-    down_32x32 = dihal.image_load2("display_hal/image_mono_new/down_32x32.bin")
+    ok_32x32       = dihal.image_load("display_hal/image_mono/ok_32x32.bin")
+    back_32x32     = dihal.image_load("display_hal/image_mono/back_32x32.bin")
+    clock_32x32    = dihal.image_load("display_hal/image_mono/clock_32x32.bin")
+    settings_32x32 = dihal.image_load("display_hal/image_mono/settings_32x32.bin")
+    book_32x32     = dihal.image_load("display_hal/image_mono/book_32x32.bin")
+    light_32x32    = dihal.image_load("display_hal/image_mono/light_32x32.bin")
+    up_32x32       = dihal.image_load("display_hal/image_mono/up_32x32.bin")
+    down_32x32     = dihal.image_load("display_hal/image_mono/down_32x32.bin")
     
     dihal.color_set(WHITE, BLACK)
-    dihal.image_new(ok_32x32,        0,  0)    
-    dihal.image_new(back_32x32,      0, 32)
+    dihal.image(ok_32x32,        0,  0)    
+    dihal.image(back_32x32,      0, 32)
     
     dihal.color_set(YELLOW, BLUE)
-    dihal.image_new(clock_32x32,    32,  0)
-    dihal.image_new(settings_32x32, 32, 32)
+    dihal.image(clock_32x32,    32,  0)
+    dihal.image(settings_32x32, 32, 32)
     
     dihal.color_set(-1, RED)
-    dihal.image_new(book_32x32,     64,  0)
-    dihal.image_new(light_32x32,    64, 32)
+    dihal.image(book_32x32,     64,  0)
+    dihal.image(light_32x32,    64, 32)
     
     dihal.color_set(GREEN, -1)
-    dihal.image_new(up_32x32,       96,  0)
-    dihal.image_new(down_32x32,     96, 32)
+    dihal.image(up_32x32,       96,  0)
+    dihal.image(down_32x32,     96, 32)
     
 #     dihal.color_set(BLUE, YELLOW)
 #     dihal.fill()
