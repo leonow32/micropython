@@ -5,16 +5,6 @@ import measure_time
 import random
 
 from display_hal.display_hal import *
-from display_hal.image_mono.back_32x32 import *
-from display_hal.image_mono.book_32x32 import *
-from display_hal.image_mono.cancel_32x32 import *
-from display_hal.image_mono.clock_32x32 import *
-from display_hal.image_mono.down_32x32 import *
-from display_hal.image_mono.hand_32x32 import *
-from display_hal.image_mono.light_32x32 import *
-from display_hal.image_mono.ok_32x32 import *
-from display_hal.image_mono.settings_32x32 import *
-from display_hal.image_mono.up_32x32 import *
 
 # Display TFT-LCD 480x320 with ST7565R
 from machine import Pin, PWM, SPI
@@ -31,11 +21,23 @@ print(dihal)
 
 measure_time.begin()
 
-icon_width  = 32
-icon_height = 32
+images = (
+    dihal.image_load("display_hal/image_mono/ok_32x32.bin"),
+    dihal.image_load("display_hal/image_mono/clock_32x32.bin"),
+    dihal.image_load("display_hal/image_mono/book_32x32.bin"),
+    dihal.image_load("display_hal/image_mono/up_32x32.bin"),
+    dihal.image_load("display_hal/image_mono/back_32x32.bin"),
+    dihal.image_load("display_hal/image_mono/settings_32x32.bin"),
+    dihal.image_load("display_hal/image_mono/cancel_32x32.bin"),
+    dihal.image_load("display_hal/image_mono/down_32x32.bin"),
+    dihal.image_load("display_hal/image_mono/hand_32x32.bin"),
+    dihal.image_load("display_hal/image_mono/light_32x32.bin")
+)
 
-images = (ok_32x32, clock_32x32, book_32x32, up_32x32, back_32x32, settings_32x32, cancel_32x32, down_32x32, hand_32x32, light_32x32)
 colors = (RED, YELLOW, GREEN, CYAN, BLUE, MAGENTA, WHITE, BLACK)
+
+icon_width  = images[0].width
+icon_height = images[0].height
 
 cols = dihal.width  // icon_width
 rows = dihal.height // icon_height

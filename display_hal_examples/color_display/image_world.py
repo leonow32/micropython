@@ -4,7 +4,6 @@ import mem_used
 import measure_time
 
 from display_hal.display_hal import *
-from display_hal.image_mono.world_128x64 import *
 
 # Display TFT-LCD 480x320 with ST7565R
 from machine import Pin, PWM, SPI
@@ -20,9 +19,9 @@ dihal   = DisplayHAL(display)
 print(dihal)
 
 measure_time.begin()
+world_128x64 = dihal.image_load("display_hal/image_mono/world_128x64.bin")
 dihal.color_set(GREEN)
-dihal.image(world_128x64, (dihal.width-128)//2, (dihal.height-64)//2)
-
+dihal.image(world_128x64, (dihal.width-world_128x64.width)//2, (dihal.height-world_128x64.height)//2)
 measure_time.end("Rendering time")
 
 measure_time.begin()
@@ -30,5 +29,4 @@ dihal.refresh()
 measure_time.end("Refreshing time")
 
 mem_used.print_ram_used()
-
 

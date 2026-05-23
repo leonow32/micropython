@@ -1,5 +1,6 @@
 # 250131
 import os
+import struct
 import numpy            # install with "pip install numpy"
 from PIL import Image   # install with "pip install pillow"
 
@@ -23,9 +24,9 @@ def convert(file):
                 bit  = 1 << (row % 8)
                 bitmap[page * width + column] |= bit
         
-    with open(f"{output_dir}/{file}.py", "w", encoding="utf-8") as output:
-        output.write("import framebuf\n")
-        output.write(f"{file} = framebuf.FrameBuffer({bitmap}, {width}, {height}, framebuf.MONO_VLSB)\n")
+    with open(f"{output_dir}/{file}.bin", "wb") as output:
+        output.write(struct.pack(">BHH", 0, width, height))   # 0 = framebuf.MONO_VLSB
+        output.write(bitmap)
 
 if __name__ == "__main__":
     if not os.path.exists(output_dir):

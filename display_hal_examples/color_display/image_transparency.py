@@ -4,7 +4,6 @@ import mem_used
 import measure_time
 
 from display_hal.display_hal import *
-from display_hal.image_mono.ball_64x64 import *
 
 # Display TFT-LCD 480x320 with ST7565R
 from machine import Pin, PWM, SPI
@@ -20,6 +19,7 @@ dihal   = DisplayHAL(display)
 print(dihal)
 
 measure_time.begin()
+ball_64x64 = dihal.image_load("display_hal/image_mono/ball_64x64.bin")
 
 # Fill the background
 dihal.color_set(BLUE, BLACK)
@@ -27,16 +27,14 @@ dihal.fill()
 
 cols = 3
 rows = 3
-icon_width  = 64
-icon_height = 64
-sw = (dihal.width-cols*icon_width) // (cols+1)   # separator width
-sh = (dihal.height-rows*icon_height) // (rows+1) # separator height
+sw = (dihal.width-cols*ball_64x64.width) // (cols+1)   # separator width
+sh = (dihal.height-rows*ball_64x64.height) // (rows+1) # separator height
 
 def get_x(col):
-    return sw*(col+1)+icon_width*col
+    return sw*(col+1) + col*ball_64x64.width
 
 def get_y(row):
-    return sh*(row+1)+icon_height*row
+    return sh*(row+1) + row*ball_64x64.height
     
 # Row 0, Col 0 - foreground off, background off
 dihal.color_set(BLACK, BLACK)
@@ -81,5 +79,6 @@ dihal.refresh()
 measure_time.end("Refreshing time")
 
 mem_used.print_ram_used()
+
 
 

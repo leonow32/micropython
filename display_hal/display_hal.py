@@ -6,6 +6,7 @@
 # MicroPython 1.28.0 ESP32-S3 Octal SPIRAM
 
 import framebuf
+import struct
 
 ALIGN_LEFT_X   = const(0)
 ALIGN_LEFT     = const(1)
@@ -14,6 +15,13 @@ ALIGN_CENTER   = const(3)
 ALIGN_RIGHT_X  = const(4)
 ALIGN_RIGHT    = const(5)
 
+class Image():
+    def __init__(self, width, height, format, array):
+        self.width  = width
+        self.height = height
+        self.format = format
+        self.fb     = framebuf.FrameBuffer(array, width, height, format)
+        
 class DisplayHAL:
     
     @micropython.native
@@ -164,14 +172,23 @@ class DisplayHAL:
         # Width of separators between the characters
         total += font[-1][1] * (len(text)+1)
         return total
-            
-    @micropython.native
-    def image(self, bitmap, x: int, y: int) -> None:
-        self.display.blit(bitmap, x, y, self._transp, self._palette)
         
     @micropython.native
-    def image_rgb(self, bitmap, x: int, y: int, transparent=-1) -> None:
-        self.display.blit(bitmap, x, y, transparent)
+    def image_load(self, path):
+        with open(path, "rb") as file:
+            header = file.read(5)
+            format, width, height = struct.unpack(">BHH", header)
+            array = bytearray(file.read())
+            fb = framebuf.FrameBuffer(array, width, height, format)
+            image = Image(width, height, format, array)
+            return image
+    
+    @micropython.native
+    def image(self, image_obj, x, y, transparent=-1) -> None:
+        if image_obj.format == framebuf.RGB565:
+            self.display.blit(image_obj.fb, x, y, transparent)
+        else:
+            self.display.blit(image_obj.fb, x, y, self._transp, self._palette)
 
 if __name__ == "__main__":
     import mem_used
@@ -278,7 +295,7 @@ if __name__ == "__main__":
 #     dihal.image(down_32x32,     96, 32, dihal.color(0x00, 0xFF, 0x00))
 #     measure_time.end("Rendering time:")
 
-    # Display TFT-LCD 480x320 with ST7565R
+    # Display TFT-LCD 480x320 with ST7796
     from machine import Pin, PWM, SPI
     from display_hal.driver.st7796 import *
     pwm = PWM(Pin(16), freq=50000, duty_u16=65535)
@@ -287,6 +304,37 @@ if __name__ == "__main__":
     
     dihal = DisplayHAL(display)
     print(dihal)
+    
+#     marble = dihal.image_load("display_hal/image_rgb565/marble_red_48x48.bin")
+#     dihal.image_rgb(marble, 0, 0)
+    
+    marble2 = dihal.image_load("display_hal/image_rgb565/marble_red_48x48.bin")
+    dihal.image(marble2, 100, 10)
+    
+    ok_32x32       = dihal.image_load("display_hal/image_mono/ok_32x32.bin")
+    back_32x32     = dihal.image_load("display_hal/image_mono/back_32x32.bin")
+    clock_32x32    = dihal.image_load("display_hal/image_mono/clock_32x32.bin")
+    settings_32x32 = dihal.image_load("display_hal/image_mono/settings_32x32.bin")
+    book_32x32     = dihal.image_load("display_hal/image_mono/book_32x32.bin")
+    light_32x32    = dihal.image_load("display_hal/image_mono/light_32x32.bin")
+    up_32x32       = dihal.image_load("display_hal/image_mono/up_32x32.bin")
+    down_32x32     = dihal.image_load("display_hal/image_mono/down_32x32.bin")
+    
+    dihal.color_set(WHITE, BLACK)
+    dihal.image(ok_32x32,        0,  0)    
+    dihal.image(back_32x32,      0, 32)
+    
+    dihal.color_set(YELLOW, BLUE)
+    dihal.image(clock_32x32,    32,  0)
+    dihal.image(settings_32x32, 32, 32)
+    
+    dihal.color_set(-1, RED)
+    dihal.image(book_32x32,     64,  0)
+    dihal.image(light_32x32,    64, 32)
+    
+    dihal.color_set(GREEN, -1)
+    dihal.image(up_32x32,       96,  0)
+    dihal.image(down_32x32,     96, 32)
     
 #     dihal.color_set(BLUE, YELLOW)
 #     dihal.fill()
@@ -298,13 +346,15 @@ if __name__ == "__main__":
 #     from display_hal.font.extronic16B_unicode import *
 #     dihal.text("ABCDEFGHIJKL",   0, 16, extronic16B_unicode, ALIGN_CENTER)
     
-    from display_hal.image_rgb565.marble_red_48x48 import *
-    from display_hal.image_rgb565.marble_green_48x48 import *
-    from display_hal.image_rgb565.marble_blue_48x48 import *
+#     from display_hal.image_rgb565.marble_red_48x48 import *
+#     from display_hal.image_rgb565.marble_green_48x48 import *
+#     from display_hal.image_rgb565.marble_blue_48x48 import *
+#     
+#     dihal.image_rgb(marble_red_48x48,        0,  0, BLACK)
+#     dihal.image_rgb(marble_green_48x48,      0, 48)
+#     dihal.image_rgb(marble_blue_48x48,       0, 96)
     
-    dihal.image_rgb(marble_red_48x48,        0,  0, BLACK)
-    dihal.image_rgb(marble_green_48x48,      0, 48)
-    dihal.image_rgb(marble_blue_48x48,       0, 96)
+    
 
     # Refresh
     measure_time.begin()

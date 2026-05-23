@@ -6,22 +6,12 @@ import mem_used
 import measure_time
 
 from display_hal.display_hal import *
-from display_hal.image_mono.back_32x32 import *
-from display_hal.image_mono.book_32x32 import *
-from display_hal.image_mono.cancel_32x32 import *
-from display_hal.image_mono.clock_32x32 import *
-from display_hal.image_mono.down_32x32 import *
-from display_hal.image_mono.hand_32x32 import *
-from display_hal.image_mono.light_32x32 import *
-from display_hal.image_mono.ok_32x32 import *
-from display_hal.image_mono.settings_32x32 import *
-from display_hal.image_mono.up_32x32 import *
 
 # Display OLED 128x64 monochrome with SSD1309
-from machine import I2C
-from display_hal.driver.ssd1309 import *
-i2c     = I2C(0) # use default pinout and clock frequency
-display = SSD1309(i2c, address=0x3C, rotate=False)
+# from machine import I2C
+# from display_hal.driver.ssd1309 import *
+# i2c     = I2C(0) # use default pinout and clock frequency
+# display = SSD1309(i2c, address=0x3C, rotate=False)
 
 # Display OLED 128x64 monochrome with SH1106
 # from machine import I2C
@@ -30,17 +20,17 @@ display = SSD1309(i2c, address=0x3C, rotate=False)
 # display = SH1106(i2c, address=0x3D, rotate=False, offset_x=2)
 
 # Display OLED 128x160 monochrome with SH1108
-from machine import Pin, SPI
-from display_hal.driver.sh1108 import *
-spi = SPI(1, baudrate=10_000_000, polarity=0, phase=0)
-display = SH1108(spi, cs=Pin(4), dc=Pin(2), rotate=1, offset_x=16)
+# from machine import Pin, SPI
+# from display_hal.driver.sh1108 import *
+# spi = SPI(1, baudrate=10_000_000, polarity=0, phase=0)
+# display = SH1108(spi, cs=Pin(4), dc=Pin(2), rotate=1, offset_x=16)
 
 # Display LCD DEM128064E1 128x64 from Display Elektronik GmbH with ST7565R
-# from machine import Pin, PWM, SPI
-# from display_hal.driver.dem128064e1 import *
-# pwm = PWM(Pin(15), freq=50000, duty_u16=65535)
-# spi = SPI(0, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
-# display = DEM128064E1(spi, cs=Pin(5), dc=Pin(6), rst=Pin(7))
+from machine import Pin, PWM, SPI
+from display_hal.driver.dem128064e1 import *
+pwm = PWM(Pin(15), freq=50000, duty_u16=65535)
+spi = SPI(0, baudrate=10_000_000, polarity=0, phase=0, sck=Pin(2), mosi=Pin(3), miso=Pin(4))
+display = DEM128064E1(spi, cs=Pin(5), dc=Pin(6), rst=Pin(7))
 
 # Display LCD DEM240064B 240x64 from Display Elektronik GmbH with ST7565P
 # from machine import Pin, PWM, SPI
@@ -54,10 +44,21 @@ print(dihal)
 
 measure_time.begin()
 
-icon_width  = 32
-icon_height = 32
+images = (
+    dihal.image_load("display_hal/image_mono/ok_32x32.bin"),
+    dihal.image_load("display_hal/image_mono/clock_32x32.bin"),
+    dihal.image_load("display_hal/image_mono/book_32x32.bin"),
+    dihal.image_load("display_hal/image_mono/up_32x32.bin"),
+    dihal.image_load("display_hal/image_mono/back_32x32.bin"),
+    dihal.image_load("display_hal/image_mono/settings_32x32.bin"),
+    dihal.image_load("display_hal/image_mono/cancel_32x32.bin"),
+    dihal.image_load("display_hal/image_mono/down_32x32.bin"),
+    dihal.image_load("display_hal/image_mono/hand_32x32.bin"),
+    dihal.image_load("display_hal/image_mono/light_32x32.bin")
+)
 
-images = (ok_32x32, clock_32x32, book_32x32, up_32x32, back_32x32, settings_32x32, cancel_32x32, down_32x32, hand_32x32, light_32x32)
+icon_width  = images[0].width
+icon_height = images[0].height
 
 if dihal.width == 240 and dihal.height == 64:
     cols = 5
