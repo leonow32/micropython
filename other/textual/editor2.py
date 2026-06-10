@@ -97,18 +97,18 @@ class Editor(App):
         self.file.write_text(editor.text)
 
 if __name__ == "__main__":
-    parser = ArgumentParser("My Editor")
-    parser.add_argument("folder", type=Path)
+#     parser = ArgumentParser("My Editor")
+#     parser.add_argument("folder", type=Path)
     
-    args = parser.parse_args()
-    folder: Path = args.folder
+#     args = parser.parse_args()
+#     folder: Path = args.folder
     file = None
 
-    assert folder.exists()
+#     assert folder.exists()
 
-    if not folder.is_dir():
-        file = folder
-        folder = folder.parent
+#     if not folder.is_dir():
+#         file = folder
+#         folder = folder.parent
 
-    app = Editor(folder, file)
+    app = Editor(".", file)
     app.run()
