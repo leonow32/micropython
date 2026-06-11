@@ -7,18 +7,21 @@ class TimeDisplay(Static):
 
 class Stopwatch(Static):
     def compose(self):
-        yield Button("Czerwony", variant="error")
-        yield Button("Żółty", variant="warning")
-        yield Button("Zielony", variant="success")
-        yield Button("Niebieski", variant="primary")
-        yield Button("Czarny", variant="default")
-        yield Button("Reset")
+#         yield Button("Czerwony", variant="error")
+#         yield Button("Żółty", variant="warning")
+#         yield Button("Zielony", variant="success")
+#         yield Button("Niebieski", variant="primary")
+        yield Button("Start", variant="success", id="start")
+        yield Button("Stop", variant="error", id="stop")
+        yield Button("Reset", id="reset")
         yield TimeDisplay("00:00:00.00")
     
 class StopwatchApp(App):
     BINDINGS = [
         ("d,ctrl+a", "toggle_dark_mode", "Toggle light/dark mode")
     ]
+    
+    CSS_PATH = "stopwatch.tcss"
     
     def compose(self):
         self.theme = "textual-dark"

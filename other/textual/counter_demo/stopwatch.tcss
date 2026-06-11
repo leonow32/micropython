@@ -1,0 +1,28 @@
+Stopwatch {
+    layout: horizontal;
+    background: $boost;
+    min-width: 50;
+    margin: 1;
+    padding: 1;
+    height: 7;
+}
+  
+Button {
+    width: 25%;
+    height: 5;
+}
+
+/* dotyczy wybranego id*/
+#start {
+    height: 4;
+    dock: left;
+}
+
+#stop {
+    height: 3;
+    dock: left;
+}
+
+#reset {
+    dock: right;
+}
