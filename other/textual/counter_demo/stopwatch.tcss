@@ -1,28 +1,66 @@
+#stopwatches {
+    /*padding: 1;*/
+    /*background: blue;*/
+}
+
 Stopwatch {
     layout: horizontal;
     background: $boost;
-    min-width: 50;
+    /*min-width: 50;*/
     margin: 1;
     padding: 1;
-    height: 7;
+    height: 5;
 }
   
 Button {
-    width: 25%;
-    height: 5;
+    /*width: 25%;*/
+    /*height: 5;*/
+}
+
+TimeDisplay {
+    /*margin: 1;*/
+    /*padding: 1;*/
+    height: 3;
+    /*background: red;*/
+    content-align: center middle;
+    text-opacity: 50%
 }
 
 /* dotyczy wybranego id*/
 #start {
-    height: 4;
-    dock: left;
+    /*dock: left;*/
+    /*width: 10;*/
 }
 
 #stop {
-    height: 3;
-    dock: left;
+    /*dock: left;*/
+    /*margin: 0 1;*/
+    /*width: 5;*/
 }
 
 #reset {
     dock: right;
+    /*width: 2;*/
 }
+
+/* Klasa CSS */
+.hidden {
+    display: none;
+}
+
+.running #start {
+    display: none;
+}
+
+.running #stop {
+    display: block;
+}
+
+.idle #start {
+    display: block;
+}
+
+.idle #stop {
+    display: none;
+}
+
