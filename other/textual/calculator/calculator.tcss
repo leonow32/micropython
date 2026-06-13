@@ -1,0 +1,14 @@
+Header {
+    height: 1;                          /* bez tego nagłówek może zmieniać rozmiar po kliknięciu */
+}
+
+Digits {
+    align: center middle;
+    width: auto;
+    border: round white;
+}
+
+.box {
+    background: $error 50%;
+    border: round white;
+}

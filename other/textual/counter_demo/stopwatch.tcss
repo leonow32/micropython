@@ -1,3 +1,8 @@
+Header {
+    /* bez tego nagłówek może zmieniać rozmiar po kliknięciu */
+    height: 1;
+}
+
 #stopwatches {
     /*padding: 1;*/
     /*background: blue;*/

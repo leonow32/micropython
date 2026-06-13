@@ -99,6 +99,13 @@ class StopwatchApp(App):
 #         )
         yield Footer()
         
+    def on_mount(self):
+        self.title = "Zegarki"
+        self.sub_title = "mój pierwszy program w Textualu"
+
+        footer = self.query_one(Footer)
+        footer.show_command_palette = False
+        
     def action_toggle_dark_mode(self):
         if self.theme == "textual-light":
             self.theme = "textual-dark"
