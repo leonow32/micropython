@@ -1,0 +1,19 @@
+Application {
+    hatch: right $boost;
+}
+
+Header {
+    height: 1;                          /* bez tego nagłówek może zmieniać rozmiar po kliknięciu */
+}
+
+Digits {
+    align: center middle;
+    width: auto;
+    border: round white;
+}
+
+.box {
+    background: $success 20%;
+    border: round white;
+    hatch: right $boost;
+}
