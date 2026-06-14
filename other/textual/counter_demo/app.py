@@ -2,6 +2,7 @@ from time import monotonic
 
 from textual import on
 from textual.app import App
+from textual.binding import Binding
 from textual.containers import ScrollableContainer
 from textual.reactive import Reactive
 from textual.widgets import Header, Footer, Button, Static
@@ -76,13 +77,15 @@ class Stopwatch(Static):
         yield TimeDisplay("00:00:00.00")
     
 class StopwatchApp(App):
-    BINDINGS = [
-        ("d,ctrl+a", "toggle_dark_mode", "Toggle light/dark mode"),
-        ("a", "add_stopwatch", "Add"),
-        ("r", "remove_stopwatch", "Remove"),
-    ]
-    
     CSS_PATH = "stopwatch.tcss"
+    
+    BINDINGS = [
+        Binding("d,ctrl+a", "toggle_dark_mode", "Toggle light/dark mode"),
+        Binding("a", "add_stopwatch", "Add"),
+        Binding("r", "remove_stopwatch", "Remove"),
+        Binding("f1", "test", "Test F1", key_display="F1"),
+        Binding("escape", "quit", "Wyjście", key_display="ESC"), # Wbudowane, nie trzeba definiować quit
+    ]
     
     def compose(self):
         self.theme = "textual-dark"
@@ -125,6 +128,10 @@ class StopwatchApp(App):
         
         if stopwatches:
             stopwatches.last().remove()
+
+    def action_test(self):
+        self.notify("Wcisnąłeś F1")
+
 
 if __name__ == "__main__":
     app = StopwatchApp()

@@ -3,6 +3,10 @@ Header {
     height: 1;
 }
 
+ScrollableContainer {
+    hatch: right $boost;
+}
+
 #stopwatches {
     /*padding: 1;*/
     /*background: blue;*/
