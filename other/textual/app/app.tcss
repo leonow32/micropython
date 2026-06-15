@@ -1,5 +1,6 @@
+# Kreskowanie tła aplikacji
 Screen:first-child {
-    hatch: right $surface-lighten-2;
+    # hatch: right $surface-lighten-2;
 }
 
 # App {
@@ -11,50 +12,36 @@ Screen:first-child {
 # }
 
 Header {
-    height: 1;                          /* bez tego nagłówek może zmieniać rozmiar po kliknięciu */
+    height: 1;                              # bez tego nagłówek może zmieniać rozmiar po kliknięciu
 }
 
-# TabbedContent {
-#     margin: 1;
-# }
+TabbedContent {
+    height: 100%;                           # Bez tego pojawia treść zakładek jest większa niż ekran i pojawia się scrollbar
+    margin: 1 0 0 0;                        # 1 linia odstępu między nagłówkiem i zakładkami
+    hatch: right $surface-lighten-2;
+}
 
-# ContentSwitcher {
-#     height: 3;
-# }
-
-# TabbedContent #--content-tab-tab_console {
-#     color: green;
-#     height: 2;
-# }
-
-# TabbedContent Tabs {
-#     height: 3;
-# }
-
-
-# TabPane {
-#     margin: 1;
-# }
+TabPane {
+    padding: 1 0 0 0;                       # 1 linia odstępu między zakładkami i treścią zakładek
+}
 
 Toast {
-    margin: 0 0 1 0;                    # Aby powiadomienia nie zlewały się z paskiem dolnym
+    margin: 0 0 1 0;                        # Aby powiadomienia nie zlewały się z paskiem dolnym          
 }
 
 Button {
-    margin: 1 2; # margines pionowy 1, poziomy 2
+    margin: 1 2;                            # margines pionowy 1, poziomy 2
 }
-
-Button:focus {
-    # color: $text;
-    color: auto;
-    /*color: red 10%;  */          /* zachowaj domyślny kolor tekstu */
-    /*background: red;*/
-}
-
 
 .box {
-    # background: $success 50%;
-    # border: tall white;
     border: tall $foreground;
-    # hatch: right $boost;
+    # border: round $foreground;
+}
+
+VerticalScroll {
+    # background: red;
+}
+
+Markdown {
+    # background: yellow;
 }

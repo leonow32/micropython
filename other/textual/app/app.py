@@ -1,12 +1,58 @@
 from textual import on
 from textual.app import App
 from textual.binding import Binding
-from textual.containers import Horizontal, Vertical, Middle, Center, ScrollableContainer, Center, Right
+from textual.containers import Horizontal, Vertical, VerticalScroll, Middle, Center, ScrollableContainer, Center, Right
 from textual.reactive import Reactive
 from textual.screen import ModalScreen
-from textual.widgets import Header, Footer, Button, Digits, Button, Static, Tabs, TabbedContent, TabPane, TextArea, Label
+from textual.widgets import Header, Footer, Button, Digits, Button, Markdown, Static, Tabs, TabbedContent, TabPane, TextArea, Label
 
 from my_widgets.confirm_exit import ConfirmExit
+
+EXAMPLE_MARKDOWN = """\
+## Markdown
+
+- Typography *emphasis*, **strong**, `inline code` etc.    
+- Headers    
+- Lists    
+- Syntax highlighted code blocks
+- Tables and more
+
+## Quotes
+
+> I must not fear.
+> > Fear is the mind-killer.
+> > Fear is the little-death that brings total obliteration.
+> > I will face my fear.
+> > > I will permit it to pass over me and through me.
+> > > And when it has gone past, I will turn the inner eye to see its path.
+> > > Where the fear has gone there will be nothing. Only I will remain.
+
+## Tables
+
+| Name            | Type   | Default | Description                        |
+| --------------- | ------ | ------- | ---------------------------------- |
+| `show_header`   | `bool` | `True`  | Show the table header              |
+| `fixed_rows`    | `int`  | `0`     | Number of fixed rows               |
+| `fixed_columns` | `int`  | `0`     | Number of fixed columns            |
+
+## Code blocks
+
+```python
+def loop_last(values: Iterable[T]) -> Iterable[Tuple[bool, T]]:
+    \"\"\"Iterate and generate a tuple with a flag for last value.\"\"\"
+    iter_values = iter(values)
+    try:
+        previous_value = next(iter_values)
+    except StopIteration:
+        return
+    for value in iter_values:
+        yield False, previous_value
+        previous_value = value
+    yield True, previous_value
+```
+
+
+"""
 
 class Application(App):
     CSS_PATH = "app.tcss"
@@ -20,18 +66,53 @@ class Application(App):
     
     def compose(self):
         yield Header(name="Demo kontenerów", show_clock=True, icon=None)
-        yield Static()
+        # yield Static("")
+        # yield Label("x")
 
-        with TabbedContent(initial="buttons"):
+        with TabbedContent(): # initial="buttons"
+
+            with TabPane("Markdown", id="markdown"):
+                with VerticalScroll():
+                    yield Markdown(EXAMPLE_MARKDOWN)
+
+            with TabPane("Static", id="static_scroll"):
+                yield ScrollableContainer(
+                    Label(f"Lorem ipsum dolor sit amet 1", classes="box"),
+                    Label(f"Lorem ipsum dolor sit amet 2", classes="box"),
+                    Label(f"Lorem ipsum dolor sit amet 3", classes="box"),
+                    Label(f"Lorem ipsum dolor sit amet 4", classes="box"),
+                    Label(f"Lorem ipsum dolor sit amet 5", classes="box"),
+                    # Static(f"Lorem ipsum dolor sit amet 6", classes="box"),
+                    # Static(f"Lorem ipsum dolor sit amet 7", classes="box"),
+                    # Static(f"Lorem ipsum dolor sit amet 8", classes="box"),
+                    # Static(f"Lorem ipsum dolor sit amet 9", classes="box"),
+                    # Static(f"Lorem ipsum dolor sit amet 10", classes="box"),
+                    # Static(f"Lorem ipsum dolor sit amet 11", classes="box"),
+                    # Static(f"Lorem ipsum dolor sit amet 12", classes="box"),
+                    # Static(f"Lorem ipsum dolor sit amet 13", classes="box"),
+                    # Static(f"Lorem ipsum dolor sit amet 14", classes="box"),
+                    # Static(f"Lorem ipsum dolor sit amet 15", classes="box"),
+                    # Static(f"Lorem ipsum dolor sit amet 16", classes="box"),
+                    # Static(f"Lorem ipsum dolor sit amet 17", classes="box"),
+                    # Static(f"Lorem ipsum dolor sit amet 18", classes="box"),
+                    # Static(f"Lorem ipsum dolor sit amet 19", classes="box"),
+                    # Label("label", classes="box"), 
+                )
+
             with TabPane("Przyciski", id="buttons"):
                 yield Button("Czerwony",  id="red",   variant="error")
                 yield Button("Żółty",     id="yellow",variant="warning")
                 yield Button("Zielony",   id="green", variant="success")
                 yield Button("Niebieski", id="blue",  variant="primary")
                 yield Button("Czarny",    id="black", variant="default")
+            
+            
+            
             with TabPane("Lorem Ipsum", id="lorem"):
                 yield ScrollableContainer(
-                    Static("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.") ,
+                # with VerticalScroll():
+                    Label(f"Lorem ipsum dolor sit amet 1", classes="box"),
+                    Label("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."),
                     Label("label") ,
                     classes="box"
                 )
