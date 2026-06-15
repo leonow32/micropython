@@ -1,14 +1,36 @@
 from textual import on
 from textual.app import App
 from textual.binding import Binding
-from textual.containers import Horizontal, Vertical, ScrollableContainer, Center, Right
+from textual.containers import Horizontal, Vertical, Middle, Center, ScrollableContainer, Center, Right
 from textual.reactive import Reactive
+from textual.screen import ModalScreen
 from textual.widgets import Header, Footer, Button, Digits, Button, Static, TextArea, Label
+
+
+class ConfirmExit(ModalScreen):
+    """Popup z pytaniem o zamknięcie"""
+    
+    def compose(self):
+        yield Vertical(
+            Static("Czy chcesz zamknąć program?"),
+            Horizontal(
+                Button("Nie", id="no",  variant="primary"),
+                Button("Tak", id="yes", variant="primary"),
+            )
+        )
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "yes":
+            self.app.exit()
+        else:
+            self.dismiss()   # zamyka popup
+
 
 class Application(App):
     BINDINGS = [
         Binding("escape", "quit", "Wyjście", key_display="ESC"), # Wbudowane, nie trzeba definiować quit
         Binding("ctrl+q", "test", "Wyjście", show=False), # Wbudowane, nie trzeba definiować quit
+        ("p", "pop_up", "Testowy pop-up"),
         ("t", "test", "Test"),
     ]
     
@@ -17,11 +39,20 @@ class Application(App):
     def compose(self):
         yield Header(name="Demo kontenerów", show_clock=True, icon=None)
 
-        yield Button("Czerwony",  id="red",   variant="error")
-        yield Button("Żółty",     id="yellow",variant="warning")
-        yield Button("Zielony",   id="green", variant="success")
-        yield Button("Niebieski", id="blue",  variant="primary")
-        yield Button("Czarny",    id="black", variant="default")
+        yield Vertical(
+            Button("Czerwony",  id="red",   variant="error"),
+            Button("Żółty",     id="yellow",variant="warning"),
+            Button("Zielony",   id="green", variant="success"),
+            Button("Niebieski", id="blue",  variant="primary"),
+            Button("Czarny",    id="black", variant="default"),
+            classes = "backgound_hatch"
+        )
+
+        # yield Button("Czerwony",  id="red",   variant="error")
+        # yield Button("Żółty",     id="yellow",variant="warning")
+        # yield Button("Zielony",   id="green", variant="success")
+        # yield Button("Niebieski", id="blue",  variant="primary")
+        # yield Button("Czarny",    id="black", variant="default")
 
         yield Footer()
         
@@ -37,6 +68,9 @@ class Application(App):
     def action_test(self):
         print("test")
         self.notify("Test")
+        
+    def action_pop_up(self):
+        self.push_screen(ConfirmExit())  # pokazanie popupu
 
     @on(Button.Pressed, "#red")
     def button_red(self):
