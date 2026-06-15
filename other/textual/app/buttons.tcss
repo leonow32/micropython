@@ -1,0 +1,37 @@
+# Screen {
+#     hatch: right $panel;
+# }
+
+# Application {
+#     hatch: right $boost;
+# }
+
+.backgound_hatch {
+    hatch: right $surface-lighten-2;
+}
+
+Header {
+    height: 1;                          /* bez tego nagłówek może zmieniać rozmiar po kliknięciu */
+}
+
+Toast {
+    margin: 0 0 1 0;                    # Aby powiadomienia nie zlewały się z paskiem dolnym
+}
+
+Button {
+    margin: 1 2; # margines pionowy 1, poziomy 2
+}
+
+Button:focus {
+    # color: $text;
+    color: auto;
+    /*color: red 10%;  */          /* zachowaj domyślny kolor tekstu */
+    /*background: red;*/
+}
+
+
+.box {
+    background: $success 50%;
+    border: tall white;
+    hatch: right $boost;
+}
