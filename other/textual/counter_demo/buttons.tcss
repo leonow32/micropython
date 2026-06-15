@@ -1,9 +1,13 @@
 # Screen {
+#     hatch: right $panel;
+# }
+
+# Application {
 #     hatch: right $boost;
 # }
 
 .backgound_hatch {
-    hatch: right $boost;
+    hatch: right $surface-lighten-2;
 }
 
 Header {
@@ -25,33 +29,6 @@ Button:focus {
     /*background: red;*/
 }
 
-ConfirmExit {
-    
-    align: center middle;
-}
-
-ConfirmExit > Vertical {            # Dotyczy tylko Vertical wewnątrz ConfirmExit
-    padding: 0;
-    width: 50;
-    height: 10;
-    
-    align: center middle;
-    align-horizontal: center;
-    
-    # padding: 2;
-    # border: tall white;
-    background: $surface;
-}
-
-ConfirmExit > Vertical > Static {
-    margin: 2 0 1 0;
-    text-align: center;
-}
-
-ConfirmExit > Vertical > Horizontal {
-    margin: 0 0 1 0;
-    align: center bottom;
-}
 
 .box {
     background: $success 50%;

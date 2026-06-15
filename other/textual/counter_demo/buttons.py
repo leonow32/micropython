@@ -6,29 +6,11 @@ from textual.reactive import Reactive
 from textual.screen import ModalScreen
 from textual.widgets import Header, Footer, Button, Digits, Button, Static, TextArea, Label
 
-
-class ConfirmExit(ModalScreen):
-    """Popup z pytaniem o zamknięcie"""
-    
-    def compose(self):
-        yield Vertical(
-            Static("Czy chcesz zamknąć program?"),
-            Horizontal(
-                Button("Nie", id="no",  variant="primary"),
-                Button("Tak", id="yes", variant="primary"),
-            )
-        )
-
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        if event.button.id == "yes":
-            self.app.exit()
-        else:
-            self.dismiss()   # zamyka popup
-
+from confirm_exit import ConfirmExit
 
 class Application(App):
     BINDINGS = [
-        Binding("escape", "quit", "Wyjście", key_display="ESC"), # Wbudowane, nie trzeba definiować quit
+        Binding("escape", "confirm_exit", "Wyjście", key_display="ESC"), # Wbudowane, nie trzeba definiować quit
         Binding("ctrl+q", "test", "Wyjście", show=False), # Wbudowane, nie trzeba definiować quit
         ("p", "pop_up", "Testowy pop-up"),
         ("t", "test", "Test"),
@@ -71,6 +53,9 @@ class Application(App):
         
     def action_pop_up(self):
         self.push_screen(ConfirmExit())  # pokazanie popupu
+
+    def action_confirm_exit(self):
+        self.push_screen(ConfirmExit())
 
     @on(Button.Pressed, "#red")
     def button_red(self):
