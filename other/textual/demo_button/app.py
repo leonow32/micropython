@@ -20,23 +20,40 @@ class Application(App):
     
     def compose(self):
         yield Header(name="Demo kontenerów", show_clock=True, icon=None)
+
+        # yield Vertical(
+        #     Button("Czerwony",  id="red",   variant="error"),
+        #     Button("Żółty",     id="yellow",variant="warning"),
+        #     Button("Zielony",   id="green", variant="success"),
+        #     Button("Niebieski", id="blue",  variant="primary"),
+        #     Button("Czarny",    id="black", variant="default"),
+        #     classes = "backgound_hatch"
+        # )
+
+        # yield Tabs(
+        #     "Konsola",
+        #     "Status",
+        #     "Ustawienia"
+        # )
+
         yield Static()
 
-        with TabbedContent(initial="buttons"):
-            with TabPane("Przyciski", id="buttons"):
+        with TabbedContent(initial="tab_console"):
+            with TabPane("Konsola", id="tab_console"):  # First tab
                 yield Button("Czerwony",  id="red",   variant="error")
                 yield Button("Żółty",     id="yellow",variant="warning")
                 yield Button("Zielony",   id="green", variant="success")
                 yield Button("Niebieski", id="blue",  variant="primary")
                 yield Button("Czarny",    id="black", variant="default")
-            with TabPane("Lorem Ipsum", id="lorem"):
-                yield ScrollableContainer(
-                    Static("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.") ,
-                    Label("label") ,
-                    classes="box"
-                )
-                
-            with TabPane("Ustawienia", id="settings"):
+            with TabPane("Status", id="tab_status"):
+                yield Static("static") 
+                yield Label("label") 
+
+                with TabbedContent("Paul", "Alia"):
+                    yield TabPane("Paul", Label("First child"))
+                    yield TabPane("Alia", Label("Second child"))
+
+            with TabPane("Ustawienia", id="tab_settings"):
                 yield Button("Niebieski", id="blue",  variant="primary")
 
         yield Footer()

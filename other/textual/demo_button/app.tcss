@@ -33,7 +33,7 @@ Header {
 
 
 # TabPane {
-#     margin: 1;
+#     height: 4;
 # }
 
 Toast {
@@ -53,8 +53,7 @@ Button:focus {
 
 
 .box {
-    # background: $success 50%;
-    # border: tall white;
-    border: tall $foreground;
-    # hatch: right $boost;
+    background: $success 50%;
+    border: tall white;
+    hatch: right $boost;
 }
