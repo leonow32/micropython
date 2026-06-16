@@ -1,10 +1,10 @@
 from textual import on
 from textual.app import App
 from textual.binding import Binding
-from textual.containers import Horizontal, Vertical, VerticalScroll, Middle, Center, ScrollableContainer, Center, Right
+from textual.containers import Horizontal, HorizontalGroup, HorizontalScroll, Vertical, VerticalScroll, Middle, Center, ScrollableContainer, Center, Right
 from textual.reactive import Reactive
 from textual.screen import ModalScreen
-from textual.widgets import Header, Footer, Button, Digits, Button, Markdown, Static, Tabs, TabbedContent, TabPane, TextArea, Label
+from textual.widgets import Button, Collapsible, Digits, Footer, Header, Label, Markdown, Static, Tabs, TabbedContent, TabPane, TextArea
 
 from my_widgets.confirm_exit import ConfirmExit
 
@@ -75,6 +75,15 @@ class Application(App):
                 with VerticalScroll():
                     yield Markdown(EXAMPLE_MARKDOWN)
 
+            with TabPane("Digits", id="digits"):
+                with Center():
+                    digits1 = Digits("0123456789")
+                    digits1.border_title = "Title"
+                    yield digits1
+                    digits2 = Digits("ABCDEF")
+                    digits2.border_subtitle = "Subtitle"
+                    yield digits2
+
             with TabPane("Static", id="static_scroll"):
                 yield ScrollableContainer(
                     Label(f"Lorem ipsum dolor sit amet 1", classes="box"),
@@ -118,7 +127,43 @@ class Application(App):
                 )
                 
             with TabPane("Ustawienia", id="settings"):
-                yield Button("Niebieski", id="blue",  variant="primary")
+                with ScrollableContainer():
+                    with Collapsible(title="Ogólne", collapsed=True):
+                        with Horizontal():
+                            yield Button("Czerwony",  id="red",   variant="error")
+                            yield Button("Żółty",     id="yellow",variant="warning")
+                            yield Button("Zielony",   id="green", variant="success")
+                            yield Button("Niebieski", id="blue",  variant="primary")
+                            yield Button("Czarny",    id="black", variant="default")
+                            # yield Button("Czerwony",  id="red2",   variant="error")
+                            # yield Button("Żółty",     id="yellow2",variant="warning")
+                            # yield Button("Zielony",   id="green2", variant="success")
+                            # yield Button("Niebieski", id="blue2",  variant="primary")
+                            # yield Button("Czarny",    id="black2", variant="default")
+                    with Collapsible(title="Aaaaaaaaaaaa", collapsed=True):
+                        with HorizontalGroup():
+                            yield Button("Czerwony",  id="red",   variant="error")
+                            yield Button("Żółty",     id="yellow",variant="warning")
+                            yield Button("Zielony",   id="green", variant="success")
+                            yield Button("Niebieski", id="blue",  variant="primary")
+                            yield Button("Czarny",    id="black", variant="default")
+                            yield Button("Czerwony",  id="red2",   variant="error")
+                            yield Button("Żółty",     id="yellow2",variant="warning")
+                            yield Button("Zielony",   id="green2", variant="success")
+                            yield Button("Niebieski", id="blue2",  variant="primary")
+                            yield Button("Czarny",    id="black2", variant="default")
+                    with Collapsible(title="Kolejna karta", collapsed=True):
+                        with HorizontalScroll():
+                            yield Button("Czerwony",  id="red",   variant="error")
+                            yield Button("Żółty",     id="yellow",variant="warning")
+                            yield Button("Zielony",   id="green", variant="success")
+                            yield Button("Niebieski", id="blue",  variant="primary")
+                            yield Button("Czarny",    id="black", variant="default")
+                            yield Button("Czerwony",  id="red2",   variant="error")
+                            yield Button("Żółty",     id="yellow2",variant="warning")
+                            yield Button("Zielony",   id="green2", variant="success")
+                            yield Button("Niebieski", id="blue2",  variant="primary")
+                            yield Button("Czarny",    id="black2", variant="default")
 
         yield Footer()
         

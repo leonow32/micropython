@@ -45,3 +45,9 @@ VerticalScroll {
 Markdown {
     # background: yellow;
 }
+
+Digits {
+    width: auto;
+    padding: 0 2 0 2;
+    border: round $warning;
+}
