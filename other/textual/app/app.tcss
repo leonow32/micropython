@@ -1,3 +1,6 @@
+# $primary: #FFFF00;
+# $warning: #FF0000;
+
 # Kreskowanie tła aplikacji
 Screen:first-child {
     # hatch: right $surface-lighten-2;
@@ -50,4 +53,10 @@ Digits {
     width: auto;
     padding: 0 2 0 2;
     border: round $warning;
+}
+
+Switch {
+    &.-on .switch--slider {
+        color: $warning;
+    }
 }

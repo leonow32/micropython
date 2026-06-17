@@ -4,7 +4,7 @@ from textual.binding import Binding
 from textual.containers import Horizontal, HorizontalGroup, HorizontalScroll, Vertical, VerticalScroll, Middle, Center, ScrollableContainer, Center, Right
 from textual.reactive import Reactive
 from textual.screen import ModalScreen
-from textual.widgets import Button, Collapsible, Digits, Footer, Header, Label, Markdown, Static, Tabs, TabbedContent, TabPane, TextArea
+from textual.widgets import Button, Collapsible, Digits, Footer, Header, Label, Markdown, Static, Switch, Tabs, TabbedContent, TabPane, TextArea
 
 from my_widgets.confirm_exit import ConfirmExit
 
@@ -71,6 +71,11 @@ class Application(App):
 
         with TabbedContent(): # initial="buttons"
 
+            with TabPane("Switches", id="switches"):
+                yield Switch(value=True,  name="Nazwa", id="switch1")
+                yield Switch(value=False, name="Nazwa", id="switch2")
+                yield Button("Odczytaj stan switchy", id="read_switch",variant="warning")
+            
             with TabPane("Markdown", id="markdown"):
                 with VerticalScroll():
                     yield Markdown(EXAMPLE_MARKDOWN)
@@ -114,8 +119,6 @@ class Application(App):
                 yield Button("Zielony",   id="green", variant="success")
                 yield Button("Niebieski", id="blue",  variant="primary")
                 yield Button("Czarny",    id="black", variant="default")
-            
-            
             
             with TabPane("Lorem Ipsum", id="lorem"):
                 yield ScrollableContainer(
@@ -185,6 +188,17 @@ class Application(App):
 
     def action_confirm_exit(self):
         self.push_screen(ConfirmExit())
+
+    @on(Switch.Changed, "#switch1")
+    def switch1_changed(self):
+        switch = self.query_one("#switch1")
+        self.notify(f"Switch1 changed, value={switch.value}")
+    
+    @on(Button.Pressed, "#read_switch")
+    def read_switch(self):
+        switch1 = self.query_one("#switch1").value
+        switch2 = self.query_one("#switch2").value
+        self.notify(f"switch1={switch1}, switch2={switch2}")
 
     @on(Button.Pressed, "#red")
     def button_red(self):
